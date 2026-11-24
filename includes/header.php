@@ -26,6 +26,8 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title><?= isset($page_title) ? sanitize($page_title) . ' — ' : '' ?><?= sanitize($appName) ?></title>
+  <?php $faviconUrl = $appLogo ?: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236558f5'/%3E%3Cpath d='M10 10h12v2H10zm0 5h12v2H10zm0 5h8v2h-8z' fill='white'/%3E%3C/svg%3E"; ?>
+  <link rel="icon" href="<?= $faviconUrl ?>" />
   
   <!-- Prevent FOUC (Flash of Unstyled Theme) -->
   <script>
@@ -117,21 +119,21 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
       <div class="sidebar-body">
         <div class="flex flex-col items-center gap-2 w-full overflow-y-auto no-scrollbar py-1">
           <!-- 1. Dashboard -->
-          <a href="<?= BASE_URL ?>dashboard.php" 
+          <a href="<?= BASE_URL ?>dashboard" 
              class="sidebar-btn group relative w-10 h-10 rounded-[14px] flex items-center justify-center transition-all duration-200 shrink-0 <?= $current_page === 'dashboard' ? 'bg-white text-[#6558f5] shadow-md scale-105' : 'text-white/80 hover:text-white hover:bg-white/15 hover:scale-105' ?>">
             <i class="ph-fill ph-squares-four text-lg"></i>
             <span class="sidebar-tooltip">Dashboard Overview</span>
           </a>
 
           <!-- 2. Buat Serah Terima Baru -->
-          <a href="<?= BASE_URL ?>laporan/create.php" 
+          <a href="<?= BASE_URL ?>laporan/create" 
              class="sidebar-btn group relative w-10 h-10 rounded-[14px] flex items-center justify-center transition-all duration-200 shrink-0 <?= $current_page === 'laporan_create' ? 'bg-white text-[#6558f5] shadow-md scale-105' : 'text-white/80 hover:text-white hover:bg-white/15 hover:scale-105' ?>">
             <i class="ph-fill ph-file-plus text-lg"></i>
             <span class="sidebar-tooltip">Buat Serah Terima Baru</span>
           </a>
 
           <!-- 3. Riwayat Laporan (with active SHIFT pill badge) -->
-          <a href="<?= BASE_URL ?>laporan/index.php" 
+          <a href="<?= BASE_URL ?>laporan/index" 
              class="sidebar-btn group relative w-10 h-10 rounded-[14px] flex items-center justify-center transition-all duration-200 shrink-0 <?= $current_page === 'laporan_list' ? 'bg-white text-[#6558f5] shadow-md scale-105' : 'text-white/80 hover:text-white hover:bg-white/15 hover:scale-105' ?>">
             <i class="ph-fill ph-folders text-lg"></i>
             <span class="absolute -right-2.5 top-2.5 bg-[#68cfa3] text-[#181b2c] text-[7px] font-extrabold px-1.5 py-[1px] rounded-full shadow-sm tracking-tighter">SHIFT</span>
@@ -139,7 +141,7 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
           </a>
 
           <!-- 4. Rekap Harian (Logbook) -->
-          <a href="<?= BASE_URL ?>rekap/index.php" 
+          <a href="<?= BASE_URL ?>rekap/index" 
              class="sidebar-btn group relative w-10 h-10 rounded-[14px] flex items-center justify-center transition-all duration-200 shrink-0 <?= $current_page === 'rekap' ? 'bg-white text-[#6558f5] shadow-md scale-105' : 'text-white/80 hover:text-white hover:bg-white/15 hover:scale-105' ?>">
             <i class="ph-fill ph-calendar-check text-lg"></i>
             <span class="sidebar-tooltip">Rekap Logbook</span>
@@ -150,28 +152,28 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
 
             <!-- 5. Master Operasional (Shift, Lokasi, Kondisi) -->
             <?php $is_master_ops = in_array($current_page, ['master_shift', 'master_lokasi', 'master_kondisi']); ?>
-            <a href="<?= BASE_URL ?>master/shift.php" 
+            <a href="<?= BASE_URL ?>master/shift" 
                class="sidebar-btn group relative w-10 h-10 rounded-[14px] flex items-center justify-center transition-all duration-200 shrink-0 <?= $is_master_ops ? 'bg-white text-[#6558f5] shadow-md scale-105' : 'text-white/80 hover:text-white hover:bg-white/15 hover:scale-105' ?>">
               <i class="ph-fill ph-sliders-horizontal text-lg"></i>
               <span class="sidebar-tooltip">Master Operasional (Shift, Lokasi, Kondisi)</span>
             </a>
 
             <!-- 7. Kelola Pengguna -->
-            <a href="<?= BASE_URL ?>master/users.php" 
+            <a href="<?= BASE_URL ?>master/users" 
                class="sidebar-btn group relative w-10 h-10 rounded-[14px] flex items-center justify-center transition-all duration-200 shrink-0 <?= $current_page === 'master_users' ? 'bg-white text-[#6558f5] shadow-md scale-105' : 'text-white/80 hover:text-white hover:bg-white/15 hover:scale-105' ?>">
               <i class="ph-fill ph-users-three text-lg"></i>
               <span class="sidebar-tooltip">Kelola Pengguna Sistem</span>
             </a>
 
             <!-- 8. Pengaturan & Logo -->
-            <a href="<?= BASE_URL ?>master/pengaturan.php" 
+            <a href="<?= BASE_URL ?>master/pengaturan" 
                class="sidebar-btn group relative w-10 h-10 rounded-[14px] flex items-center justify-center transition-all duration-200 shrink-0 <?= $current_page === 'master_pengaturan' ? 'bg-white text-[#6558f5] shadow-md scale-105' : 'text-white/80 hover:text-white hover:bg-white/15 hover:scale-105' ?>">
               <i class="ph-fill ph-gear text-lg"></i>
               <span class="sidebar-tooltip">Pengaturan Sistem &amp; Logo</span>
             </a>
 
             <!-- 9. Backup & Disaster Recovery -->
-            <a href="<?= BASE_URL ?>master/backup.php" 
+            <a href="<?= BASE_URL ?>master/backup" 
                class="sidebar-btn group relative w-10 h-10 rounded-[14px] flex items-center justify-center transition-all duration-200 shrink-0 <?= $current_page === 'master_backup' ? 'bg-white text-[#6558f5] shadow-md scale-105' : 'text-white/80 hover:text-white hover:bg-white/15 hover:scale-105' ?>">
               <i class="ph-fill ph-database text-lg"></i>
               <span class="sidebar-tooltip">Pusat Backup &amp; Pemulihan Sistem</span>
@@ -181,7 +183,7 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
           <div class="w-6 h-[1px] bg-white/20 my-1 shrink-0"></div>
 
           <!-- 8. Profil & Keamanan Akun -->
-          <a href="<?= BASE_URL ?>profile.php" 
+          <a href="<?= BASE_URL ?>profile" 
              class="sidebar-btn group relative w-10 h-10 rounded-[14px] flex items-center justify-center transition-all duration-200 shrink-0 <?= $current_page === 'profile' ? 'bg-white text-[#6558f5] shadow-md scale-105' : 'text-white/80 hover:text-white hover:bg-white/15 hover:scale-105' ?>">
             <i class="ph-fill ph-user-circle text-lg"></i>
             <span class="sidebar-tooltip">Profil Saya</span>
@@ -213,10 +215,10 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
         </button>
 
         <!-- Brand Logo & App Name -->
-        <a href="<?= BASE_URL ?>dashboard.php" class="flex items-center gap-2 sm:gap-2.5 group min-w-0">
-          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-[#6558f5] text-white flex items-center justify-center shadow-md overflow-hidden p-1.5 group-hover:scale-105 transition-transform shrink-0">
+        <a href="<?= BASE_URL ?>dashboard" class="flex items-center gap-2 sm:gap-2.5 group min-w-0">
+          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl <?= $appLogo ? 'bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-1.5' : 'bg-[#6558f5] text-white p-1.5' ?> flex items-center justify-center shadow-md overflow-hidden group-hover:scale-105 transition-transform shrink-0">
             <?php if ($appLogo): ?>
-              <img src="<?= $appLogo ?>" alt="Logo" class="max-w-full max-h-full object-contain" />
+              <img src="<?= $appLogo ?>" alt="Logo" class="w-full h-full object-contain" />
             <?php else: ?>
               <i class="ph-fill ph-clipboard-text text-lg sm:text-xl"></i>
             <?php endif; ?>
@@ -283,7 +285,7 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
         </div>
 
         <!-- Notification Bell with Ping Indicator -->
-        <a href="<?= BASE_URL ?>laporan/index.php?status=MENUNGGU+VALIDASI" 
+        <a href="<?= BASE_URL ?>laporan/index?status=MENUNGGU+VALIDASI" 
            class="relative w-8 h-8 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors shrink-0" 
            title="Notifikasi & Validasi">
           <i class="ph ph-bell text-[17px]"></i>
@@ -292,7 +294,7 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
         </a>
 
         <!-- Quick Action "+ Buat Serah Terima" Button (Desktop Only) -->
-        <a href="<?= BASE_URL ?>laporan/create.php"
+        <a href="<?= BASE_URL ?>laporan/create"
            class="hidden sm:flex bg-[#181b2c] dark:bg-[#6558f5] hover:bg-[#272b42] dark:hover:bg-[#5446e8] text-white px-3.5 sm:px-4 py-2 rounded-full text-[11px] sm:text-[11.5px] font-extrabold shadow-sm hover:shadow-md transition-all active:scale-95 items-center gap-1.5 whitespace-nowrap">
           <i class="ph-bold ph-plus text-xs"></i>
           <span>Buat Serah Terima</span>
@@ -300,7 +302,7 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
 
         <!-- User Profile Pill -->
         <div class="flex items-center gap-1.5 pl-1.5 sm:pl-2 border-l border-slate-200 dark:border-slate-800 shrink-0">
-          <a href="<?= BASE_URL ?>profile.php" class="flex items-center gap-2 group hover:opacity-90 transition" title="Pengaturan Profil Saya">
+          <a href="<?= BASE_URL ?>profile" class="flex items-center gap-2 group hover:opacity-90 transition" title="Pengaturan Profil Saya">
             <div class="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-[#6558f5]/30 group-hover:ring-[#6558f5] transition-all bg-gradient-to-tr from-[#6558f5] to-indigo-400 text-white flex items-center justify-center font-black text-xs shadow-sm">
               <?php $hdrAvatar = get_user_avatar_url($user['foto'] ?? null); ?>
               <?php if ($hdrAvatar): ?>
@@ -320,12 +322,12 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
           </a>
 
           <!-- Quick Action to Profile (Desktop only) -->
-          <a href="<?= BASE_URL ?>profile.php" class="hidden sm:flex w-7 h-7 rounded-full items-center justify-center text-slate-400 hover:text-[#6558f5] hover:bg-[#efeffb] dark:hover:bg-slate-800 transition" title="Pengaturan Profil">
+          <a href="<?= BASE_URL ?>profile" class="hidden sm:flex w-7 h-7 rounded-full items-center justify-center text-slate-400 hover:text-[#6558f5] hover:bg-[#efeffb] dark:hover:bg-slate-800 transition" title="Pengaturan Profil">
             <i class="ph-bold ph-user-gear text-sm"></i>
           </a>
 
           <!-- Logout Button (Desktop only) -->
-          <a href="<?= BASE_URL ?>auth/logout.php" onclick="return confirm('Apakah Anda ingin keluar dari sistem?')" class="hidden sm:flex w-7 h-7 rounded-full items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition" title="Logout">
+          <a href="<?= BASE_URL ?>auth/logout" onclick="return confirm('Apakah Anda ingin keluar dari sistem?')" class="hidden sm:flex w-7 h-7 rounded-full items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition" title="Logout">
             <i class="ph-bold ph-sign-out text-sm"></i>
           </a>
         </div>

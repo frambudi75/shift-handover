@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 notify_handover_approved($laporan_id, $pdo);
 
                 flash_set('success', "Approval berhasil! Laporan {$report['nomor_laporan']} telah disahkan dan tervalidasi.");
-                header('Location: ' . BASE_URL . 'laporan/detail.php?id=' . $laporan_id);
+                header('Location: ' . BASE_URL . 'laporan/detail?id=' . $laporan_id);
                 exit;
             } else {
                 flash_set('error', 'Anda tidak memiliki wewenang untuk menyetujui laporan ini.');
@@ -82,5 +82,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-header('Location: ' . BASE_URL . 'laporan/index.php');
+header('Location: ' . BASE_URL . 'laporan/index');
 exit;

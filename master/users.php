@@ -296,7 +296,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($_GET['search'])) $redirectParams['search'] = $_GET['search'];
     if (!empty($_GET['role'])) $redirectParams['role'] = $_GET['role'];
     if (!empty($_GET['status'])) $redirectParams['status'] = $_GET['status'];
-    $redirectUrl = BASE_URL . 'master/users.php' . (!empty($redirectParams) ? '?' . http_build_query($redirectParams) : '');
+    $redirectUrl = BASE_URL . 'master/users' . (!empty($redirectParams) ? '?' . http_build_query($redirectParams) : '');
 
     header('Location: ' . $redirectUrl);
     exit;
@@ -564,7 +564,7 @@ require_once __DIR__ . '/../includes/header.php';
 
           <!-- Reset Filter Button if active -->
           <?php if ($search !== '' || $filterRole !== '' || $filterStatus !== '' || $perPage !== 10): ?>
-            <a href="users.php" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold text-xs transition flex items-center gap-1" title="Reset Filter">
+            <a href="users" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold text-xs transition flex items-center gap-1" title="Reset Filter">
               <i class="ph-bold ph-x text-xs"></i>
               <span>Reset</span>
             </a>
@@ -592,7 +592,7 @@ require_once __DIR__ . '/../includes/header.php';
                   <div class="flex flex-col items-center justify-center gap-2">
                     <i class="ph-thin ph-users text-4xl text-slate-300 dark:text-slate-600"></i>
                     <p class="text-xs font-semibold">Tidak ada pengguna yang sesuai dengan filter pencarian.</p>
-                    <a href="users.php" class="text-xs text-[#6558f5] hover:underline font-bold mt-1">Reset Filter</a>
+                    <a href="users" class="text-xs text-[#6558f5] hover:underline font-bold mt-1">Reset Filter</a>
                   </div>
                 </td>
               </tr>

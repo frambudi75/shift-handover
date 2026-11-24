@@ -57,7 +57,7 @@ function get_whatsapp_url(?string $phone, string $message): string {
  */
 function build_handover_whatsapp_message(array $report, array $tasks): string {
     $appName = get_app_name();
-    $docUrl  = get_full_web_url("laporan/detail.php?id=" . ($report['id'] ?? 0));
+    $docUrl  = get_full_web_url("laporan/detail?id=" . ($report['id'] ?? 0));
     $tglFmt  = format_tanggal($report['tanggal'] ?? null);
     $jamFmt  = format_jam($report['jam_serah_terima'] ?? null);
     $kondisi = $report['kondisi_operasional'] ?? 'Normal';
@@ -389,7 +389,7 @@ function notify_handover_created(int $laporanId, PDO $pdo): array {
     }
 
     $appName = get_app_name();
-    $docUrl = BASE_URL . "laporan/detail.php?id={$rep['id']}";
+    $docUrl = BASE_URL . "laporan/detail?id={$rep['id']}";
     $tanggalFmt = format_tanggal($rep['tanggal']);
     $jamFmt = format_jam($rep['jam_serah_terima']);
 
@@ -496,7 +496,7 @@ function notify_handover_approved(int $laporanId, PDO $pdo): array {
     }
 
     $appName = get_app_name();
-    $docUrl = get_full_web_url("laporan/detail.php?id={$rep['id']}");
+    $docUrl = get_full_web_url("laporan/detail?id={$rep['id']}");
     $tanggalFmt = format_tanggal($rep['tanggal']);
     $divider = "─────────────────────────────";
 

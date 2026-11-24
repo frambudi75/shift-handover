@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             flash_set('success', 'Informasi profil berhasil diperbarui.');
         }
-        header('Location: ' . BASE_URL . 'profile.php');
+        header('Location: ' . BASE_URL . 'profile');
         exit;
     }
 
@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 flash_set('error', 'Gagal memproses foto. Pastikan format JPG, PNG, atau WebP.');
             }
         }
-        header('Location: ' . BASE_URL . 'profile.php');
+        header('Location: ' . BASE_URL . 'profile');
         exit;
     }
 
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['foto'] = null;
 
         flash_set('success', 'Foto profil berhasil dihapus.');
-        header('Location: ' . BASE_URL . 'profile.php');
+        header('Location: ' . BASE_URL . 'profile');
         exit;
     }
 
@@ -131,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 flash_set('success', 'Metode tanda tangan diatur ke Gores Canvas.');
             }
         }
-        header('Location: ' . BASE_URL . 'profile.php');
+        header('Location: ' . BASE_URL . 'profile');
         exit;
     }
 
@@ -144,7 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['ttd_file'] = null;
         $_SESSION['ttd_type'] = 'barcode';
         flash_set('success', 'Tanda tangan berkas berhasil dihapus dan dikembalikan ke Barcode QR.');
-        header('Location: ' . BASE_URL . 'profile.php');
+        header('Location: ' . BASE_URL . 'profile');
         exit;
     }
 
@@ -170,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             flash_set('success', 'Kata sandi Anda berhasil diperbarui.');
         }
-        header('Location: ' . BASE_URL . 'profile.php');
+        header('Location: ' . BASE_URL . 'profile');
         exit;
     }
 }
@@ -207,7 +207,7 @@ require_once __DIR__ . '/includes/header.php';
       </p>
     </div>
 
-    <a href="<?= BASE_URL ?>dashboard.php" 
+    <a href="<?= BASE_URL ?>dashboard" 
        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-[#181b2c] border border-slate-200 dark:border-slate-800 hover:border-[#6558f5] hover:text-[#6558f5] transition self-start sm:self-auto shadow-sm">
       <i class="ph-bold ph-arrow-left"></i>
       <span>Kembali ke Dashboard</span>
@@ -248,7 +248,7 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <!-- Hidden form auto-submitted on image select -->
-        <form id="avatar-form" action="<?= BASE_URL ?>profile.php" method="POST" enctype="multipart/form-data" class="hidden">
+        <form id="avatar-form" action="<?= BASE_URL ?>profile" method="POST" enctype="multipart/form-data" class="hidden">
           <input type="hidden" name="action" value="upload_photo">
           <input type="file" id="avatar-file-input" name="foto" accept="image/jpeg,image/png,image/webp" onchange="handleAvatarSelected(this)">
         </form>
@@ -277,7 +277,7 @@ require_once __DIR__ . '/includes/header.php';
           </button>
 
           <?php if ($avatarUrl): ?>
-            <form action="<?= BASE_URL ?>profile.php" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus foto profil?')">
+            <form action="<?= BASE_URL ?>profile" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus foto profil?')">
               <input type="hidden" name="action" value="delete_photo">
               <button type="submit" 
                       class="w-full py-1.5 px-3 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-[11px] font-bold transition flex items-center justify-center gap-1.5">
@@ -355,7 +355,7 @@ require_once __DIR__ . '/includes/header.php';
           </div>
         </div>
 
-        <form action="<?= BASE_URL ?>profile.php" method="POST" class="space-y-4">
+        <form action="<?= BASE_URL ?>profile" method="POST" class="space-y-4">
           <input type="hidden" name="action" value="update_profile">
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -450,7 +450,7 @@ require_once __DIR__ . '/includes/header.php';
           </span>
         </div>
 
-        <form id="form-signature" action="<?= BASE_URL ?>profile.php" method="POST" enctype="multipart/form-data" class="space-y-4">
+        <form id="form-signature" action="<?= BASE_URL ?>profile" method="POST" enctype="multipart/form-data" class="space-y-4">
           <input type="hidden" name="action" value="update_signature">
           <input type="hidden" name="ttd_type" id="profile_ttd_type" value="<?= sanitize($userSigType) ?>">
           <input type="hidden" name="ttd_canvas_data" id="profile_ttd_canvas_data">
@@ -583,7 +583,7 @@ require_once __DIR__ . '/includes/header.php';
         </form>
 
         <!-- Hidden delete signature form -->
-        <form id="form-del-signature" action="<?= BASE_URL ?>profile.php" method="POST" class="hidden" onsubmit="return confirm('Hapus berkas tanda tangan tersimpan dan kembalikan ke Barcode QR?')">
+        <form id="form-del-signature" action="<?= BASE_URL ?>profile" method="POST" class="hidden" onsubmit="return confirm('Hapus berkas tanda tangan tersimpan dan kembalikan ke Barcode QR?')">
           <input type="hidden" name="action" value="delete_signature">
         </form>
       </div>
@@ -600,7 +600,7 @@ require_once __DIR__ . '/includes/header.php';
           </div>
         </div>
 
-        <form action="<?= BASE_URL ?>profile.php" method="POST" class="space-y-4">
+        <form action="<?= BASE_URL ?>profile" method="POST" class="space-y-4">
           <input type="hidden" name="action" value="change_password">
 
           <div>

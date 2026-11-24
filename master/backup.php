@@ -29,7 +29,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'download') {
         exit;
     } else {
         flash_set('error', 'File cadangan yang diminta tidak ditemukan atau telah dihapus.');
-        header('Location: ' . BASE_URL . 'master/backup.php');
+        header('Location: ' . BASE_URL . 'master/backup');
         exit;
     }
 }
@@ -150,7 +150,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         flash_set('success', '⚡ Seluruh Redis & Memory Cache berhasil dikosongkan.');
     }
 
-    header('Location: ' . BASE_URL . 'master/backup.php');
+    header('Location: ' . BASE_URL . 'master/backup');
     exit;
 }
 
@@ -908,7 +908,7 @@ require_once __DIR__ . '/../includes/header.php';
           <span>3. Webhook / URL Cron (Eksternal UptimeBot / EasyCron):</span>
         </h4>
         <div class="p-3 rounded-xl bg-slate-900 text-amber-300 font-mono text-[10.5px] select-all break-all leading-relaxed">
-          <?= BASE_URL ?>cron/auto_optimize.php?token=<?= $cronSecretKey ?>
+          <?= BASE_URL ?>cron/auto_optimize?token=<?= $cronSecretKey ?>
         </div>
       </div>
 

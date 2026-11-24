@@ -57,7 +57,7 @@ function is_admin(): bool {
 function require_login(): void {
     if (!is_logged_in()) {
         $_SESSION['flash_error'] = 'Silakan masuk terlebih dahulu untuk mengakses sistem.';
-        header('Location: ' . BASE_URL . 'auth/login.php');
+        header('Location: ' . BASE_URL . 'auth/login');
         exit;
     }
 }
@@ -66,7 +66,7 @@ function require_admin(): void {
     require_login();
     if (!is_admin()) {
         $_SESSION['flash_error'] = 'Akses ditolak. Fitur ini membutuhkan hak akses Administrator atau Superadmin.';
-        header('Location: ' . BASE_URL . 'dashboard.php');
+        header('Location: ' . BASE_URL . 'dashboard');
         exit;
     }
 }
@@ -75,7 +75,7 @@ function require_superadmin(): void {
     require_login();
     if (!is_superadmin()) {
         $_SESSION['flash_error'] = 'Akses ditolak. Halaman ini hanya untuk Super Administrator.';
-        header('Location: ' . BASE_URL . 'dashboard.php');
+        header('Location: ' . BASE_URL . 'dashboard');
         exit;
     }
 }

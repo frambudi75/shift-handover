@@ -97,6 +97,14 @@ function compress_and_save_image(string $sourcePath, string $destPath, int $qual
         return copy($sourcePath, $destPath);
     }
 
+    if (in_array($mime, ['image/png', 'image/webp'])) {
+        if (function_exists('imagepalettetotruecolor')) {
+            @imagepalettetotruecolor($image);
+        }
+        imagealphablending($image, false);
+        imagesavealpha($image, true);
+    }
+
     // Auto-rotate if EXIF orientation exists
     if (function_exists('exif_read_data') && ($mime === 'image/jpeg')) {
         $exif = @exif_read_data($sourcePath);
@@ -127,9 +135,11 @@ function compress_and_save_image(string $sourcePath, string $destPath, int $qual
         $newH = (int)round(($origH / $origW) * $newW);
         $resized = imagecreatetruecolor($newW, $newH);
 
-        if ($mime === 'image/png') {
+        if (in_array($mime, ['image/png', 'image/webp'])) {
             imagealphablending($resized, false);
             imagesavealpha($resized, true);
+            $transparent = imagecolorallocatealpha($resized, 0, 0, 0, 127);
+            imagefilledrectangle($resized, 0, 0, $newW, $newH, $transparent);
         }
 
         imagecopyresampled($resized, $image, 0, 0, 0, 0, $newW, $newH, $origW, $origH);
@@ -137,11 +147,13 @@ function compress_and_save_image(string $sourcePath, string $destPath, int $qual
         $image = $resized;
     }
 
-    // Save as compressed JPG/PNG
+    // Save as compressed JPG/PNG/WEBP
     $saved = false;
     if ($mime === 'image/png') {
         $pngQuality = (int)round((100 - $quality) / 10);
         $saved = @imagepng($image, $destPath, max(0, min(9, $pngQuality)));
+    } elseif ($mime === 'image/webp' && function_exists('imagewebp')) {
+        $saved = @imagewebp($image, $destPath, max(30, min(100, $quality)));
     } else {
         $saved = @imagejpeg($image, $destPath, max(30, min(100, $quality)));
     }

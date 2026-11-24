@@ -46,19 +46,19 @@
 
           <!-- Navigation Links -->
           <nav class="space-y-1.5 font-bold text-xs">
-            <a href="<?= BASE_URL ?>dashboard.php" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'dashboard' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
+            <a href="<?= BASE_URL ?>dashboard" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'dashboard' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
               <i class="ph-fill ph-squares-four text-lg"></i>
               <span>Dashboard Overview</span>
             </a>
-            <a href="<?= BASE_URL ?>laporan/create.php" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'laporan_create' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
+            <a href="<?= BASE_URL ?>laporan/create" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'laporan_create' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
               <i class="ph-fill ph-file-plus text-lg"></i>
               <span>Buat Serah Terima</span>
             </a>
-            <a href="<?= BASE_URL ?>laporan/index.php" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'laporan_list' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
+            <a href="<?= BASE_URL ?>laporan/index" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'laporan_list' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
               <i class="ph-fill ph-folders text-lg"></i>
               <span>Riwayat Laporan Shift</span>
             </a>
-            <a href="<?= BASE_URL ?>rekap/index.php" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'rekap' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
+            <a href="<?= BASE_URL ?>rekap/index" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'rekap' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
               <i class="ph-fill ph-calendar-check text-lg"></i>
               <span>Rekap Harian Logbook</span>
             </a>
@@ -67,19 +67,19 @@
               <div class="pt-3 pb-1 border-t border-white/20 mt-3">
                 <span class="text-[10px] uppercase tracking-wider text-white/60 px-4">Menu Administrator</span>
               </div>
-              <a href="<?= BASE_URL ?>master/shift.php" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= in_array($current_page, ['master_shift', 'master_lokasi', 'master_kondisi']) ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
+              <a href="<?= BASE_URL ?>master/shift" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= in_array($current_page, ['master_shift', 'master_lokasi', 'master_kondisi']) ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
                 <i class="ph-fill ph-sliders-horizontal text-lg"></i>
                 <span>Master Operasional (Shift, Lokasi, Kondisi)</span>
               </a>
-              <a href="<?= BASE_URL ?>master/users.php" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'master_users' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
+              <a href="<?= BASE_URL ?>master/users" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'master_users' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
                 <i class="ph-fill ph-users-three text-lg"></i>
                 <span>Kelola Pengguna Sistem</span>
               </a>
-              <a href="<?= BASE_URL ?>master/pengaturan.php" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'master_pengaturan' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
+              <a href="<?= BASE_URL ?>master/pengaturan" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'master_pengaturan' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
                 <i class="ph-fill ph-gear text-lg"></i>
                 <span>Pengaturan &amp; Logo</span>
               </a>
-              <a href="<?= BASE_URL ?>master/backup.php" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'master_backup' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
+              <a href="<?= BASE_URL ?>master/backup" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'master_backup' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
                 <i class="ph-fill ph-database text-lg"></i>
                 <span>Pusat Backup &amp; Pemulihan</span>
               </a>
@@ -88,7 +88,7 @@
             <div class="pt-3 pb-1 border-t border-white/20 mt-3">
               <span class="text-[10px] uppercase tracking-wider text-white/60 px-4">Akun &amp; Keamanan</span>
             </div>
-            <a href="<?= BASE_URL ?>profile.php" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'profile' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
+            <a href="<?= BASE_URL ?>profile" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'profile' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
               <i class="ph-fill ph-user-circle text-lg"></i>
               <span>Profil &amp; Kata Sandi</span>
             </a>
@@ -98,7 +98,7 @@
         <!-- Footer Drawer Profile & Logout -->
         <div class="pt-6 border-t border-white/20">
           <div class="flex items-center justify-between">
-            <a href="<?= BASE_URL ?>profile.php" class="flex items-center gap-2.5">
+            <a href="<?= BASE_URL ?>profile" class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-full overflow-hidden bg-white/20 flex items-center justify-center font-bold text-xs">
                 <?php $mobAvatar = get_user_avatar_url($user['foto'] ?? null); ?>
                 <?php if ($mobAvatar): ?>
@@ -112,7 +112,7 @@
                 <p class="text-[10px] text-white/70 uppercase font-bold"><?= $user['role'] ?? 'USER' ?></p>
               </div>
             </a>
-            <a href="<?= BASE_URL ?>auth/logout.php" onclick="return confirm('Keluar dari sistem?')" class="p-2 rounded-xl bg-white/15 hover:bg-white/25 text-rose-200" title="Keluar">
+            <a href="<?= BASE_URL ?>auth/logout" onclick="return confirm('Keluar dari sistem?')" class="p-2 rounded-xl bg-white/15 hover:bg-white/25 text-rose-200" title="Keluar">
               <i class="ph-bold ph-sign-out text-lg"></i>
             </a>
           </div>
@@ -122,16 +122,16 @@
 
     <!-- Mobile bottom navigation -->
     <div class="md:hidden fixed bottom-3 left-4 right-4 z-40 bg-[#6558f5] text-white rounded-2xl px-4 py-2.5 shadow-xl flex items-center justify-around border border-white/20 backdrop-blur-md">
-      <a href="<?= BASE_URL ?>dashboard.php" class="p-2 rounded-xl <?= $current_page === 'dashboard' ? 'bg-white text-[#6558f5] shadow-md' : 'hover:bg-white/10' ?>">
+      <a href="<?= BASE_URL ?>dashboard" class="p-2 rounded-xl <?= $current_page === 'dashboard' ? 'bg-white text-[#6558f5] shadow-md' : 'hover:bg-white/10' ?>">
         <i class="ph-fill ph-squares-four text-lg"></i>
       </a>
-      <a href="<?= BASE_URL ?>laporan/create.php" class="p-2 rounded-xl <?= $current_page === 'laporan_create' ? 'bg-white text-[#6558f5] shadow-md' : 'hover:bg-white/10' ?>">
+      <a href="<?= BASE_URL ?>laporan/create" class="p-2 rounded-xl <?= $current_page === 'laporan_create' ? 'bg-white text-[#6558f5] shadow-md' : 'hover:bg-white/10' ?>">
         <i class="ph-fill ph-file-plus text-lg"></i>
       </a>
-      <a href="<?= BASE_URL ?>laporan/index.php" class="p-2 rounded-xl <?= $current_page === 'laporan_list' ? 'bg-white text-[#6558f5] shadow-md' : 'hover:bg-white/10' ?>">
+      <a href="<?= BASE_URL ?>laporan/index" class="p-2 rounded-xl <?= $current_page === 'laporan_list' ? 'bg-white text-[#6558f5] shadow-md' : 'hover:bg-white/10' ?>">
         <i class="ph-fill ph-folders text-lg"></i>
       </a>
-      <a href="<?= BASE_URL ?>rekap/index.php" class="p-2 rounded-xl <?= $current_page === 'rekap' ? 'bg-white text-[#6558f5] shadow-md' : 'hover:bg-white/10' ?>">
+      <a href="<?= BASE_URL ?>rekap/index" class="p-2 rounded-xl <?= $current_page === 'rekap' ? 'bg-white text-[#6558f5] shadow-md' : 'hover:bg-white/10' ?>">
         <i class="ph-fill ph-calendar-check text-lg"></i>
       </a>
       <button onclick="toggleMobileMenu()" type="button" class="p-2 rounded-xl hover:bg-white/10">
@@ -256,11 +256,11 @@
           Pencarian Pintar
         </div>
         <div class="p-2 space-y-1">
-          <a href="<?= BASE_URL ?>laporan/index.php?q=${encodeURIComponent(q)}" class="flex items-center gap-2 p-2 rounded-xl hover:bg-[#efeffb] dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition">
+          <a href="<?= BASE_URL ?>laporan/index?q=${encodeURIComponent(q)}" class="flex items-center gap-2 p-2 rounded-xl hover:bg-[#efeffb] dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition">
             <i class="ph-bold ph-magnifying-glass text-[#6558f5]"></i>
             <span>Cari laporan dengan kata kunci "<strong>${q}</strong>"</span>
           </a>
-          <a href="<?= BASE_URL ?>laporan/create.php" class="flex items-center gap-2 p-2 rounded-xl hover:bg-[#efeffb] dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition">
+          <a href="<?= BASE_URL ?>laporan/create" class="flex items-center gap-2 p-2 rounded-xl hover:bg-[#efeffb] dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition">
             <i class="ph-bold ph-plus-circle text-[#68cfa3]"></i>
             <span>Buat serah terima shift baru</span>
           </a>

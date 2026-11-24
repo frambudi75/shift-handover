@@ -93,7 +93,7 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
         <p class="text-xs text-amber-100 mt-0.5">Harap periksa dan lakukan validasi penerimaan serah terima shift baru.</p>
       </div>
     </div>
-    <a href="<?= BASE_URL ?>laporan/index.php?status=MENUNGGU+VALIDASI" 
+    <a href="<?= BASE_URL ?>laporan/index?status=MENUNGGU+VALIDASI" 
        class="px-5 py-2.5 bg-white text-amber-800 font-extrabold text-xs rounded-xl hover:bg-amber-50 active:scale-95 transition shadow self-start sm:self-auto whitespace-nowrap">
       Periksa Sekarang
     </a>
@@ -141,7 +141,7 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
   <div class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
 
     <!-- Card 0: Dashed Lavender Quick Add Box -->
-    <a href="<?= BASE_URL ?>laporan/create.php"
+    <a href="<?= BASE_URL ?>laporan/create"
        class="dashed-lavender-box min-h-[175px] flex flex-col items-center justify-center cursor-pointer group hover:scale-[1.02] active:scale-95 transition-all duration-200 p-4"
        title="Buat Laporan Serah Terima Baru">
       <div class="w-10 h-10 rounded-[14px] bg-[#6c60f6] group-hover:bg-[#574ae2] text-white flex items-center justify-center shadow-md group-hover:rotate-90 transition-all duration-300">
@@ -152,7 +152,7 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
     </a>
 
     <!-- Card 1: Pantau Shift -->
-    <a href="<?= BASE_URL ?>laporan/index.php"
+    <a href="<?= BASE_URL ?>laporan/index"
        class="widget-card bg-white dark:bg-[#1b1e30] rounded-[24px] p-5 shadow-feature flex flex-col justify-between group border border-transparent hover:border-[#6558f5]/20 cursor-pointer">
       <div class="h-20 flex items-center justify-center">
         <svg class="w-20 h-20 float-illustration group-hover:scale-105 transition-transform" viewBox="0 0 110 100" fill="none">
@@ -172,7 +172,7 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
     </a>
 
     <!-- Card 2: Sinkron Logbook -->
-    <a href="<?= BASE_URL ?>rekap/index.php"
+    <a href="<?= BASE_URL ?>rekap/index"
        class="widget-card bg-white dark:bg-[#1b1e30] rounded-[24px] p-5 shadow-feature flex flex-col justify-between group border border-transparent hover:border-[#6558f5]/20 cursor-pointer">
       <div class="h-20 flex items-center justify-center">
         <svg class="w-20 h-20 float-illustration group-hover:scale-105 transition-transform" viewBox="0 0 110 100" fill="none">
@@ -190,7 +190,7 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
     </a>
 
     <!-- Card 3: Validasi Digital -->
-    <a href="<?= BASE_URL ?>laporan/index.php?status=MENUNGGU+VALIDASI"
+    <a href="<?= BASE_URL ?>laporan/index?status=MENUNGGU+VALIDASI"
        class="widget-card bg-white dark:bg-[#1b1e30] rounded-[24px] p-5 shadow-feature flex flex-col justify-between group border border-transparent hover:border-[#6558f5]/20 cursor-pointer">
       <div class="h-20 flex items-center justify-center">
         <svg class="w-20 h-20 float-illustration group-hover:scale-105 transition-transform" viewBox="0 0 110 100" fill="none">
@@ -247,7 +247,7 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
   </div>
 
   <!-- 3. Pekerjaan Aktif -->
-  <a href="<?= BASE_URL ?>laporan/create.php" title="Klik untuk membuka formulir shift baru dengan pekerjaan outstanding"
+  <a href="<?= BASE_URL ?>laporan/create" title="Klik untuk membuka formulir shift baru dengan pekerjaan outstanding"
      class="widget-card p-5 rounded-[24px] bg-white dark:bg-[#1b1e30] border border-slate-100 dark:border-slate-800/80 shadow-feature hover:border-blue-400/50 hover:shadow-lg transition group block">
     <div class="flex items-center justify-between">
       <span class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-blue-600 transition">Pekerjaan Aktif</span>
@@ -268,7 +268,7 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
   </a>
 
   <!-- 4. Prioritas Kritis -->
-  <a href="<?= BASE_URL ?>laporan/create.php" title="Klik untuk segera mengoperkan / menindaklanjuti pekerjaan kritis di shift baru"
+  <a href="<?= BASE_URL ?>laporan/create" title="Klik untuk segera mengoperkan / menindaklanjuti pekerjaan kritis di shift baru"
      class="widget-card p-5 rounded-[24px] bg-white dark:bg-[#1b1e30] border border-slate-100 dark:border-slate-800/80 shadow-feature hover:border-rose-400/50 hover:shadow-lg transition group block">
     <div class="flex items-center justify-between">
       <span class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-rose-600 transition">Tinggi / Kritis</span>
@@ -302,7 +302,7 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
         </h3>
         <p class="text-xs text-slate-400 mt-0.5">Daftar formulir serah terima shift operasional terbaru</p>
       </div>
-      <a href="<?= BASE_URL ?>laporan/index.php" class="text-xs font-extrabold text-[#6558f5] hover:underline flex items-center gap-1">
+      <a href="<?= BASE_URL ?>laporan/index" class="text-xs font-extrabold text-[#6558f5] hover:underline flex items-center gap-1">
         <span>Semua Laporan</span>
         <i class="ph-bold ph-arrow-right"></i>
       </a>
@@ -332,7 +332,7 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
             <?php foreach ($recentReports as $r): ?>
               <tr class="hover:bg-[#f7f7fb] dark:hover:bg-slate-800/50 transition">
                 <td class="py-3.5 px-4 font-bold">
-                  <a href="<?= BASE_URL ?>laporan/detail.php?id=<?= $r['id'] ?>" class="text-[#6558f5] hover:underline font-mono">
+                  <a href="<?= BASE_URL ?>laporan/detail?id=<?= $r['id'] ?>" class="text-[#6558f5] hover:underline font-mono">
                     <?= sanitize($r['nomor_laporan']) ?>
                   </a>
                 </td>
@@ -358,12 +358,12 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
                 </td>
                 <td class="py-3.5 px-4 text-center">
                   <div class="flex items-center justify-center gap-1.5">
-                    <a href="<?= BASE_URL ?>laporan/detail.php?id=<?= $r['id'] ?>" 
+                    <a href="<?= BASE_URL ?>laporan/detail?id=<?= $r['id'] ?>" 
                        title="Lihat Detail"
                        class="p-2 rounded-xl bg-[#f7f7fb] dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-[#efeffb] hover:text-[#6558f5] active:scale-95 transition">
                       <i class="ph-bold ph-eye text-sm"></i>
                     </a>
-                    <a href="<?= BASE_URL ?>laporan/print.php?id=<?= $r['id'] ?>" target="_blank"
+                    <a href="<?= BASE_URL ?>laporan/print?id=<?= $r['id'] ?>" target="_blank"
                        title="Cetak PDF Standar OMIT"
                        class="p-2 rounded-xl bg-[#efeffb] dark:bg-indigo-950/60 text-[#6558f5] hover:bg-[#6558f5] hover:text-white active:scale-95 transition">
                       <i class="ph-bold ph-printer text-sm"></i>
@@ -417,12 +417,12 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
               <span>Target: <strong class="text-slate-700 dark:text-slate-300"><?= sanitize($t['target_selesai'] ?: '-') ?></strong></span>
             </div>
             <div class="mt-2.5 pt-2 border-t border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-end gap-1.5">
-              <a href="<?= BASE_URL ?>laporan/detail.php?id=<?= $t['laporan_id'] ?>" 
+              <a href="<?= BASE_URL ?>laporan/detail?id=<?= $t['laporan_id'] ?>" 
                  class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-[10px] font-extrabold transition flex items-center gap-1">
                 <i class="ph-bold ph-eye"></i>
                 <span>Detail</span>
               </a>
-              <a href="<?= BASE_URL ?>laporan/create.php?carry_from=<?= $t['laporan_id'] ?>" 
+              <a href="<?= BASE_URL ?>laporan/create?carry_from=<?= $t['laporan_id'] ?>" 
                  class="px-2.5 py-1 rounded-lg bg-[#6558f5] hover:bg-[#5244e8] text-white text-[10px] font-extrabold transition flex items-center gap-1 shadow-2xs">
                 <i class="ph-bold ph-arrow-bend-down-right"></i>
                 <span>Oper ke Shift Baru</span>

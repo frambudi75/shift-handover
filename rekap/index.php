@@ -99,7 +99,7 @@ require_once __DIR__ . '/../includes/header.php';
           <i class="ph-bold ph-funnel"></i>
           <span>Terapkan Filter</span>
         </button>
-        <a href="<?= BASE_URL ?>rekap/index.php" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold" title="Reset">
+        <a href="<?= BASE_URL ?>rekap/index" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold" title="Reset">
           <i class="ph-bold ph-arrow-counter-clockwise"></i>
         </a>
       </div>
@@ -150,7 +150,7 @@ require_once __DIR__ . '/../includes/header.php';
                   </span>
                 </td>
                 <td class="py-3 px-3 font-mono font-bold text-[#6558f5] whitespace-nowrap">
-                  <a href="<?= BASE_URL ?>laporan/detail.php?id=<?= $t['laporan_id'] ?>" class="hover:underline">
+                  <a href="<?= BASE_URL ?>laporan/detail?id=<?= $t['laporan_id'] ?>" class="hover:underline">
                     <?= sanitize($t['no_tiket'] ?: 'Tugas') ?>
                   </a>
                 </td>

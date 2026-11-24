@@ -106,7 +106,7 @@ require_once __DIR__ . '/../includes/header.php';
       </p>
     </div>
     
-    <a href="<?= BASE_URL ?>laporan/create.php" 
+    <a href="<?= BASE_URL ?>laporan/create" 
        class="px-5 py-3 rounded-2xl bg-[#6558f5] hover:bg-[#5244e8] active:scale-95 text-white font-extrabold text-xs shadow-md hover:shadow-lg transition flex items-center gap-2 self-start sm:self-auto">
       <i class="ph-bold ph-plus-circle text-base"></i>
       <span>Buat Serah Terima Baru</span>
@@ -159,7 +159,7 @@ require_once __DIR__ . '/../includes/header.php';
           <i class="ph-bold ph-funnel"></i>
           <span>Filter</span>
         </button>
-        <a href="<?= BASE_URL ?>laporan/index.php" 
+        <a href="<?= BASE_URL ?>laporan/index" 
            class="py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-600 dark:text-slate-300 font-semibold text-xs transition" title="Reset Filter">
           <i class="ph-bold ph-arrow-counter-clockwise text-sm"></i>
         </a>
@@ -200,7 +200,7 @@ require_once __DIR__ . '/../includes/header.php';
             <?php foreach ($reports as $r): ?>
               <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-900/30 transition">
                 <td class="py-3.5 px-4">
-                  <a href="<?= BASE_URL ?>laporan/detail.php?id=<?= $r['id'] ?>" class="font-extrabold text-[#6558f5] hover:underline block font-mono">
+                  <a href="<?= BASE_URL ?>laporan/detail?id=<?= $r['id'] ?>" class="font-extrabold text-[#6558f5] hover:underline block font-mono">
                     <?= sanitize($r['nomor_laporan']) ?>
                   </a>
                   <span class="text-[10px] text-slate-400 font-mono"><?= date('H:i', strtotime($r['created_at'])) ?> WIB</span>
@@ -248,14 +248,14 @@ require_once __DIR__ . '/../includes/header.php';
                 <td class="py-3.5 px-4 text-center">
                   <div class="flex items-center justify-center gap-1.5">
                     <!-- Detail -->
-                    <a href="<?= BASE_URL ?>laporan/detail.php?id=<?= $r['id'] ?>" 
+                    <a href="<?= BASE_URL ?>laporan/detail?id=<?= $r['id'] ?>" 
                        title="Lihat Detail & Pengesahan"
                        class="p-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 hover:text-indigo-600 transition">
                       <i class="ph-bold ph-eye text-sm"></i>
                     </a>
 
                     <!-- Print PDF -->
-                    <a href="<?= BASE_URL ?>laporan/print.php?id=<?= $r['id'] ?>" target="_blank"
+                    <a href="<?= BASE_URL ?>laporan/print?id=<?= $r['id'] ?>" target="_blank"
                        title="Cetak Dokumen PDF Format Standar OMIT"
                        class="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-900/40 text-[#6558f5] hover:bg-[#6558f5] hover:text-white transition">
                       <i class="ph-bold ph-printer text-sm"></i>
@@ -263,7 +263,7 @@ require_once __DIR__ . '/../includes/header.php';
 
                     <!-- Delete (Admin Only) -->
                     <?php if (is_admin()): ?>
-                      <a href="<?= BASE_URL ?>laporan/delete.php?id=<?= $r['id'] ?>" 
+                      <a href="<?= BASE_URL ?>laporan/delete?id=<?= $r['id'] ?>" 
                          onclick="return confirm('Hapus laporan <?= sanitize($r['nomor_laporan']) ?> secara permanen?')"
                          title="Hapus Laporan (Admin)"
                          class="p-2 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white transition">

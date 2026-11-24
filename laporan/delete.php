@@ -28,6 +28,6 @@ if ($id > 0) {
     }
 }
 
-header('Location: ' . BASE_URL . 'laporan/index.php');
+header('Location: ' . BASE_URL . 'laporan/index');
 exit;
 

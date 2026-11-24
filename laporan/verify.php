@@ -104,11 +104,11 @@ if (!empty($doc)) {
       </div>
 
       <div class="mt-6 flex flex-col sm:flex-row items-center gap-3">
-        <a href="<?= BASE_URL ?>laporan/detail.php?id=<?= $report['id'] ?>" 
+        <a href="<?= BASE_URL ?>laporan/detail?id=<?= $report['id'] ?>" 
            class="w-full py-2.5 px-4 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] text-white text-xs font-bold text-center transition">
           Buka Dokumen Lengkap
         </a>
-        <a href="<?= BASE_URL ?>laporan/print.php?id=<?= $report['id'] ?>" target="_blank"
+        <a href="<?= BASE_URL ?>laporan/print?id=<?= $report['id'] ?>" target="_blank"
            class="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold text-center transition">
           Lihat Cetak PDF
         </a>

@@ -12,7 +12,7 @@ $user = current_user();
 
 $id = (int)($_GET['id'] ?? 0);
 if ($id <= 0) {
-    header('Location: ' . BASE_URL . 'laporan/index.php');
+    header('Location: ' . BASE_URL . 'laporan/index');
     exit;
 }
 
@@ -34,7 +34,7 @@ $report = $stmt->fetch();
 
 if (!$report) {
     flash_set('error', 'Laporan serah terima tidak ditemukan.');
-    header('Location: ' . BASE_URL . 'laporan/index.php');
+    header('Location: ' . BASE_URL . 'laporan/index');
     exit;
 }
 
@@ -65,7 +65,7 @@ require_once __DIR__ . '/../includes/header.php';
   <!-- Top Action Header -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-      <a href="<?= BASE_URL ?>laporan/index.php" class="text-xs font-bold text-[#6558f5] hover:underline flex items-center gap-1 mb-2">
+      <a href="<?= BASE_URL ?>laporan/index" class="text-xs font-bold text-[#6558f5] hover:underline flex items-center gap-1 mb-2">
         <i class="ph-bold ph-arrow-left"></i>
         <span>Kembali ke Daftar Laporan</span>
       </a>
@@ -102,7 +102,7 @@ require_once __DIR__ . '/../includes/header.php';
       </button>
 
       <!-- Print Button (1:1 OMIT Template) -->
-      <a href="<?= BASE_URL ?>laporan/print.php?id=<?= $report['id'] ?>" target="_blank"
+      <a href="<?= BASE_URL ?>laporan/print?id=<?= $report['id'] ?>" target="_blank"
          class="px-5 py-2.5 rounded-2xl bg-[#6558f5] hover:bg-[#5244e8] text-white font-extrabold text-xs shadow-md shadow-indigo-500/20 transition flex items-center gap-2 active:scale-95">
         <i class="ph-bold ph-printer text-base"></i>
         <span>Cetak PDF Standar OMIT</span>
@@ -129,7 +129,7 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
       </div>
 
-      <form method="POST" action="<?= BASE_URL ?>laporan/validate.php" enctype="multipart/form-data" id="formApprovalShift" class="bg-white/10 dark:bg-slate-900/40 p-5 rounded-2xl backdrop-blur-md space-y-5">
+      <form method="POST" action="<?= BASE_URL ?>laporan/validate" enctype="multipart/form-data" id="formApprovalShift" class="bg-white/10 dark:bg-slate-900/40 p-5 rounded-2xl backdrop-blur-md space-y-5">
         <input type="hidden" name="laporan_id" value="<?= $report['id'] ?>" />
         <input type="hidden" name="jenis_ttd_menerima" id="jenis_ttd_menerima" value="<?= htmlspecialchars($user['ttd_type'] ?? 'barcode') ?>" />
         <input type="hidden" name="use_saved_profile_ttd" value="1" />
@@ -349,7 +349,7 @@ require_once __DIR__ . '/../includes/header.php';
             </p>
           </div>
         </div>
-        <a href="<?= BASE_URL ?>laporan/create.php?carry_from=<?= $report['id'] ?>" 
+        <a href="<?= BASE_URL ?>laporan/create?carry_from=<?= $report['id'] ?>" 
            class="px-4 py-2.5 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] active:scale-95 text-white font-extrabold text-xs shadow-md transition flex items-center gap-2 self-start sm:self-auto cursor-pointer whitespace-nowrap">
           <i class="ph-bold ph-arrow-bend-down-right text-sm"></i>
           <span>Operkan ke Shift Baru</span>

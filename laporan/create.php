@@ -165,7 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         notify_handover_created($laporanId, $pdo);
 
         flash_set('success', "Laporan serah terima {$nomor_laporan} berhasil disimpan! Notifikasi telah dikirimkan ke petugas penerima.");
-        header('Location: ' . BASE_URL . 'laporan/detail.php?id=' . $laporanId);
+        header('Location: ' . BASE_URL . 'laporan/detail?id=' . $laporanId);
         exit;
 
     } catch (Exception $e) {
@@ -238,7 +238,7 @@ require_once __DIR__ . '/../includes/header.php';
   <!-- Header Banner -->
   <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-      <a href="<?= BASE_URL ?>laporan/index.php" class="text-xs font-bold text-[#6558f5] hover:underline flex items-center gap-1 mb-2">
+      <a href="<?= BASE_URL ?>laporan/index" class="text-xs font-bold text-[#6558f5] hover:underline flex items-center gap-1 mb-2">
         <i class="ph-bold ph-arrow-left"></i>
         <span>Kembali ke Riwayat</span>
       </a>
@@ -330,7 +330,7 @@ require_once __DIR__ . '/../includes/header.php';
           <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2 flex items-center justify-between">
             <span>Kondisi Operasional Umum <span class="text-rose-500">*</span></span>
             <?php if (is_admin()): ?>
-              <a href="<?= BASE_URL ?>master/kondisi.php" target="_blank" class="text-[10px] lowercase font-normal text-[#6558f5] dark:text-indigo-400 hover:underline flex items-center gap-1">
+              <a href="<?= BASE_URL ?>master/kondisi" target="_blank" class="text-[10px] lowercase font-normal text-[#6558f5] dark:text-indigo-400 hover:underline flex items-center gap-1">
                 <i class="ph-bold ph-gear"></i> kelola pilihan
               </a>
             <?php endif; ?>
@@ -829,7 +829,7 @@ require_once __DIR__ . '/../includes/header.php';
 
     <!-- Submit Button -->
     <div class="flex items-center justify-end gap-3 pt-2">
-      <a href="<?= BASE_URL ?>laporan/index.php" 
+      <a href="<?= BASE_URL ?>laporan/index" 
          class="px-6 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 font-bold text-sm transition">
         Batal
       </a>

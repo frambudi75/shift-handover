@@ -285,7 +285,7 @@ $appFullName = get_app_full_name();
       <span style="color: #94a3b8; font-size: 12px; margin-left: 8px;">(Format 1:1 Sesuai Template PDF)</span>
     </div>
     <div style="display: flex; items-center; gap: 14px;">
-      <a href="<?= BASE_URL ?>laporan/detail.php?id=<?= $report['id'] ?>" class="back-btn">← Kembali ke Sistem</a>
+      <a href="<?= BASE_URL ?>laporan/detail?id=<?= $report['id'] ?>" class="back-btn">← Kembali ke Sistem</a>
       <button onclick="window.print()" class="print-btn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="6 9 6 2 18 2 18 9"></polyline>

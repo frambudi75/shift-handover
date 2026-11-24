@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     cache_delete('master_shift:active');
     cache_delete('master_shift:all');
 
-    header('Location: ' . BASE_URL . 'master/shift.php');
+    header('Location: ' . BASE_URL . 'master/shift');
     exit;
 }
 
@@ -49,17 +49,17 @@ require_once __DIR__ . '/../includes/header.php';
 
   <!-- Sub-Nav Tab Switcher: Shift, Lokasi, & Kondisi Operasional -->
   <div class="flex items-center gap-2 p-1.5 bg-[#ebebf7] dark:bg-[#1b1e30] rounded-2xl w-fit border border-slate-200/60 dark:border-slate-800 flex-wrap">
-    <a href="<?= BASE_URL ?>master/shift.php" 
+    <a href="<?= BASE_URL ?>master/shift" 
        class="px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-2 bg-white dark:bg-[#131522] text-[#6558f5] shadow-sm">
       <i class="ph-fill ph-clock text-sm"></i>
       <span>Jadwal Shift &amp; Jam Kerja</span>
     </a>
-    <a href="<?= BASE_URL ?>master/lokasi.php" 
+    <a href="<?= BASE_URL ?>master/lokasi" 
        class="px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition">
       <i class="ph-fill ph-map-pin text-sm text-slate-400"></i>
       <span>Master Lokasi / Unit</span>
     </a>
-    <a href="<?= BASE_URL ?>master/kondisi.php" 
+    <a href="<?= BASE_URL ?>master/kondisi" 
        class="px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition">
       <i class="ph-fill ph-activity text-sm text-slate-400"></i>
       <span>Kondisi Operasional</span>

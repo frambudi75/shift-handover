@@ -6,7 +6,7 @@ require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 
 if (is_logged_in()) {
-    header('Location: ' . BASE_URL . 'dashboard.php');
+    header('Location: ' . BASE_URL . 'dashboard');
     exit;
 }
 
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['jabatan']      = $user['jabatan'];
 
             flash_set('success', "Selamat datang kembali, {$user['nama_lengkap']}!");
-            header('Location: ' . BASE_URL . 'dashboard.php');
+            header('Location: ' . BASE_URL . 'dashboard');
             exit;
         } else {
             $error = 'Username atau kata sandi tidak valid. Silakan periksa kembali kredensial Anda.';
@@ -49,6 +49,8 @@ $appFullName = get_app_full_name();
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Masuk — <?= sanitize($appFullName) ?></title>
+  <?php $faviconUrl = $appLogo ?: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236558f5'/%3E%3Cpath d='M10 10h12v2H10zm0 5h12v2H10zm0 5h8v2h-8z' fill='white'/%3E%3C/svg%3E"; ?>
+  <link rel="icon" href="<?= $faviconUrl ?>" />
   <script>
     if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       document.documentElement.classList.add('dark');
@@ -98,9 +100,9 @@ $appFullName = get_app_full_name();
 
     <!-- Brand Header with Micro-scale on Hover -->
     <div class="text-center mb-8">
-      <div class="inline-flex items-center justify-center w-16 h-16 rounded-[22px] bg-[#6558f5] text-white shadow-xl shadow-[#6558f5]/30 mb-4 p-3.5 transition-all duration-300 hover:scale-110 hover:-translate-y-0.5 cursor-default">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-[22px] <?= $appLogo ? 'bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 shadow-lg p-2.5' : 'bg-[#6558f5] text-white shadow-xl shadow-[#6558f5]/30 p-3.5' ?> mb-4 transition-all duration-300 hover:scale-110 hover:-translate-y-0.5 cursor-default overflow-hidden">
         <?php if ($appLogo): ?>
-          <img src="<?= $appLogo ?>" alt="Logo" class="max-w-full max-h-full object-contain" />
+          <img src="<?= $appLogo ?>" alt="Logo" class="w-full h-full object-contain" />
         <?php else: ?>
           <i class="ph-fill ph-clipboard-text text-3xl"></i>
         <?php endif; ?>

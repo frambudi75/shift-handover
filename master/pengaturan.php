@@ -84,11 +84,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
                     mkdir(UPLOAD_DIR, 0777, true);
                 }
 
-                if (in_array($mime, ['image/jpeg', 'image/png', 'image/webp'])) {
-                    compress_and_save_image($_FILES['app_logo']['tmp_name'], $destination, 90, 800);
-                } else {
-                    move_uploaded_file($_FILES['app_logo']['tmp_name'], $destination);
-                }
+                // Preserve 100% original alpha transparency & crisp quality for branding logo
+                move_uploaded_file($_FILES['app_logo']['tmp_name'], $destination);
 
                 $oldLogo = get_setting('app_logo', '');
                 if (!empty($oldLogo) && file_exists(UPLOAD_DIR . $oldLogo)) {
@@ -102,7 +99,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         }
 
         flash_set('success', 'Semua pengaturan aplikasi, SMTP email, dan WhatsApp berhasil disimpan!');
-        header('Location: ' . BASE_URL . 'master/pengaturan.php');
+        header('Location: ' . BASE_URL . 'master/pengaturan');
         exit;
     } elseif ($action === 'delete_logo') {
         $oldLogo = get_setting('app_logo', '');
@@ -111,7 +108,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         }
         set_setting('app_logo', '');
         flash_set('success', 'Logo kustom dihapus. Menggunakan ikon logo default.');
-        header('Location: ' . BASE_URL . 'master/pengaturan.php');
+        header('Location: ' . BASE_URL . 'master/pengaturan');
         exit;
     } elseif ($action === 'test_smtp') {
         require_once __DIR__ . '/../includes/notifications.php';
@@ -139,7 +136,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
                 flash_set('error', "Gagal mengirim email SMTP: " . $res['message']);
             }
         }
-        header('Location: ' . BASE_URL . 'master/pengaturan.php');
+        header('Location: ' . BASE_URL . 'master/pengaturan');
         exit;
     }
 }
@@ -195,19 +192,19 @@ require_once __DIR__ . '/../includes/header.php';
 
     <!-- Quick Master Links -->
     <div class="flex items-center gap-2 flex-wrap">
-      <a href="<?= BASE_URL ?>master/backup.php" class="px-3.5 py-2 rounded-2xl bg-[#efeffb] dark:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-900 shadow-sm hover:shadow text-xs font-extrabold text-[#6558f5] flex items-center gap-2 hover:bg-[#e0e0fb] transition">
+      <a href="<?= BASE_URL ?>master/backup" class="px-3.5 py-2 rounded-2xl bg-[#efeffb] dark:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-900 shadow-sm hover:shadow text-xs font-extrabold text-[#6558f5] flex items-center gap-2 hover:bg-[#e0e0fb] transition">
         <i class="ph-fill ph-database text-base"></i>
         <span>Pusat Backup Sistem</span>
       </a>
-      <a href="<?= BASE_URL ?>master/kondisi.php" class="px-3.5 py-2 rounded-2xl bg-white dark:bg-[#1b1e30] border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow text-xs font-extrabold text-slate-700 dark:text-slate-200 flex items-center gap-2 hover:bg-[#efeffb] dark:hover:bg-slate-800 transition">
+      <a href="<?= BASE_URL ?>master/kondisi" class="px-3.5 py-2 rounded-2xl bg-white dark:bg-[#1b1e30] border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow text-xs font-extrabold text-slate-700 dark:text-slate-200 flex items-center gap-2 hover:bg-[#efeffb] dark:hover:bg-slate-800 transition">
         <i class="ph-fill ph-activity text-base text-slate-400"></i>
         <span>Kondisi Operasional</span>
       </a>
-      <a href="<?= BASE_URL ?>master/shift.php" class="px-3.5 py-2 rounded-2xl bg-white dark:bg-[#1b1e30] border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow text-xs font-extrabold text-slate-700 dark:text-slate-200 flex items-center gap-2 hover:bg-[#efeffb] dark:hover:bg-slate-800 transition">
+      <a href="<?= BASE_URL ?>master/shift" class="px-3.5 py-2 rounded-2xl bg-white dark:bg-[#1b1e30] border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow text-xs font-extrabold text-slate-700 dark:text-slate-200 flex items-center gap-2 hover:bg-[#efeffb] dark:hover:bg-slate-800 transition">
         <i class="ph-fill ph-clock text-base text-slate-400"></i>
         <span>Manajemen Shift</span>
       </a>
-      <a href="<?= BASE_URL ?>master/lokasi.php" class="px-3.5 py-2 rounded-2xl bg-white dark:bg-[#1b1e30] border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow text-xs font-extrabold text-slate-700 dark:text-slate-200 flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+      <a href="<?= BASE_URL ?>master/lokasi" class="px-3.5 py-2 rounded-2xl bg-white dark:bg-[#1b1e30] border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow text-xs font-extrabold text-slate-700 dark:text-slate-200 flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
         <i class="ph-fill ph-map-pin text-base text-slate-400"></i>
         <span>Master Lokasi</span>
       </a>
@@ -580,7 +577,7 @@ require_once __DIR__ . '/../includes/header.php';
             <p class="text-xs text-slate-400">Kirim notifikasi serah terima dan kirim file backup database / full sistem langsung ke channel Discord</p>
           </div>
         </div>
-        <a href="<?= BASE_URL ?>master/backup.php" class="px-4 py-2 rounded-xl bg-[#efeffb] dark:bg-indigo-950/60 hover:bg-[#e0e0fb] text-[#6558f5] dark:text-indigo-300 font-extrabold text-xs flex items-center gap-1.5 transition">
+        <a href="<?= BASE_URL ?>master/backup" class="px-4 py-2 rounded-xl bg-[#efeffb] dark:bg-indigo-950/60 hover:bg-[#e0e0fb] text-[#6558f5] dark:text-indigo-300 font-extrabold text-xs flex items-center gap-1.5 transition">
           <i class="ph-fill ph-database"></i>
           <span>Pusat Backup &amp; Auto-Optimise &rarr;</span>
         </a>
@@ -615,7 +612,7 @@ require_once __DIR__ . '/../includes/header.php';
 
     <!-- SUBMIT BAR -->
     <div class="pt-4 flex items-center justify-end gap-3">
-      <a href="<?= BASE_URL ?>dashboard.php" 
+      <a href="<?= BASE_URL ?>dashboard" 
          class="px-5 py-3 rounded-2xl bg-[#efeffb] dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 font-extrabold text-xs active:scale-95 transition">
         Batal
       </a>
