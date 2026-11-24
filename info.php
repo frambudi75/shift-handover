@@ -11,7 +11,7 @@ require_login();
 require_once __DIR__ . '/includes/header.php';
 
 // Live System Telemetry
-$appVersion     = 'v2.6.0 LTS';
+$appVersion     = APP_VERSION;
 $releaseDate    = '25 November 2026';
 $isDocker       = file_exists('/.dockerenv') || getenv('DB_HOST') !== false;
 $envLabel       = $isDocker ? 'Docker Container (PHP ' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . ')' : 'Web Server (' . PHP_OS_FAMILY . ')';

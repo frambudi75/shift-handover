@@ -103,3 +103,6 @@ if (!defined('APP_NAME')) {
 if (!defined('APP_FULL_NAME')) {
     define('APP_FULL_NAME', get_app_full_name());
 }
+if (!defined('APP_VERSION')) {
+    define('APP_VERSION', 'v2.6.0 LTS');
+}

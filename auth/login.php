@@ -163,7 +163,7 @@ $appFullName = get_app_full_name();
             </span>
             <input type="text" name="username" id="username" required autofocus autocomplete="username"
                    class="input-interactive w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 text-sm placeholder-slate-400 focus:outline-none transition-all duration-200"
-                   placeholder="Nama pengguna atau NIK" />
+                   placeholder="Masukkan username" />
           </div>
         </div>
 
@@ -219,7 +219,7 @@ $appFullName = get_app_full_name();
           <span class="pulse-radar-ring"></span>
           <span class="relative inline-flex rounded-full w-2 h-2 bg-emerald-500"></span>
         </span>
-        <span>SOP Shift Handover • Akses Terenkripsi</span>
+        <span><?= sanitize($appName) ?> • <?= APP_VERSION ?></span>
       </div>
     </div>
 
