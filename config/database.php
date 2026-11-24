@@ -1,29 +1,36 @@
 <?php
-// config/database.php - PDO Database Connection
+// config/database.php - Konfigurasi Koneksi Database (PDO)
 
-$env_host = getenv('DB_HOST') ?: (defined('DB_HOST') ? DB_HOST : '127.0.0.1');
-$env_port = (int)(getenv('DB_PORT') ?: (defined('DB_PORT') ? DB_PORT : 3306));
-$env_name = getenv('DB_NAME') ?: (defined('DB_NAME') ? DB_NAME : 'db_serah_terima');
-$env_user = getenv('DB_USER') ?: (defined('DB_USER') ? DB_USER : 'root');
-$env_pass = getenv('DB_PASS') !== false ? getenv('DB_PASS') : (defined('DB_PASS') ? DB_PASS : '');
+if (getenv('DB_HOST') !== false) {
+    // =========================================================================
+    // 1. KONFIGURASI OTOMATIS UNTUK DOCKER
+    //    (Nilai diambil otomatis dari docker-compose.yml / file .env)
+    // =========================================================================
+    define('DB_HOST', getenv('DB_HOST'));
+    define('DB_PORT', (int)(getenv('DB_PORT') ?: 3306));
+    define('DB_NAME', getenv('DB_NAME') ?: 'db_serah_terima');
+    define('DB_USER', getenv('DB_USER') ?: 'serahterima_user');
+    define('DB_PASS', getenv('DB_PASS') !== false ? getenv('DB_PASS') : '');
+} else {
+    // =========================================================================
+    // 2. KONFIGURASI UNTUK CPANEL / AAPANEL / DIRECTADMIN / XAMPP
+    //    (Silakan ubah sesuai kredensial database hosting atau lokal Anda)
+    // =========================================================================
+    define('DB_HOST', '127.0.0.1');       // Di cPanel/aaPanel/XAMPP biasanya 'localhost' atau '127.0.0.1'
+    define('DB_PORT', 3306);              // Port standar MySQL/MariaDB: 3306
+    define('DB_NAME', 'db_serah_terima'); // Nama database yang dibuat di cPanel/XAMPP
+    define('DB_USER', 'root');            // Username database (XAMPP default: 'root')
+    define('DB_PASS', '');                // Password database (XAMPP default: kosong '')
+}
 
-if (!defined('DB_HOST')) define('DB_HOST', $env_host);
-if (!defined('DB_PORT')) define('DB_PORT', $env_port);
-if (!defined('DB_NAME')) define('DB_NAME', $env_name);
-if (!defined('DB_USER')) define('DB_USER', $env_user);
-if (!defined('DB_PASS')) define('DB_PASS', $env_pass);
-
-$db_host = DB_HOST;
-$db_port = DB_PORT;
-$db_name = DB_NAME;
-$db_user = DB_USER;
-$db_pass = DB_PASS;
-
+// =========================================================================
+// KONEKSI PDO (TIDAK PERLU DIUBAH)
+// =========================================================================
 try {
     $pdo = new PDO(
-        "mysql:host={$db_host};port={$db_port};dbname={$db_name};charset=utf8mb4",
-        $db_user,
-        $db_pass,
+        "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4",
+        DB_USER,
+        DB_PASS,
         [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
