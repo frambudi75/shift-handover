@@ -14,8 +14,9 @@ $user = current_user();
 $search    = trim($_GET['search'] ?? '');
 $filterShift  = (int)($_GET['shift_id'] ?? 0);
 $filterLokasi = (int)($_GET['lokasi_id'] ?? 0);
-$filterStatus = trim($_GET['status'] ?? '');
-$filterDate   = trim($_GET['tanggal'] ?? '');
+$filterStatus  = trim($_GET['status'] ?? '');
+$filterDate    = trim($_GET['tanggal'] ?? '');
+$filterKondisi = trim($_GET['kondisi'] ?? '');
 
 // Master data for filters
 $shifts  = $pdo->query("SELECT * FROM master_shift ORDER BY id ASC")->fetchAll();
@@ -48,6 +49,10 @@ if ($filterStatus !== '') {
 if ($filterDate !== '') {
     $where[] = "l.tanggal = :tanggal";
     $params['tanggal'] = $filterDate;
+}
+if ($filterKondisi !== '') {
+    $where[] = "l.kondisi_operasional = :kondisi";
+    $params['kondisi'] = $filterKondisi;
 }
 
 $whereSql = implode(' AND ', $where);
@@ -110,6 +115,39 @@ require_once __DIR__ . '/../includes/header.php';
        class="px-5 py-3 rounded-2xl bg-[#6558f5] hover:bg-[#5244e8] active:scale-95 text-white font-extrabold text-xs shadow-md hover:shadow-lg transition flex items-center gap-2 self-start sm:self-auto">
       <i class="ph-bold ph-plus-circle text-base"></i>
       <span>Buat Serah Terima Baru</span>
+    </a>
+  </div>
+
+  <!-- Quick Filter Chips (1-Klik) -->
+  <?php
+    $todayDate = date('Y-m-d');
+    $isAll     = ($search === '' && $filterShift === 0 && $filterLokasi === 0 && $filterStatus === '' && $filterDate === '' && $filterKondisi === '');
+  ?>
+  <div class="flex items-center gap-2 flex-wrap">
+    <a href="<?= BASE_URL ?>laporan/index"
+       class="px-3.5 py-1.5 rounded-full text-xs font-extrabold transition flex items-center gap-1.5 <?= $isAll ? 'bg-[#6558f5] text-white shadow-sm' : 'bg-white dark:bg-[#1b1e30] text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80 hover:border-[#6558f5]/40' ?>">
+      <i class="ph-bold ph-folders"></i>
+      <span>Semua</span>
+    </a>
+    <a href="<?= BASE_URL ?>laporan/index?tanggal=<?= $todayDate ?>"
+       class="px-3.5 py-1.5 rounded-full text-xs font-extrabold transition flex items-center gap-1.5 <?= $filterDate === $todayDate ? 'bg-[#6558f5] text-white shadow-sm' : 'bg-white dark:bg-[#1b1e30] text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80 hover:border-[#6558f5]/40' ?>">
+      <i class="ph-bold ph-calendar-blank"></i>
+      <span>Hari Ini</span>
+    </a>
+    <a href="<?= BASE_URL ?>laporan/index?status=MENUNGGU+VALIDASI"
+       class="px-3.5 py-1.5 rounded-full text-xs font-extrabold transition flex items-center gap-1.5 <?= $filterStatus === 'MENUNGGU VALIDASI' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white dark:bg-[#1b1e30] text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80 hover:border-amber-400/50' ?>">
+      <i class="ph-bold ph-hourglass-medium"></i>
+      <span>Menunggu Validasi</span>
+    </a>
+    <a href="<?= BASE_URL ?>laporan/index?status=TERVALIDASI"
+       class="px-3.5 py-1.5 rounded-full text-xs font-extrabold transition flex items-center gap-1.5 <?= $filterStatus === 'TERVALIDASI' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-white dark:bg-[#1b1e30] text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80 hover:border-emerald-400/50' ?>">
+      <i class="ph-bold ph-check-circle"></i>
+      <span>Tervalidasi</span>
+    </a>
+    <a href="<?= BASE_URL ?>laporan/index?kondisi=Ada+Gangguan"
+       class="px-3.5 py-1.5 rounded-full text-xs font-extrabold transition flex items-center gap-1.5 <?= $filterKondisi === 'Ada Gangguan' ? 'bg-rose-500 text-white shadow-sm' : 'bg-white dark:bg-[#1b1e30] text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80 hover:border-rose-400/50' ?>">
+      <i class="ph-bold ph-warning-circle"></i>
+      <span>Ada Gangguan</span>
     </a>
   </div>
 

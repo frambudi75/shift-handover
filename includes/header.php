@@ -391,20 +391,28 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
     <!-- Main content container -->
     <main class="flex-1 overflow-y-auto px-4 sm:px-8 md:pl-24 md:pr-8 pb-24 md:pb-8 pt-4">
 
-      <!-- Flash messages -->
+      <!-- Floating Modern Toast Notifications -->
       <?php if (!empty($flashes)): ?>
-        <div class="mb-5 space-y-2.5 animate-stagger-1">
+        <div id="flash-toast-stack" class="fixed top-5 right-5 z-[9990] flex flex-col gap-2.5 max-w-sm w-[calc(100vw-2.5rem)] pointer-events-none">
           <?php foreach ($flashes as $f): 
             $msgType = is_array($f) ? ($f['type'] ?? 'info') : 'info';
             $msgText = is_array($f) ? ($f['message'] ?? '') : (string)$f;
             if (empty($msgText)) continue;
+            $toastClass = $msgType === 'success'
+                ? 'bg-white/95 dark:bg-[#181b2c]/95 text-[#1c7a52] dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800/70'
+                : ($msgType === 'warning'
+                    ? 'bg-white/95 dark:bg-[#181b2c]/95 text-amber-700 dark:text-amber-300 border-amber-200/80 dark:border-amber-800/70'
+                    : 'bg-white/95 dark:bg-[#181b2c]/95 text-[#a9233c] dark:text-rose-300 border-rose-200/80 dark:border-rose-800/70');
+            $toastIcon = $msgType === 'success'
+                ? 'ph-check-circle text-emerald-500'
+                : ($msgType === 'warning' ? 'ph-warning text-amber-500' : 'ph-warning-circle text-rose-500');
           ?>
-            <div class="p-4 rounded-2xl flex items-center justify-between gap-3 text-xs font-bold shadow-card <?= $msgType === 'success' ? 'bg-[#e6f7f0] text-[#1c7a52] border border-[#68cfa3]/40 dark:bg-emerald-950/50 dark:text-emerald-300' : 'bg-[#fce8ec] text-[#a9233c] border border-[#e0536c]/40 dark:bg-rose-950/50 dark:text-rose-300' ?>">
-              <div class="flex items-center gap-2.5">
-                <i class="ph-bold <?= $msgType === 'success' ? 'ph-check-circle text-lg text-[#68cfa3]' : 'ph-warning-circle text-lg text-[#e0536c]' ?>"></i>
-                <span><?= sanitize($msgText) ?></span>
+            <div class="flash-toast pointer-events-auto p-3.5 rounded-2xl backdrop-blur-xl border shadow-2xl flex items-start justify-between gap-3 text-xs font-bold transition-all duration-300 animate-pop <?= $toastClass ?>">
+              <div class="flex items-start gap-2.5">
+                <i class="ph-fill <?= $toastIcon ?> text-lg shrink-0 mt-0.5"></i>
+                <span class="leading-relaxed"><?= sanitize($msgText) ?></span>
               </div>
-              <button onclick="this.parentElement.remove()" class="opacity-60 hover:opacity-100">
+              <button type="button" onclick="this.parentElement.remove()" class="opacity-50 hover:opacity-100 p-0.5 cursor-pointer shrink-0">
                 <i class="ph-bold ph-x text-sm"></i>
               </button>
             </div>

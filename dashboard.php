@@ -7,6 +7,22 @@ require_once __DIR__ . '/includes/header.php';
 // Safe user display name
 $displayName = !empty($user['nama_lengkap']) ? $user['nama_lengkap'] : (!empty($user['username']) ? $user['username'] : 'Rekan Operasional');
 
+// Detect currently active shift
+$nowTime = date('H:i:s');
+$activeShifts = $pdo->query("SELECT nama_shift, jam_mulai, jam_selesai FROM master_shift WHERE status = 'aktif' ORDER BY id ASC")->fetchAll();
+$currentShiftLabel = 'Operasional Aktif';
+foreach ($activeShifts as $sh) {
+    $start = $sh['jam_mulai'];
+    $end   = $sh['jam_selesai'];
+    $isMatch = ($start <= $end)
+        ? ($nowTime >= $start && $nowTime < $end)
+        : ($nowTime >= $start || $nowTime < $end); // Overnight shift e.g. 23:00 - 07:00
+    if ($isMatch) {
+        $currentShiftLabel = 'Shift ' . $sh['nama_shift'] . ' (' . substr($start, 0, 5) . ' - ' . substr($end, 0, 5) . ')';
+        break;
+    }
+}
+
 // Fetch statistics
 $totalLaporan = $pdo->query("SELECT COUNT(*) FROM laporan_serah_terima")->fetchColumn();
 
@@ -168,6 +184,17 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
     <h2 class="text-[24px] sm:text-[28px] font-bold tracking-tight text-[#181b2c] dark:text-white leading-[1.2] mt-1">
       Pantau kelancaran<br/>operasional hari ini.
     </h2>
+
+    <!-- Live Shift & Real-Time WIB Clock Pill -->
+    <div class="mt-3 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#1b1e30] border border-slate-200/80 dark:border-slate-700/80 shadow-xs w-fit flex-wrap">
+      <span class="pulse-radar-wrap w-2 h-2 shrink-0">
+        <span class="pulse-radar-ring"></span>
+        <span class="relative inline-flex rounded-full w-2 h-2 bg-emerald-500"></span>
+      </span>
+      <span class="text-[11px] font-extrabold text-[#181b2c] dark:text-slate-100"><?= sanitize($currentShiftLabel) ?></span>
+      <span class="text-slate-300 dark:text-slate-600">•</span>
+      <span id="live-wib-clock" class="text-[11px] font-mono font-extrabold text-[#6558f5] dark:text-indigo-400"><?= date('H:i:s') ?> WIB</span>
+    </div>
 
     <p class="text-[12px] text-slate-500 dark:text-slate-400 mt-2.5 leading-relaxed max-w-[340px] font-medium">
       Kelola serah terima tugas operasional secara transparan, pantau tindak lanjut lapangan, dan unduh dokumen standar OMIT.

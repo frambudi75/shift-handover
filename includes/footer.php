@@ -538,6 +538,34 @@
         });
       });
     })();
+
+    // =========================================================================
+    // 7. Auto-Dismiss Floating Toasts (4s) & Live WIB Clock
+    // =========================================================================
+    setTimeout(() => {
+      document.querySelectorAll('#flash-toast-stack .flash-toast').forEach((el, idx) => {
+        setTimeout(() => {
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(-10px)';
+          setTimeout(() => el.remove(), 350);
+        }, idx * 250);
+      });
+    }, 4000);
+
+    const wibClockEl = document.getElementById('live-wib-clock');
+    if (wibClockEl) {
+      setInterval(() => {
+        const now = new Date();
+        const fmt = new Intl.DateTimeFormat('id-ID', {
+          timeZone: 'Asia/Jakarta',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        }).format(now).replace(/\./g, ':');
+        wibClockEl.textContent = fmt + ' WIB';
+      }, 1000);
+    }
   </script>
 
   <!-- Modal Baca Pengumuman -->
