@@ -505,6 +505,36 @@
       await fetch(BASE_APP_URL + 'api/notifications', { method: 'POST', body: fd });
       loadBellFeed();
     }
+
+    // =========================================================================
+    // 6. Floating Glass Pill Tooltip for Desktop Sidebar
+    // =========================================================================
+    (function initSidebarGlassTooltips() {
+      if (!window.matchMedia('(hover: hover)').matches) return;
+      const tt = document.createElement('div');
+      tt.id = 'pc-sidebar-tooltip';
+      tt.innerHTML = '<span class="tt-dot"></span><span class="tt-text"></span>';
+      document.body.appendChild(tt);
+
+      const ttText = tt.querySelector('.tt-text');
+      document.querySelectorAll('aside .sidebar-btn').forEach(btn => {
+        const span = btn.querySelector('.sidebar-tooltip');
+        const label = span ? span.textContent.trim() : (btn.getAttribute('title') || '');
+        if (!label) return;
+        btn.removeAttribute('title');
+
+        btn.addEventListener('mouseenter', () => {
+          const rect = btn.getBoundingClientRect();
+          ttText.textContent = label;
+          tt.style.left = (rect.right + 14) + 'px';
+          tt.style.top  = (rect.top + rect.height / 2) + 'px';
+          tt.classList.add('is-visible');
+        });
+        btn.addEventListener('mouseleave', () => {
+          tt.classList.remove('is-visible');
+        });
+      });
+    })();
   </script>
 
   <!-- Modal Baca Pengumuman -->

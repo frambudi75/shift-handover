@@ -146,27 +146,58 @@ html.dark .dashed-lavender-box {
   background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%236558f5' stroke-width='2' stroke-dasharray='5%2c 5' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
 }
 
-/* Tooltip styling for sidebar */
+/* Hide static inner tooltip spans (rendered dynamically via unclippable #pc-sidebar-tooltip) */
 .sidebar-tooltip {
-  position: absolute;
-  left: 74px;
-  background: #181b2c;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 5px 11px;
-  border-radius: 8px;
+  display: none;
+}
+
+/* Floating Glass Pill Tooltip (Unclippable, Spring Pop-in on PC) */
+#pc-sidebar-tooltip {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(24, 27, 44, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 7px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(101, 88, 245, 0.45);
+  box-shadow: 0 12px 30px -6px rgba(24, 27, 44, 0.35), 0 0 14px rgba(101, 88, 245, 0.25);
   white-space: nowrap;
   opacity: 0;
-  transform: translateX(-6px);
-  pointer-events: none;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.22);
-  z-index: 60;
+  transform: translateY(-50%) translateX(-10px) scale(0.92);
+  transition: opacity 0.2s ease, transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.sidebar-btn:hover .sidebar-tooltip {
+#pc-sidebar-tooltip.is-visible {
   opacity: 1;
-  transform: translateX(0);
+  transform: translateY(-50%) translateX(0) scale(1);
+}
+#pc-sidebar-tooltip::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  width: 10px;
+  height: 10px;
+  background: rgba(24, 27, 44, 0.88);
+  border-left: 1px solid rgba(101, 88, 245, 0.45);
+  border-bottom: 1px solid rgba(101, 88, 245, 0.45);
+}
+#pc-sidebar-tooltip .tt-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: #68cfa3;
+  box-shadow: 0 0 8px #68cfa3;
+  flex-shrink: 0;
 }
 
 /* Active indicator tab bar */
