@@ -38,23 +38,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $jabatan  = trim($_POST['jabatan'] ?? '');
 
         if (!empty($nama) && !empty($username) && !empty($password)) {
-            $check = $pdo->prepare("SELECT COUNT(*) FROM users WHERE username = :u");
-            $check->execute(['u' => $username]);
-            if ($check->fetchColumn() > 0) {
-                flash_set('error', "Username '{$username}' sudah digunakan!");
+            if ($role === 'superadmin' && !is_superadmin()) {
+                flash_set('error', 'Akses ditolak: Hanya Superadmin yang dapat membuat akun Superadmin.');
             } else {
-                $hash = password_hash($password, PASSWORD_BCRYPT);
-                $stmt = $pdo->prepare("INSERT INTO users (nama_lengkap, username, email, no_wa, password, role, jabatan) VALUES (:nama, :u, :email, :no_wa, :p, :r, :j)");
-                $stmt->execute([
-                    'nama'   => $nama,
-                    'u'      => $username,
-                    'email'  => $email,
-                    'no_wa'  => $no_wa,
-                    'p'      => $hash,
-                    'r'      => $role,
-                    'j'      => $jabatan
-                ]);
-                flash_set('success', "Pengguna '{$nama}' dengan peran " . strtoupper($role) . " berhasil didaftarkan.");
+                $check = $pdo->prepare("SELECT COUNT(*) FROM users WHERE username = :u");
+                $check->execute(['u' => $username]);
+                if ($check->fetchColumn() > 0) {
+                    flash_set('error', "Username '{$username}' sudah digunakan!");
+                } else {
+                    $hash = password_hash($password, PASSWORD_BCRYPT);
+                    $stmt = $pdo->prepare("INSERT INTO users (nama_lengkap, username, email, no_wa, password, role, jabatan) VALUES (:nama, :u, :email, :no_wa, :p, :r, :j)");
+                    $stmt->execute([
+                        'nama'   => $nama,
+                        'u'      => $username,
+                        'email'  => $email,
+                        'no_wa'  => $no_wa,
+                        'p'      => $hash,
+                        'r'      => $role,
+                        'j'      => $jabatan
+                    ]);
+                    flash_set('success', "Pengguna '{$nama}' dengan peran " . strtoupper($role) . " berhasil didaftarkan.");
+                }
             }
         }
     } elseif ($action === 'edit_user') {
@@ -84,10 +88,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($id == $user['id'] && $status === 'nonaktif') {
                     flash_set('error', 'Anda tidak dapat menonaktifkan akun Anda sendiri.');
                 } else {
-                    // Check last active superadmin protection
-                    $targetUser = $pdo->query("SELECT role FROM users WHERE id = {$id}")->fetch();
+                    // Check superadmin privilege & last active superadmin protection
+                    $stmtTarget = $pdo->prepare("SELECT role FROM users WHERE id = :id");
+                    $stmtTarget->execute(['id' => $id]);
+                    $targetUser = $stmtTarget->fetch();
                     $superadminCount = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE role = 'superadmin' AND status = 'aktif'")->fetchColumn();
-                    if ($targetUser && $targetUser['role'] === 'superadmin' && ($role !== 'superadmin' || $status === 'nonaktif') && $superadminCount <= 1) {
+                    if (!is_superadmin() && (($targetUser && $targetUser['role'] === 'superadmin') || $role === 'superadmin')) {
+                        flash_set('error', 'Akses ditolak: Role Admin tidak diizinkan mengubah akun atau peran Superadmin.');
+                    } elseif ($targetUser && $targetUser['role'] === 'superadmin' && ($role !== 'superadmin' || $status === 'nonaktif') && $superadminCount <= 1) {
                         flash_set('error', 'Tidak dapat mengubah peran/status superadmin terakhir pada sistem.');
                     } else {
                         $stmt = $pdo->prepare("UPDATE users SET nama_lengkap = :nama, username = :u, email = :email, no_wa = :no_wa, jabatan = :j, role = :r, status = :s WHERE id = :id");
@@ -111,27 +119,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $newRole = $_POST['new_role'] ?? 'user';
         
         if ($id > 0 && in_array($newRole, ['superadmin', 'admin', 'user'])) {
-            $stmt = $pdo->prepare("UPDATE users SET role = :r WHERE id = :id");
-            $stmt->execute(['r' => $newRole, 'id' => $id]);
-            flash_set('success', "Peran pengguna berhasil diubah menjadi " . strtoupper($newRole) . ".");
+            $stmtTarget = $pdo->prepare("SELECT role FROM users WHERE id = :id");
+            $stmtTarget->execute(['id' => $id]);
+            $targetRole = $stmtTarget->fetchColumn();
+            if (!is_superadmin() && ($targetRole === 'superadmin' || $newRole === 'superadmin')) {
+                flash_set('error', 'Akses ditolak: Role Admin tidak diizinkan mengubah peran Superadmin.');
+            } else {
+                $stmt = $pdo->prepare("UPDATE users SET role = :r WHERE id = :id");
+                $stmt->execute(['r' => $newRole, 'id' => $id]);
+                flash_set('success', "Peran pengguna berhasil diubah menjadi " . strtoupper($newRole) . ".");
+            }
         }
     } elseif ($action === 'toggle_status') {
         $id = (int)($_POST['id'] ?? 0);
         if ($id > 0 && $id != $user['id']) {
-            $stmt = $pdo->prepare("UPDATE users SET status = IF(status = 'aktif', 'nonaktif', 'aktif') WHERE id = :id");
-            $stmt->execute(['id' => $id]);
-            flash_set('success', "Status akun pengguna berhasil diperbarui.");
+            $stmtTarget = $pdo->prepare("SELECT role FROM users WHERE id = :id");
+            $stmtTarget->execute(['id' => $id]);
+            $targetRole = $stmtTarget->fetchColumn();
+            if (!is_superadmin() && $targetRole === 'superadmin') {
+                flash_set('error', 'Akses ditolak: Role Admin tidak diizinkan menonaktifkan Superadmin.');
+            } else {
+                $stmt = $pdo->prepare("UPDATE users SET status = IF(status = 'aktif', 'nonaktif', 'aktif') WHERE id = :id");
+                $stmt->execute(['id' => $id]);
+                flash_set('success', "Status akun pengguna berhasil diperbarui.");
+            }
         }
     } elseif ($action === 'reset_pass') {
         $id = (int)($_POST['id'] ?? 0);
         $newPass = $_POST['new_password'] ?? '123456';
         if ($id > 0 && !empty($newPass)) {
-            $stmt = $pdo->prepare("UPDATE users SET password = :p WHERE id = :id");
-            $stmt->execute([
-                'p'  => password_hash($newPass, PASSWORD_BCRYPT),
-                'id' => $id
-            ]);
-            flash_set('success', "Password pengguna berhasil direset ke '{$newPass}'.");
+            $stmtTarget = $pdo->prepare("SELECT role FROM users WHERE id = :id");
+            $stmtTarget->execute(['id' => $id]);
+            $targetRole = $stmtTarget->fetchColumn();
+            if (!is_superadmin() && $targetRole === 'superadmin') {
+                flash_set('error', 'Akses ditolak: Role Admin tidak diizinkan mereset password Superadmin.');
+            } else {
+                $stmt = $pdo->prepare("UPDATE users SET password = :p WHERE id = :id");
+                $stmt->execute([
+                    'p'  => password_hash($newPass, PASSWORD_BCRYPT),
+                    'id' => $id
+                ]);
+                flash_set('success', "Password pengguna berhasil direset.");
+            }
         }
     } elseif ($action === 'delete') {
         $id = (int)($_POST['id'] ?? 0);
@@ -146,6 +175,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (!$targetUser) {
                 flash_set('error', 'Pengguna tidak ditemukan.');
+            } elseif (!is_superadmin() && $targetUser['role'] === 'superadmin') {
+                flash_set('error', 'Akses ditolak: Role Admin tidak diizinkan menghapus akun Superadmin.');
             } else {
                 // Check superadmin count
                 $superadminCount = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE role = 'superadmin'")->fetchColumn();
@@ -452,7 +483,9 @@ require_once __DIR__ . '/../includes/header.php';
                   class="w-full px-3.5 py-2.5 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700/70 text-xs font-extrabold focus:ring-2 focus:ring-[#6558f5]/40 focus:outline-none cursor-pointer transition">
             <option value="user" selected>User (Operator Shift)</option>
             <option value="admin">Admin (Supervisor Unit)</option>
-            <option value="superadmin">Superadmin (Root Access)</option>
+            <?php if (is_superadmin()): ?>
+              <option value="superadmin">Superadmin (Root Access)</option>
+            <?php endif; ?>
           </select>
         </div>
 
@@ -609,6 +642,12 @@ require_once __DIR__ . '/../includes/header.php';
                     </span>
                   </td>
                   <td class="py-3.5 px-5 text-center whitespace-nowrap">
+                    <?php if (!is_superadmin() && $u['role'] === 'superadmin'): ?>
+                      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10.5px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/70 dark:border-slate-700/70 select-none" title="Hanya Superadmin yang dapat mengelola akun ini">
+                        <i class="ph-fill ph-lock-key text-xs text-rose-400"></i>
+                        <span>Dilindungi</span>
+                      </span>
+                    <?php else: ?>
                     <div class="inline-flex items-center justify-center gap-1.5">
                       
                       <!-- Edit User Button -->
@@ -655,6 +694,7 @@ require_once __DIR__ . '/../includes/header.php';
                       <?php endif; ?>
 
                     </div>
+                    <?php endif; ?>
                   </td>
                 </tr>
               <?php endforeach; ?>
@@ -791,7 +831,9 @@ require_once __DIR__ . '/../includes/header.php';
                   class="w-full px-3.5 py-2.5 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700/70 text-xs font-extrabold focus:ring-2 focus:ring-[#6558f5]/40 focus:outline-none cursor-pointer transition">
             <option value="user">User (Operator Shift)</option>
             <option value="admin">Admin (Supervisor Unit)</option>
-            <option value="superadmin">Superadmin (Root Access)</option>
+            <?php if (is_superadmin()): ?>
+              <option value="superadmin">Superadmin (Root Access)</option>
+            <?php endif; ?>
           </select>
         </div>
 
