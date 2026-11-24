@@ -6,7 +6,7 @@
 | Layanan | Image Dasar | Port Host | Port Kontainer | Fungsi |
 | :--- | :--- | :---: | :---: | :--- |
 | **`app`** | Custom (`Dockerfile` berbasis `php:8.5-apache`) | **2032** | 80 | Web server Apache, PHP 8.5 runtime, OPcache, Redis extension |
-| **`db`** | `mysql:8.0` | **3307** | 3306 | Database relasional MySQL dengan buffer pool 256MB |
+| **`db`** | `mysql:8.0` | **3308** | 3306 | Database relasional MySQL dengan buffer pool 256MB |
 | **`redis`** | `redis:7-alpine` | **6380** | 6379 | In-memory cache server dengan limit 128MB dan kebijakan LRU |
 
 ---
@@ -25,7 +25,7 @@ DB_NAME=db_serah_terima
 DB_USER=serahterima_user
 DB_PASS=secret_serahterima_pass
 DB_ROOT_PASS=root_secure_password
-DB_PORT_EXTERNAL=3307
+DB_PORT_EXTERNAL=3308
 
 # Konfigurasi Cache Redis
 REDIS_HOST=redis

@@ -17,7 +17,7 @@ Sistem ini diorkestrasi menggunakan **Docker Compose** dengan 3 layanan utama:
 2. **`db` (MySQL 8.0)**:
    - Database MySQL dengan konfigurasi `InnoDB Buffer Pool 256MB` dan charset `utf8mb4`.
    - Menginisialisasi otomatis seluruh tabel, indeks performa, data pengaturan, dan user dari berkas `docker/init.sql`.
-   - Port eksternal: `3307` (agar tidak bentrok jika port 3306 digunakan oleh XAMPP/MySQL lokal Anda).
+   - Port eksternal: `3308` (agar tidak bentrok jika port 3306 digunakan oleh XAMPP/MySQL lokal Anda).
 
 3. **`redis` (Redis 7 Alpine)**:
    - In-memory key-value cache dengan kebijakan memori `allkeys-lru` (maksimal 128MB).
