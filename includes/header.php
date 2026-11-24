@@ -310,7 +310,7 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
           <div id="bell-dropdown" class="hidden fixed sm:absolute right-3 sm:right-0 top-16 sm:top-full sm:mt-2.5 w-[calc(100vw-1.5rem)] sm:w-[390px] max-w-[400px] bg-white dark:bg-[#1b1e30] rounded-[24px] shadow-2xl border border-slate-200/80 dark:border-slate-700/80 overflow-hidden z-50">
             
             <!-- Popover Header -->
-            <div class="px-4 py-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 bg-[#f7f7fb] dark:bg-[#151828]">
+            <div class="px-4 py-3.5 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 bg-[#f7f7fb] dark:bg-[#151828]">
               <div class="flex items-center gap-2">
                 <i class="ph-fill ph-bell-ringing text-[#6558f5] text-base"></i>
                 <span class="text-xs font-extrabold text-[#181b2c] dark:text-white">Notifikasi &amp; Pengumuman</span>
