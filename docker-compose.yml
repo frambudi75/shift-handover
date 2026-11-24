@@ -9,15 +9,15 @@ services:
     ports:
       - "${APP_PORT:-2031}:80"
     environment:
-      - DB_HOST=db
-      - DB_PORT=3306
-      - DB_NAME=${DB_NAME:-db_serah_terima}
-      - DB_USER=${DB_USER:-serahterima_user}
-      - DB_PASS=${DB_PASS:-secret_serahterima_pass}
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PREFIX=omit_cache:
-      - APP_BASE_URL=/
+      DB_HOST: "db"
+      DB_PORT: "3306"
+      DB_NAME: "${DB_NAME:-db_serah_terima}"
+      DB_USER: "${DB_USER:-serahterima_user}"
+      DB_PASS: "${DB_PASS:-secret_serahterima_pass}"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      REDIS_PREFIX: "omit_cache:"
+      APP_BASE_URL: "/"
     volumes:
       - uploads_data:/var/www/html/uploads
       - backups_data:/var/www/html/storage/backups
