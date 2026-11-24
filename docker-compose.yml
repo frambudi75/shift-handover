@@ -1,0 +1,87 @@
+services:
+  # 1. Web Application Service (PHP 8.2 + Apache + OPcache + Redis Ext)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: omit_shift_app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-2031}:80"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=${DB_NAME:-db_serah_terima}
+      - DB_USER=${DB_USER:-serahterima_user}
+      - DB_PASS=${DB_PASS:-secret_serahterima_pass}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PREFIX=omit_cache:
+      - APP_BASE_URL=/
+    volumes:
+      - uploads_data:/var/www/html/uploads
+      - backups_data:/var/www/html/storage/backups
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - omit_network
+
+  # 2. Database Service (MySQL 8.0 dengan Buffer Pool & UTF8mb4)
+  db:
+    image: mysql:8.0
+    container_name: omit_shift_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-db_serah_terima}
+      MYSQL_USER: ${DB_USER:-serahterima_user}
+      MYSQL_PASSWORD: ${DB_PASS:-secret_serahterima_pass}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS:-root_secure_password}
+    ports:
+      - "${DB_PORT_EXTERNAL:-3307}:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --innodb-buffer-pool-size=256M
+      --innodb-log-file-size=64M
+      --max-connections=200
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - omit_network
+
+  # 3. High-Speed Cache Service (Redis 7 In-Memory LRU)
+  redis:
+    image: redis:7-alpine
+    container_name: omit_shift_redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT_EXTERNAL:-6380}:6379"
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - omit_network
+
+networks:
+  omit_network:
+    driver: bridge
+
+volumes:
+  db_data:
+    driver: local
+  redis_data:
+    driver: local
+  uploads_data:
+    driver: local
+  backups_data:
+    driver: local

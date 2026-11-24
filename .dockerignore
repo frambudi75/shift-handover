@@ -1,0 +1,13 @@
+.git
+.gitignore
+.env
+tests/
+scratch/
+backups/*.zip
+backups/*.sql
+storage/backups/*.zip
+storage/backups/*.sql
+uploads/*
+!uploads/.gitkeep
+docker/data/
+*.log

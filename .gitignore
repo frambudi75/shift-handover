@@ -1,0 +1,22 @@
+# Runtime uploads & backups
+/uploads/*
+!/uploads/.gitkeep
+/storage/backups/*
+!/storage/backups/.gitkeep
+/backups/*
+!/backups/.gitkeep
+
+# Environment local secrets
+.env
+
+# Temporary scratch & tests
+tests/
+scratch/
+*.log
+
+# System & Editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
