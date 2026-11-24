@@ -32,6 +32,9 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
   <title><?= isset($page_title) ? sanitize($page_title) . ' — ' : '' ?><?= sanitize($appName) ?></title>
   <?php $faviconUrl = $appLogo ?: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236558f5'/%3E%3Cpath d='M10 10h12v2H10zm0 5h12v2H10zm0 5h8v2h-8z' fill='white'/%3E%3C/svg%3E"; ?>
   <link rel="icon" href="<?= $faviconUrl ?>" />
+  <link rel="manifest" href="<?= BASE_URL ?>manifest" />
+  <meta name="theme-color" content="#6558f5" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
   
   <!-- Prevent FOUC (Flash of Unstyled Theme) -->
   <script>
@@ -182,6 +185,15 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
               <i class="ph-fill ph-database text-lg"></i>
               <span class="sidebar-tooltip">Pusat Backup &amp; Pemulihan Sistem</span>
             </a>
+
+            <?php if (is_superadmin()): ?>
+              <!-- 10. Audit Trail (Superadmin Only) -->
+              <a href="<?= BASE_URL ?>audit" 
+                 class="sidebar-btn group relative w-10 h-10 rounded-[14px] flex items-center justify-center transition-all duration-200 shrink-0 <?= $current_page === 'audit' ? 'bg-white text-[#6558f5] shadow-md scale-105' : 'text-white/80 hover:text-white hover:bg-white/15 hover:scale-105' ?>">
+                <i class="ph-fill ph-fingerprint text-lg"></i>
+                <span class="sidebar-tooltip">Audit Trail &amp; Log Aktivitas</span>
+              </a>
+            <?php endif; ?>
           <?php endif; ?>
 
           <div class="w-6 h-[1px] bg-white/20 my-1 shrink-0"></div>
@@ -251,7 +263,7 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
         <input
           id="global-search"
           type="text"
-          placeholder="Cari nomor laporan, nama unit, tiket pekerjaan..."
+          placeholder="Cari laporan, tiket, unit... (Ctrl + K)"
           oninput="handleQuickSearch(this.value)"
           class="w-full pl-10 pr-4 py-2.5 text-xs font-medium bg-white dark:bg-[#1d2032] text-slate-700 dark:text-slate-200 placeholder-slate-400 rounded-full border border-slate-200/80 dark:border-slate-700/70 focus:outline-none focus:ring-2 focus:ring-[#6558f5]/40 transition-all shadow-sm"
         />

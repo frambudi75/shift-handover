@@ -164,6 +164,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         require_once __DIR__ . '/../includes/notifications.php';
         notify_handover_created($laporanId, $pdo);
 
+        require_once __DIR__ . '/../includes/audit_helper.php';
+        log_activity($pdo, 'HANDOVER_CREATE', "Membuat laporan serah terima {$nomor_laporan}.");
+
         flash_set('success', "Laporan serah terima {$nomor_laporan} berhasil disimpan! Notifikasi telah dikirimkan ke petugas penerima.");
         header('Location: ' . BASE_URL . 'laporan/detail?id=' . $laporanId);
         exit;

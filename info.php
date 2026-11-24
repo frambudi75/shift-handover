@@ -43,11 +43,24 @@ $extensions = [
 // Release History / Changelog Data
 $releases = [
     [
+        'version' => 'v2.7.0 LTS',
+        'date'    => '25 Nov 2026',
+        'title'   => 'Audit Trail, Live Search (Ctrl+K), Idle Auto-Logout & PWA Support',
+        'badge'   => 'TERBARU',
+        'color'   => 'bg-[#6558f5] text-white',
+        'items'   => [
+            ['type' => 'Baru',      'text' => 'Live Quick Search AJAX di header (Ctrl+K) untuk mencari nomor laporan, tiket pekerjaan, lokasi, dan petugas secara instan.'],
+            ['type' => 'Keamanan',  'text' => 'Halaman Audit Trail & Log Aktivitas khusus Superadmin (/audit) mencatat login, serah terima, validasi, reset password, dan ubah pengaturan.'],
+            ['type' => 'Keamanan',  'text' => 'Auto-Logout Idle Session (45 menit tanpa aktivitas dengan hitungan mundur 60 detik) untuk keamanan PC Ruang Kontrol antar-shift.'],
+            ['type' => 'Baru',      'text' => 'Dukungan Progressive Web App (PWA) dengan manifest dinamis & Service Worker sehingga aplikasi dapat di-install ke HP/Desktop (via HTTPS/localhost).'],
+        ]
+    ],
+    [
         'version' => 'v2.6.0 LTS',
         'date'    => '25 Nov 2026',
         'title'   => 'Notifikasi Lonceng, Pengumuman Superadmin, Live Shift & Modern UI',
-        'badge'   => 'TERBARU',
-        'color'   => 'bg-[#6558f5] text-white',
+        'badge'   => 'STABLE',
+        'color'   => 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300',
         'items'   => [
             ['type' => 'Baru',      'text' => 'Lonceng Notifikasi Interaktif dengan daftar notifikasi laporan (hilang otomatis setelah dibaca) & pengiriman Email penerima.'],
             ['type' => 'Baru',      'text' => 'Pengumuman Resmi Superadmin lengkap dengan kategori urgensi, target peran, dan Banner Pengumuman di atas Dashboard.'],

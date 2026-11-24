@@ -70,6 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 require_once __DIR__ . '/../includes/notifications.php';
                 notify_handover_approved($laporan_id, $pdo);
 
+                require_once __DIR__ . '/../includes/audit_helper.php';
+                log_activity($pdo, 'HANDOVER_APPROVE', "Mengesahkan/memvalidasi laporan {$report['nomor_laporan']}.");
+
                 flash_set('success', "Approval berhasil! Laporan {$report['nomor_laporan']} telah disahkan dan tervalidasi.");
                 header('Location: ' . BASE_URL . 'laporan/detail?id=' . $laporan_id);
                 exit;

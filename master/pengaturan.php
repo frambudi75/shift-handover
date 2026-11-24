@@ -36,6 +36,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         set_setting('doc_prefix', $docPrefix);
         set_setting('doc_reset_mode', $docResetMode);
 
+        require_once __DIR__ . '/../includes/audit_helper.php';
+        log_activity($pdo, 'SETTINGS_UPDATE', "Memperbarui pengaturan sistem & identitas aplikasi ({$appName}).");
+
         set_setting('compress_enabled', $compressEnabled);
         set_setting('compress_quality', (string)$compressQuality);
         set_setting('compress_max_width', (string)$compressMaxWidth);

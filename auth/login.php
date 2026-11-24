@@ -29,10 +29,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['role']         = $user['role'];
             $_SESSION['jabatan']      = $user['jabatan'];
 
+            require_once __DIR__ . '/../includes/audit_helper.php';
+            log_activity($pdo, 'LOGIN_SUCCESS', "Login berhasil ke sistem ({$user['role']}).", (int)$user['id'], $user['username']);
+
             flash_set('success', "Selamat datang kembali, {$user['nama_lengkap']}!");
             header('Location: ' . BASE_URL . 'dashboard');
             exit;
         } else {
+            require_once __DIR__ . '/../includes/audit_helper.php';
+            log_activity($pdo, 'LOGIN_FAILED', "Percobaan login gagal untuk username '{$username}'.", null, $username);
             $error = 'Username atau kata sandi tidak valid. Silakan periksa kembali kredensial Anda.';
         }
     }
@@ -51,6 +56,9 @@ $appFullName = get_app_full_name();
   <title>Masuk — <?= sanitize($appFullName) ?></title>
   <?php $faviconUrl = $appLogo ?: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236558f5'/%3E%3Cpath d='M10 10h12v2H10zm0 5h12v2H10zm0 5h8v2h-8z' fill='white'/%3E%3C/svg%3E"; ?>
   <link rel="icon" href="<?= $faviconUrl ?>" />
+  <link rel="manifest" href="<?= BASE_URL ?>manifest" />
+  <meta name="theme-color" content="#6558f5" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
   <script>
     if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       document.documentElement.classList.add('dark');

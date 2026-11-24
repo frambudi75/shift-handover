@@ -5,7 +5,17 @@ Semua perubahan dan peningkatan fungsionalitas sistem dicatat secara berkala pad
 
 ---
 
-### Versi 2.6.0 LTS (2026-11-25) - *Current Release*
+### Versi 2.7.0 LTS (2026-11-25) - *Current Release*
+- **Enterprise Security & Audit Trail**:
+  - Halaman **Audit Trail & Log Aktivitas (`/audit`)** khusus Superadmin dengan tabel filter & rekam jejak IP Address (`LOGIN_SUCCESS`, `LOGIN_FAILED`, `HANDOVER_CREATE`, `HANDOVER_APPROVE`, `USER_RESET_PASS`, `USER_DELETE`, `SETTINGS_UPDATE`).
+  - **Control Room Idle Auto-Logout**: Otomatis memunculkan dialog hitung mundur 60 detik setelah 45 menit tanpa aktivitas sebelum logout otomatis.
+- **Produktivitas & PWA**:
+  - **Live Quick Search AJAX (`Ctrl + K`)** di header atas (`api/search`) untuk pencarian nomor laporan, nomor tiket, lokasi, dan petugas secara instan.
+  - **Progressive Web App (PWA)**: Penambahan `manifest.php` dinamis (mengikuti nama & logo aplikasi di Pengaturan) dan Service Worker `sw.js`.
+
+---
+
+### Versi 2.6.0 LTS (2026-11-25)
 - **Sistem Notifikasi Lonceng & Pengumuman Superadmin**:
   - Popover lonceng notifikasi real-time (`api/notifications`) dengan badge jumlah belum dibaca.
   - Notifikasi otomatis ke lonceng dan Email petugas penerima saat serah terima dibuat/divalidasi (hilang otomatis dari daftar setelah diklik/dibaca).

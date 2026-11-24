@@ -159,6 +159,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'p'  => password_hash($newPass, PASSWORD_BCRYPT),
                     'id' => $id
                 ]);
+                require_once __DIR__ . '/../includes/audit_helper.php';
+                log_activity($pdo, 'USER_RESET_PASS', "Mereset password pengguna ID #{$id}.");
                 flash_set('success', "Password pengguna berhasil direset.");
             }
         }
@@ -199,6 +201,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             @unlink(UPLOAD_DIR . $targetUser['ttd_file']);
                         }
                         $pdo->prepare("DELETE FROM users WHERE id = :id")->execute(['id' => $id]);
+                        require_once __DIR__ . '/../includes/audit_helper.php';
+                        log_activity($pdo, 'USER_DELETE', "Menghapus permanen akun '{$targetUser['nama_lengkap']}' (@{$targetUser['username']}).");
                         flash_set('success', "Akun pengguna '{$targetUser['nama_lengkap']}' (@{$targetUser['username']}) berhasil dihapus permanen.");
                     }
                 }

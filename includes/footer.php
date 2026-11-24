@@ -83,6 +83,12 @@
                 <i class="ph-fill ph-database text-lg"></i>
                 <span>Pusat Backup &amp; Pemulihan</span>
               </a>
+              <?php if (is_superadmin()): ?>
+                <a href="<?= BASE_URL ?>audit" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'audit' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
+                  <i class="ph-fill ph-fingerprint text-lg"></i>
+                  <span>Audit Trail &amp; Log</span>
+                </a>
+              <?php endif; ?>
             <?php endif; ?>
 
             <div class="pt-3 pb-1 border-t border-white/20 mt-3">
@@ -243,34 +249,72 @@
       }, 2000);
     }
 
-    // 4. Global Quick Search Handler
+    // 4. Live AJAX Quick Search Handler + Ctrl+K Shortcut
+    let searchTimer = null;
     function handleQuickSearch(q) {
       const dropdown = document.getElementById('search-dropdown');
       if (!dropdown) return;
-      q = q.trim().toLowerCase();
+      q = q.trim();
       if (q.length < 2) {
         dropdown.classList.add('hidden');
         dropdown.innerHTML = '';
         return;
       }
 
+      clearTimeout(searchTimer);
       dropdown.classList.remove('hidden');
-      dropdown.innerHTML = `
-        <div class="p-3 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-100 dark:border-slate-800 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-          Pencarian Pintar
-        </div>
-        <div class="p-2 space-y-1">
-          <a href="<?= BASE_URL ?>laporan/index?q=${encodeURIComponent(q)}" class="flex items-center gap-2 p-2 rounded-xl hover:bg-[#efeffb] dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition">
-            <i class="ph-bold ph-magnifying-glass text-[#6558f5]"></i>
-            <span>Cari laporan dengan kata kunci "<strong>${q}</strong>"</span>
-          </a>
-          <a href="<?= BASE_URL ?>laporan/create" class="flex items-center gap-2 p-2 rounded-xl hover:bg-[#efeffb] dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition">
-            <i class="ph-bold ph-plus-circle text-[#68cfa3]"></i>
-            <span>Buat serah terima shift baru</span>
-          </a>
-        </div>
-      `;
+      dropdown.innerHTML = '<div class="p-4 text-center text-xs text-slate-400">Mencari...</div>';
+
+      searchTimer = setTimeout(async () => {
+        try {
+          const res = await fetch('<?= BASE_URL ?>api/search?q=' + encodeURIComponent(q));
+          const data = await res.json();
+          const rows = data.results || [];
+          let html = `
+            <div class="px-3.5 py-2 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-100 dark:border-slate-800 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex justify-between">
+              <span>Hasil Pencarian Langsung</span>
+              <span>${rows.length} ditemukan</span>
+            </div>
+            <div class="p-1.5 max-h-72 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60">`;
+
+          if (rows.length === 0) {
+            html += `<div class="p-4 text-center text-xs text-slate-400">Tidak ada laporan/tiket yang cocok.</div>`;
+          } else {
+            rows.forEach(r => {
+              const stClass = r.status === 'TERVALIDASI'
+                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                : 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300';
+              html += `
+                <a href="${r.url}" class="flex items-center justify-between gap-3 p-2.5 rounded-xl hover:bg-[#efeffb] dark:hover:bg-slate-800 transition">
+                  <div class="min-w-0">
+                    <div class="text-xs font-extrabold text-[#6558f5] dark:text-indigo-300 truncate">${escHtml(r.nomor)}</div>
+                    <div class="text-[11px] text-slate-600 dark:text-slate-300 truncate">${escHtml(r.lokasi)} • Shift ${escHtml(r.shift)} (${escHtml(r.tanggal)})</div>
+                  </div>
+                  <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold shrink-0 ${stClass}">${escHtml(r.status)}</span>
+                </a>`;
+            });
+          }
+
+          html += `
+              <a href="<?= BASE_URL ?>laporan/index?search=${encodeURIComponent(q)}" class="flex items-center justify-center gap-1.5 p-2.5 text-[11px] font-extrabold text-[#6558f5] hover:bg-[#efeffb] dark:hover:bg-slate-800 rounded-xl transition">
+                <span>Lihat semua hasil untuk "${escHtml(q)}"</span>
+                <i class="ph-bold ph-arrow-right"></i>
+              </a>
+            </div>`;
+          dropdown.innerHTML = html;
+        } catch (err) {
+          dropdown.innerHTML = '<div class="p-4 text-center text-xs text-rose-500">Gagal memuat pencarian.</div>';
+        }
+      }, 220);
     }
+
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        const inp = document.getElementById('global-search');
+        if (inp) { inp.focus(); inp.select(); }
+      }
+    });
 
     // Close search & bell dropdowns on click outside
     document.addEventListener('click', (e) => {
@@ -566,7 +610,83 @@
         wibClockEl.textContent = fmt + ' WIB';
       }, 1000);
     }
+
+    // =========================================================================
+    // 8. Control Room Idle Auto-Logout Guard (45 Menit Idle -> Countdown 60s)
+    // =========================================================================
+    (function initIdleTimeout() {
+      const IDLE_LIMIT_MS = 45 * 60 * 1000;
+      let idleTimer = null;
+      let countTimer = null;
+      let secondsLeft = 60;
+
+      function resetIdle() {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(showIdleWarning, IDLE_LIMIT_MS);
+      }
+
+      function showIdleWarning() {
+        const modal = document.getElementById('modalIdleWarning');
+        const counter = document.getElementById('idleCountdown');
+        if (!modal || !counter) return;
+        secondsLeft = 60;
+        counter.textContent = secondsLeft;
+        modal.classList.remove('hidden');
+
+        clearInterval(countTimer);
+        countTimer = setInterval(() => {
+          secondsLeft--;
+          counter.textContent = secondsLeft;
+          if (secondsLeft <= 0) {
+            clearInterval(countTimer);
+            window.location.href = BASE_APP_URL + 'auth/logout';
+          }
+        }, 1000);
+      }
+
+      window.stayLoggedIn = function() {
+        clearInterval(countTimer);
+        document.getElementById('modalIdleWarning')?.classList.add('hidden');
+        resetIdle();
+      };
+
+      ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'].forEach(evt => {
+        document.addEventListener(evt, resetIdle, { passive: true });
+      });
+      resetIdle();
+    })();
+
+    // =========================================================================
+    // 9. PWA Service Worker Registration
+    // =========================================================================
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register(BASE_APP_URL + 'sw.js').catch(() => {});
+      });
+    }
   </script>
+
+  <!-- Modal Peringatan Idle Auto-Logout -->
+  <div id="modalIdleWarning" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4">
+    <div class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
+    <div class="relative z-10 bg-white dark:bg-[#1b1e30] rounded-[26px] max-w-sm w-full p-6 border border-slate-100 dark:border-slate-800 shadow-2xl text-center">
+      <div class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-500 flex items-center justify-center text-2xl mx-auto mb-3.5">
+        <i class="ph-bold ph-clock-countdown"></i>
+      </div>
+      <h3 class="text-base font-extrabold text-[#181b2c] dark:text-white">Sesi Tidak Aktif</h3>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
+        Demi keamanan akun shift Anda, sesi akan otomatis keluar dalam <strong id="idleCountdown" class="text-rose-500 font-black">60</strong> detik.
+      </p>
+      <div class="flex gap-2.5 mt-5">
+        <a href="<?= BASE_URL ?>auth/logout" class="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-extrabold text-xs">
+          Keluar
+        </a>
+        <button type="button" onclick="stayLoggedIn()" class="flex-1 py-2.5 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] text-white font-extrabold text-xs shadow-md cursor-pointer">
+          Tetap Masuk
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal Baca Pengumuman -->
   <div id="modalReadAnnouncement" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
