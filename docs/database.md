@@ -1,7 +1,7 @@
 # Dokumentasi Basis Data Lengkap (Database Schema & Indexing)
 ## Sistem Laporan Serah Terima Shift Operasional (OMIT)
 
-### 1. Daftar Tabel (7 Tabel Utama)
+### 1. Daftar Tabel (7 Tabel Inti + 4 Tabel Auto-Migrating)
 
 ```mermaid
 erDiagram
@@ -11,6 +11,9 @@ erDiagram
     master_lokasi ||--o{ laporan_serah_terima : "berlokasi"
     laporan_serah_terima ||--|{ laporan_pekerjaan : "memuat detail"
     master_kondisi ||--o{ laporan_serah_terima : "kondisi operasional"
+    users ||--o{ activity_logs : "aktivitas"
+    users ||--o{ user_notifications : "notifikasi"
+    announcements ||--o{ announcement_reads : "dibaca"
     app_settings
 ```
 
@@ -163,5 +166,65 @@ CREATE TABLE `app_settings` (
   `setting_key` VARCHAR(100) PRIMARY KEY,
   `setting_value` TEXT DEFAULT NULL,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+#### 8. Tabel `activity_logs` *(Auto-Migrating)*
+Mencatat jejak audit aktivitas pengguna dan alamat IP (`includes/audit_helper.php`).
+```sql
+CREATE TABLE `activity_logs` (
+  `id` BIGINT(20) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT(11) DEFAULT NULL,
+  `username` VARCHAR(80) DEFAULT NULL,
+  `action` VARCHAR(60) NOT NULL,
+  `description` VARCHAR(255) NOT NULL,
+  `ip_address` VARCHAR(45) DEFAULT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX `idx_audit_action` (`action`, `created_at`),
+  INDEX `idx_audit_user` (`user_id`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+#### 9. Tabel `announcements` *(Auto-Migrating)*
+Menyimpan pengumuman resmi Superadmin untuk banner dashboard dan popover lonceng (`includes/bell_helper.php`).
+```sql
+CREATE TABLE `announcements` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `title` VARCHAR(150) NOT NULL,
+  `message` TEXT NOT NULL,
+  `category` ENUM('info', 'penting', 'darurat') NOT NULL DEFAULT 'info',
+  `target_role` ENUM('all', 'admin', 'user') NOT NULL DEFAULT 'all',
+  `show_banner` TINYINT(1) NOT NULL DEFAULT 1,
+  `created_by` INT(11) NOT NULL,
+  `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX `idx_ann_active` (`is_active`, `show_banner`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+#### 10. Tabel `announcement_reads` *(Auto-Migrating)*
+Mencatat status baca pengumuman per pengguna (`includes/bell_helper.php`).
+```sql
+CREATE TABLE `announcement_reads` (
+  `announcement_id` INT(11) NOT NULL,
+  `user_id` INT(11) NOT NULL,
+  `read_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`announcement_id`, `user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+#### 11. Tabel `user_notifications` *(Auto-Migrating)*
+Menyimpan notifikasi lonceng personal terkait pembuatan dan validasi laporan (`includes/bell_helper.php`).
+```sql
+CREATE TABLE `user_notifications` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT(11) NOT NULL,
+  `type` VARCHAR(30) NOT NULL DEFAULT 'handover',
+  `title` VARCHAR(150) NOT NULL,
+  `message` VARCHAR(255) NOT NULL,
+  `link_url` VARCHAR(255) DEFAULT NULL,
+  `is_read` TINYINT(1) NOT NULL DEFAULT 0,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX `idx_notif_user_read` (`user_id`, `is_read`, `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```

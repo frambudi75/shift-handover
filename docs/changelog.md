@@ -12,6 +12,9 @@ Semua perubahan dan peningkatan fungsionalitas sistem dicatat secara berkala pad
 - **Produktivitas & PWA**:
   - **Live Quick Search AJAX (`Ctrl + K`)** di header atas (`api/search`) untuk pencarian nomor laporan, nomor tiket, lokasi, dan petugas secara instan.
   - **Progressive Web App (PWA)**: Penambahan `manifest.php` dinamis (mengikuti nama & logo aplikasi di Pengaturan) dan Service Worker `sw.js`.
+- **Pemolesan Halaman Login (`auth/login`)**:
+  - Menampilkan badge versi aplikasi (`v2.7.0 LTS`) di bawah kartu login serta menghapus teks placeholder `NIK` pada kolom username.
+  - Penambahan motif latar **Batik Kawung** SVG modern yang selaras untuk *Light Mode* dan *Dark Mode*.
 
 ---
 

@@ -44,12 +44,13 @@ curl -s "http://localhost:2032/cron/auto_optimize.php?token=f91c5ca9d00a0222988e
 
 ---
 
-### 2. Endpoint Pencarian Cepat Global (AJAX Quick Search)
+### 2. Endpoint Pencarian Cepat Global (`Ctrl + K` / AJAX Quick Search)
 
-Mencari laporan, nomor tiket, dan pos lapangan secara asinkron dari header navigasi.
+Mencari laporan serah terima, nomor tiket, lokasi, dan nama petugas secara asinkron dari header navigasi.
 
-- **URL**: `GET /api/quick_search.php`
+- **URL**: `GET /api/search` (`api/search.php`)
 - **Method**: `GET`
+- **Autentikasi**: Wajib memiliki sesi login aktif (`401` jika belum login).
 - **Parameter**:
   - `q` (string, min 2 chars): Kata kunci pencarian.
 
@@ -59,16 +60,14 @@ Mencari laporan, nomor tiket, dan pos lapangan secara asinkron dari header navig
   "success": true,
   "results": [
     {
-      "type": "laporan",
-      "title": "OMIT-20261124-001",
-      "subtitle": "Shift Pagi • Control Room (Normal)",
-      "url": "laporan/detail.php?id=12"
-    },
-    {
-      "type": "tiket",
-      "title": "TK-0192: Kalibrasi Sensor Tekanan",
-      "subtitle": "PIC: Andi Pratama (Target: 17:00 WIB)",
-      "url": "laporan/detail.php?id=12#task-192"
+      "id": 12,
+      "nomor": "OMIT-20261124-001",
+      "tanggal": "24 Nov 2026",
+      "lokasi": "Control Room",
+      "shift": "Shift Pagi",
+      "petugas": "Andi Pratama",
+      "status": "MENUNGGU VALIDASI",
+      "url": "/laporan/detail?id=12"
     }
   ]
 }
@@ -76,7 +75,21 @@ Mencari laporan, nomor tiket, dan pos lapangan secara asinkron dari header navig
 
 ---
 
-### 3. Payload Notifikasi Eksternal
+### 3. Endpoint Notifikasi Lonceng & Pengumuman (`api/notifications`)
+
+Mengambil daftar notifikasi serah terima pengguna dan pengumuman resmi Superadmin, serta menandai status baca.
+
+- **URL**: `GET /api/notifications` atau `POST /api/notifications` (`api/notifications.php`)
+- **Autentikasi**: Wajib memiliki sesi login aktif (`401` jika belum login).
+- **Action (`action`)**:
+  - `GET ?action=feed`: Mengembalikan `unread_count`, `announcements`, dan `notifications`.
+  - `POST action=mark_read` (`kind`, `id`): Menandai satu notifikasi atau pengumuman telah dibaca.
+  - `POST action=mark_all_read`: Menandai seluruh notifikasi pengguna telah dibaca.
+  - `POST action=create_announcement`: Membuat pengumuman resmi baru (khusus peran `superadmin`, mengembalikan `403` untuk peran lain).
+
+---
+
+### 4. Payload Notifikasi Eksternal
 
 #### A. Webhook Discord (`POST {discord_webhook_url}`)
 Sistem mengirimkan kartu *rich embed* setiap kali serah terima baru dibuat atau dicadangkan:

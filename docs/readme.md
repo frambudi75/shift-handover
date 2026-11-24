@@ -21,8 +21,10 @@ Aplikasi web modern berbasis **PHP 8.5+**, **MySQL 8.0**, dan **Redis 7** yang d
    - Fitur otomatis untuk `OPTIMIZE TABLE` & `ANALYZE TABLE`, pembersihan file gambar sampah (*orphan*), dan rotasi penghapusan arsip cadangan lama secara berkala.
 6. **Performa Tinggi Bebas Lag (Docker & Redis Cache)**:
    - Terintegrasi dengan **Redis 7 In-Memory Cache** dan **OPcache** untuk memangkas waktu muat hingga di bawah 50ms bahkan pada beban puncak.
-7. **Desain NoteFlow UI Responsif & Dual Mode**:
-   - Desain modern berstandar NoteFlow, mendukung pengalihan instan **Light Mode** dan **Dark Mode** baik pada layar desktop maupun smartphone.
+7. **Desain NoteFlow UI Responsif, Dual Mode & PWA**:
+   - Desain modern berstandar NoteFlow, mendukung pengalihan instan **Light Mode** dan **Dark Mode**, motif **Batik Kawung** pada halaman login, *Live Quick Search* (`Ctrl + K`), serta instalasi **PWA** (`manifest.php` & `sw.js`).
+8. **Notifikasi Lonceng, Pengumuman & Audit Trail**:
+   - Popover lonceng notifikasi real-time (`api/notifications`), pengumuman resmi Superadmin, halaman **Informasi Sistem (`/info`)**, **Audit Trail (`/audit`)**, dan **Idle Auto-Logout** untuk ruang kontrol.
 
 ---
 

@@ -45,11 +45,12 @@ graph TD
 ### 2. Lapisan Layanan (Layer Architecture)
 
 #### A. Presentation Layer (Antarmuka Pengguna)
-- **Desain UI**: NoteFlow Design Language (Modern, Clean, Rounded-2xl, Elevated Cards).
-- **Styling**: Tailwind CSS CDN + Phosphor Icons + Custom Canvas Signature Engine.
-- **Responsivitas**: 
-  - Desktop: Docked sidebar ramping di kiri, fluid content di tengah.
+- **Desain UI**: NoteFlow Design Language (Modern, Clean, Rounded-2xl, Elevated Cards) dengan motif **Batik Kawung** SVG pada halaman login.
+- **Styling**: Tailwind CSS CDN + Phosphor Icons + Custom Canvas Signature Engine + *cache-busting* CSS otomatis via `filemtime`.
+- **Responsivitas & PWA**:
+  - Desktop: Docked sidebar ramping di kiri dengan *Floating Glass Pill Tooltip*, serta header *Live Quick Search* (`Ctrl + K`).
   - Mobile: Floating bottom navigation bar, mobile drawer samping, responsive single dark mode toggle.
+  - **Progressive Web App (PWA)**: `manifest.php` dinamis dan Service Worker `sw.js`.
 - **Dual Mode**: Light Mode (`#f5f5fa`) dan Dark Mode (`#121421`) tersimpan di `localStorage`.
 
 #### B. Application & Logic Layer (PHP 8.5+)
@@ -59,6 +60,10 @@ graph TD
   2. *Barcode QR Code*: Kode verifikasi kriptografis unik yang dapat dipindai publik.
   3. *Wet Signature Upload*: Unggah foto tanda tangan fisik / basah asli di atas kertas.
 - **Escalation Engine**: Tiket pekerjaan yang belum terselesaikan (`prioritas = 'Tinggi / Kritis'` atau `status != 'Selesai'`) secara otomatis dipindahkan (*carried over*) ke form shift berikutnya dan dimonitor hingga tuntas.
+- **Enterprise Security & Observability**:
+  - **Audit Trail (`/audit`)**: Rekam jejak aktivitas dan IP Address (`includes/audit_helper.php`).
+  - **Control Room Idle Auto-Logout**: Peringatan hitung mundur 60 detik setelah 45 menit tanpa aktivitas.
+  - **System Info (`/info`)**: Telemetri versi aplikasi, PHP, MariaDB/MySQL, dan Redis cache.
 
 #### C. Caching Layer (Redis 7 In-Memory with Safe Fallback)
 - **Komponen**: `includes/cache.php` (`OmitCache`).
