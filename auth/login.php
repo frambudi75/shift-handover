@@ -91,6 +91,10 @@ $appFullName = get_app_full_name();
 </head>
 <body class="min-h-screen w-full bg-[#f8fafc] dark:bg-[#0b0f19] text-slate-800 dark:text-slate-100 flex items-center justify-center p-4 sm:p-6 font-sans transition-colors duration-300 relative overflow-x-hidden selection:bg-[#6558f5] selection:text-white">
 
+  <!-- Subtle Modern Batik Kawung Motif Background -->
+  <div class="fixed inset-0 pointer-events-none opacity-[0.055] dark:opacity-[0.075]"
+       style="background-image: url(&quot;data:image/svg+xml,%3Csvg width='64' height='64' viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%236558f5' stroke-width='1.2'%3E%3Cpath d='M32 0 C40 12 40 20 32 32 C24 20 24 12 32 0 Z'/%3E%3Cpath d='M32 32 C40 44 40 52 32 64 C24 52 24 44 32 32 Z'/%3E%3Cpath d='M0 32 C12 24 20 24 32 32 C20 40 12 40 0 32 Z'/%3E%3Cpath d='M32 32 C44 24 52 24 64 32 C52 40 44 40 32 32 Z'/%3E%3Ccircle cx='32' cy='32' r='2.5' fill='%236558f5'/%3E%3Ccircle cx='0' cy='0' r='2' fill='%236558f5'/%3E%3Ccircle cx='64' cy='0' r='2' fill='%236558f5'/%3E%3Ccircle cx='0' cy='64' r='2' fill='%236558f5'/%3E%3Ccircle cx='64' cy='64' r='2' fill='%236558f5'/%3E%3C/g%3E%3C/svg%3E&quot;); background-size: 64px 64px;"></div>
+
   <!-- Subtle Floating Ambient Mesh Orbs -->
   <div class="fixed top-[-8%] left-[-8%] w-[420px] h-[420px] rounded-full bg-[#6558f5]/15 dark:bg-[#6558f5]/10 blur-[100px] pointer-events-none animate-float-orb-1"></div>
   <div class="fixed bottom-[-8%] right-[-8%] w-[460px] h-[460px] rounded-full bg-indigo-500/15 dark:bg-indigo-600/10 blur-[120px] pointer-events-none animate-float-orb-2"></div>
