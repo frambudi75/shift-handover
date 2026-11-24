@@ -389,35 +389,111 @@ function send_backup_to_discord(string $filePath, string $backupType, array $cur
         ]
     ];
 
-    // Standard Discord free servers support up to 25 MB file uploads
-    $maxDiscordBytes = 24 * 1024 * 1024; // 24 MB safe threshold
+    // Safe 8 MB threshold per part (compatible with all Discord 10MB/25MB webhook limits)
+    $chunkSize = 8 * 1024 * 1024;
 
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $webhookUrl);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-
-    if ($filesize <= $maxDiscordBytes) {
+    if ($filesize <= $chunkSize) {
         $cfile = new CURLFile($filePath, mime_content_type($filePath) ?: 'application/octet-stream', $filename);
         $postData = [
             'payload_json' => json_encode($payload),
             'files[0]'     => $cfile
         ];
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: multipart/form-data']);
-    } else {
-        // If file is > 24MB, upload embed with explanation that file exceeds 25MB
-        $payload['embeds'][0]['fields'][] = [
-            'name'   => '⚠️ Catatan Ukuran',
-            'value'  => "Ukuran berkas ({$formattedSize}) melebihi limit upload Discord (25 MB). Berkas tersimpan aman di server dan dapat diunduh langsung dari Dashboard Admin OMIT.",
-            'inline' => false
-        ];
-        $jsonPayload = json_encode($payload);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonPayload);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        $res = discord_post_multipart($webhookUrl, $postData);
+        if (!$res['success']) {
+            return $res;
+        }
+        return ['success' => true, 'message' => "Backup '{$filename}' berhasil dikirim ke saluran Discord!"];
     }
+
+    // Multi-part split upload for files > 8 MB
+    $totalParts = (int)ceil($filesize / $chunkSize);
+    $handle = @fopen($filePath, 'rb');
+    if (!$handle) {
+        return ['success' => false, 'message' => 'Gagal membuka file backup untuk dipecah menjadi beberapa part.'];
+    }
+
+    $tmpDir = sys_get_temp_dir();
+    $partIndex = 1;
+    $sentParts = 0;
+
+    while (!feof($handle)) {
+        $buffer = fread($handle, $chunkSize);
+        if ($buffer === false || $buffer === '') {
+            break;
+        }
+
+        $partSuffix = sprintf('.part%03d', $partIndex);
+        $partName   = $filename . $partSuffix;
+        $tmpPart    = rtrim($tmpDir, '/\\') . DIRECTORY_SEPARATOR . uniqid('omit_dc_', true) . '_' . $partName;
+
+        if (file_put_contents($tmpPart, $buffer) === false) {
+            fclose($handle);
+            return ['success' => false, 'message' => "Gagal menulis berkas sementara untuk Part {$partIndex}."];
+        }
+        unset($buffer); // Free RAM immediately
+
+        if ($partIndex === 1) {
+            $partPayload = $payload;
+            $partPayload['embeds'][0]['title'] = "📦 Notifikasi Cadangan Sistem: {$typeLabel} (Part 1/{$totalParts})";
+            $partPayload['embeds'][0]['fields'][] = [
+                'name'   => '🧩 Pengiriman Multi-Part',
+                'value'  => "Berkas dipecah menjadi **{$totalParts} bagian** (maks. 8 MB/part).\nGabungkan kembali: `cat {$filename}.part* > {$filename}` (Linux/Mac) atau `copy /b {$filename}.part* {$filename}` (Windows).",
+                'inline' => false
+            ];
+        } else {
+            $partPayload = [
+                'username'   => "{$appName} Backup Engine",
+                'avatar_url' => $payload['avatar_url'],
+                'embeds'     => [
+                    [
+                        'title'       => "📦 Lanjutan Backup: {$filename} (Part {$partIndex}/{$totalParts})",
+                        'description' => "Bagian {$partIndex} dari {$totalParts} • Berkas `{$partName}`",
+                        'color'       => 6641909,
+                        'footer'      => ['text' => "{$appName} Multi-Part Disaster Recovery"],
+                        'timestamp'   => date('c')
+                    ]
+                ]
+            ];
+        }
+
+        $cfile = new CURLFile($tmpPart, 'application/octet-stream', $partName);
+        $res = discord_post_multipart($webhookUrl, [
+            'payload_json' => json_encode($partPayload),
+            'files[0]'     => $cfile
+        ]);
+        @unlink($tmpPart);
+
+        if (!$res['success']) {
+            fclose($handle);
+            return ['success' => false, 'message' => "Gagal mengirim Part {$partIndex}/{$totalParts} ke Discord: " . $res['message']];
+        }
+
+        $sentParts++;
+        $partIndex++;
+        if (!feof($handle)) {
+            usleep(350000); // 350ms pause to respect Discord rate limits
+        }
+    }
+
+    fclose($handle);
+    return [
+        'success' => true,
+        'message' => "Backup '{$filename}' ({$formattedSize}) berhasil dipecah dan dikirim ke Discord dalam {$sentParts} part!"
+    ];
+}
+
+/**
+ * Helper to execute multipart/form-data POST to Discord Webhook
+ */
+function discord_post_multipart(string $webhookUrl, array $postData): array {
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $webhookUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 90);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: multipart/form-data']);
 
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -427,16 +503,10 @@ function send_backup_to_discord(string $filePath, string $backupType, array $cur
     if ($curlErr) {
         return ['success' => false, 'message' => "Gagal menghubungi Discord Webhook: {$curlErr}"];
     }
-
     if ($httpCode >= 200 && $httpCode < 300) {
-        $msg = "Backup '{$filename}' berhasil dikirim ke saluran Discord!";
-        if ($filesize > $maxDiscordBytes) {
-            $msg .= " (Pesan terkirim tanpa lampiran file karena ukuran berkas > 25MB).";
-        }
-        return ['success' => true, 'message' => $msg];
+        return ['success' => true, 'message' => 'OK'];
     }
-
-    return ['success' => false, 'message' => "Discord Webhook merespon kode {$httpCode}: " . substr($response, 0, 250)];
+    return ['success' => false, 'message' => "HTTP {$httpCode}: " . substr((string)$response, 0, 250)];
 }
 
 /**
