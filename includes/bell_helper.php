@@ -118,15 +118,15 @@ function bell_get_feed(PDO $pdo, int $userId, string $role): array {
         $announcements = [];
     }
 
-    // 2. Fetch user-specific notifications
+    // 2. Fetch unread user-specific notifications (auto-hide once read/clicked)
     $notifications = [];
     $unreadNotifs = 0;
     try {
         $stmtNotif = $pdo->prepare("
             SELECT * FROM user_notifications
-            WHERE user_id = :uid
+            WHERE user_id = :uid AND is_read = 0
             ORDER BY created_at DESC
-            LIMIT 15
+            LIMIT 20
         ");
         $stmtNotif->execute(['uid' => $userId]);
         $notifications = $stmtNotif->fetchAll();
