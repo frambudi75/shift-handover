@@ -119,7 +119,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
             $resp = curl_exec($ch);
             $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $err = curl_error($ch);
-            curl_close($ch);
+            unset($ch);
 
             if ($http >= 200 && $http < 300) {
                 flash_set('success', 'Koneksi Discord Webhook berhasil! Pesan uji coba telah masuk ke server Discord Anda.');

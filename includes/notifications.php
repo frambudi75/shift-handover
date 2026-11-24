@@ -223,7 +223,7 @@ function send_whatsapp_api(string $toPhone, string $message): array {
     $response = curl_exec($ch);
     $error = curl_error($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
+    unset($ch);
 
     if ($error) {
         return ['success' => false, 'message' => "Gagal menghubungi API WhatsApp: {$error}"];

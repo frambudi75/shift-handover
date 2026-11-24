@@ -422,7 +422,7 @@ function send_backup_to_discord(string $filePath, string $backupType, array $cur
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curlErr  = curl_error($ch);
-    curl_close($ch);
+    unset($ch);
 
     if ($curlErr) {
         return ['success' => false, 'message' => "Gagal menghubungi Discord Webhook: {$curlErr}"];

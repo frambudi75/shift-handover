@@ -104,15 +104,15 @@ function compress_and_save_image(string $sourcePath, string $destPath, int $qual
             switch ($exif['Orientation']) {
                 case 3:
                     $rotated = @imagerotate($image, 180, 0);
-                    if ($rotated) { imagedestroy($image); $image = $rotated; }
+                    if ($rotated) { unset($image); $image = $rotated; }
                     break;
                 case 6:
                     $rotated = @imagerotate($image, -90, 0);
-                    if ($rotated) { imagedestroy($image); $image = $rotated; }
+                    if ($rotated) { unset($image); $image = $rotated; }
                     break;
                 case 8:
                     $rotated = @imagerotate($image, 90, 0);
-                    if ($rotated) { imagedestroy($image); $image = $rotated; }
+                    if ($rotated) { unset($image); $image = $rotated; }
                     break;
             }
         }
@@ -133,7 +133,7 @@ function compress_and_save_image(string $sourcePath, string $destPath, int $qual
         }
 
         imagecopyresampled($resized, $image, 0, 0, 0, 0, $newW, $newH, $origW, $origH);
-        imagedestroy($image);
+        unset($image);
         $image = $resized;
     }
 
@@ -146,7 +146,7 @@ function compress_and_save_image(string $sourcePath, string $destPath, int $qual
         $saved = @imagejpeg($image, $destPath, max(30, min(100, $quality)));
     }
 
-    imagedestroy($image);
+    unset($image);
     return $saved ?: copy($sourcePath, $destPath);
 }
 
