@@ -9,8 +9,22 @@ date_default_timezone_set('Asia/Jakarta');
 
 require_once __DIR__ . '/../includes/cache.php';
 
-$app_base_url = getenv('APP_BASE_URL') ?: (defined('BASE_URL') ? BASE_URL : '/serah-terima/');
-if (!defined('BASE_URL')) define('BASE_URL', $app_base_url);
+if (!defined('BASE_URL')) {
+    $envBase = getenv('APP_BASE_URL');
+    if ($envBase !== false && $envBase !== '') {
+        define('BASE_URL', $envBase);
+    } else {
+        // Auto-detect BASE_URL relative to DOCUMENT_ROOT (works on XAMPP, cPanel root /, aaPanel, DirectAdmin)
+        $docRoot = str_replace('\\', '/', realpath($_SERVER['DOCUMENT_ROOT'] ?? '') ?: '');
+        $appRoot = str_replace('\\', '/', realpath(__DIR__ . '/..') ?: '');
+        if ($docRoot !== '' && $appRoot !== '' && strpos($appRoot, $docRoot) === 0) {
+            $relPath = trim(substr($appRoot, strlen($docRoot)), '/');
+            define('BASE_URL', $relPath === '' ? '/' : '/' . $relPath . '/');
+        } else {
+            define('BASE_URL', '/serah-terima/');
+        }
+    }
+}
 if (!defined('UPLOAD_DIR')) define('UPLOAD_DIR', __DIR__ . '/../uploads/');
 if (!defined('UPLOAD_URL')) define('UPLOAD_URL', BASE_URL . 'uploads/');
 
