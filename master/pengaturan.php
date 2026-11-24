@@ -29,6 +29,13 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         }
         $appUrl = trim($_POST['app_url'] ?? '');
         set_setting('app_url', $appUrl);
+
+        $rawDocPrefix = strtoupper(trim($_POST['doc_prefix'] ?? 'OMIT'));
+        $docPrefix    = preg_replace('/[^A-Z0-9_-]/', '', $rawDocPrefix) ?: 'OMIT';
+        $docResetMode = in_array($_POST['doc_reset_mode'] ?? 'daily', ['daily', 'monthly'], true) ? $_POST['doc_reset_mode'] : 'daily';
+        set_setting('doc_prefix', $docPrefix);
+        set_setting('doc_reset_mode', $docResetMode);
+
         set_setting('compress_enabled', $compressEnabled);
         set_setting('compress_quality', (string)$compressQuality);
         set_setting('compress_max_width', (string)$compressMaxWidth);
@@ -145,6 +152,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
 $currentAppName     = get_setting('app_name', 'OMIT Shift Handover');
 $currentAppFullName = get_setting('app_full_name', 'Sistem Laporan Serah Terima Shift Operasional');
 $currentAppUrl      = get_setting('app_url', '');
+$currentDocPrefix   = get_setting('doc_prefix', 'OMIT');
+$currentDocReset    = get_setting('doc_reset_mode', 'daily');
 $currentLogo        = get_app_logo_url();
 $compressEnabled    = get_setting('compress_enabled', '1') === '1';
 $compressQuality    = (int)get_setting('compress_quality', '80');
@@ -264,6 +273,34 @@ require_once __DIR__ . '/../includes/header.php';
             <p class="text-[11px] text-slate-400 mt-1">
               Digunakan pada tautan dokumen yang dikirimkan via <strong>WhatsApp dan Email</strong> agar rekan kerja yang menerima di smartphone dapat langsung membuka dokumen. Jika dikosongkan, sistem otomatis mendeteksi URL aktif dari browser.
             </p>
+          </div>
+
+          <!-- Penomoran Dokumen Otomatis -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+            <div>
+              <label class="block text-xs font-extrabold text-slate-600 dark:text-slate-300 mb-1.5">
+                Prefix Nomor Dokumen
+              </label>
+              <input type="text" name="doc_prefix" id="inputDocPrefix" maxlength="15"
+                     value="<?= sanitize($currentDocPrefix) ?>" placeholder="OMIT"
+                     oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ''); updateDocPreview();"
+                     class="w-full px-3.5 py-2.5 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700/70 text-xs font-extrabold text-slate-800 dark:text-slate-100 uppercase tracking-wider focus:ring-2 focus:ring-[#6558f5]/40 focus:outline-none transition" />
+              <p class="text-[11px] text-slate-400 mt-1">Huruf kapital / kode divisi (Contoh: <code>OMIT</code>, <code>AVI</code>, <code>PLANT1</code>).</p>
+            </div>
+
+            <div>
+              <label class="block text-xs font-extrabold text-slate-600 dark:text-slate-300 mb-1.5">
+                Siklus Reset Nomor Urut
+              </label>
+              <select name="doc_reset_mode" id="inputDocReset" onchange="updateDocPreview()"
+                      class="w-full px-3.5 py-2.5 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700/70 text-xs font-extrabold text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#6558f5]/40 focus:outline-none transition cursor-pointer">
+                <option value="daily" <?= $currentDocReset === 'daily' ? 'selected' : '' ?>>Harian (YYYYMMDD-001)</option>
+                <option value="monthly" <?= $currentDocReset === 'monthly' ? 'selected' : '' ?>>Bulanan (YYYYMM-001)</option>
+              </select>
+              <p class="text-[11px] text-slate-400 mt-1">
+                Pratinjau format: <code id="docFormatPreview" class="px-1.5 py-0.5 rounded bg-[#efeffb] dark:bg-indigo-950/60 text-[#6558f5] dark:text-indigo-300 font-bold"><?= sanitize($currentDocPrefix) ?>-<?= $currentDocReset === 'monthly' ? date('Ym') : date('Ymd') ?>-001</code>
+              </p>
+            </div>
           </div>
         </div>
 
@@ -670,6 +707,14 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 
 <script>
+  function updateDocPreview() {
+    const prefix = (document.getElementById('inputDocPrefix')?.value || 'OMIT').trim() || 'OMIT';
+    const mode   = document.getElementById('inputDocReset')?.value || 'daily';
+    const dateStr = mode === 'monthly' ? '<?= date('Ym') ?>' : '<?= date('Ymd') ?>';
+    const el = document.getElementById('docFormatPreview');
+    if (el) el.textContent = `${prefix}-${dateStr}-001`;
+  }
+
   function previewAppLogo(input) {
     if (input.files && input.files[0]) {
       const reader = new FileReader();

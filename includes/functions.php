@@ -53,14 +53,20 @@ function format_jam(?string $timeStr): string {
 }
 
 function generate_nomor_laporan(PDO $pdo): string {
-    $today = date('Ymd');
-    $prefix = "OMIT-{$today}-";
+    $rawPrefix = strtoupper(trim(get_setting('doc_prefix', 'OMIT')));
+    $docPrefix = preg_replace('/[^A-Z0-9_-]/', '', $rawPrefix) ?: 'OMIT';
+    $resetMode = get_setting('doc_reset_mode', 'daily');
+
+    $datePart = ($resetMode === 'monthly') ? date('Ym') : date('Ymd');
+    $prefix = "{$docPrefix}-{$datePart}-";
+
     $stmt = $pdo->prepare("SELECT nomor_laporan FROM laporan_serah_terima WHERE nomor_laporan LIKE :prefix ORDER BY id DESC LIMIT 1");
     $stmt->execute(['prefix' => "{$prefix}%"]);
     $last = $stmt->fetchColumn();
 
     if ($last) {
-        $lastSeq = (int)substr($last, -3);
+        $parts = explode('-', $last);
+        $lastSeq = (int)end($parts);
         $nextSeq = str_pad($lastSeq + 1, 3, '0', STR_PAD_LEFT);
     } else {
         $nextSeq = '001';
