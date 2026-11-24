@@ -25,7 +25,7 @@ function get_full_web_url(string $path = ''): string {
     $path = ltrim($path, '/');
     $baseUrl = BASE_URL; // e.g. /serah-terima/ or /
     
-    $customDomain = get_setting('app_base_url_full', '');
+    $customDomain = get_setting('app_url', get_setting('app_base_url_full', ''));
     if (!empty($customDomain)) {
         return rtrim($customDomain, '/') . '/' . $path;
     }

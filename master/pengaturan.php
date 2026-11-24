@@ -27,6 +27,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         if (!empty($appFullName)) {
             set_setting('app_full_name', $appFullName);
         }
+        $appUrl = trim($_POST['app_url'] ?? '');
+        set_setting('app_url', $appUrl);
         set_setting('compress_enabled', $compressEnabled);
         set_setting('compress_quality', (string)$compressQuality);
         set_setting('compress_max_width', (string)$compressMaxWidth);
@@ -145,6 +147,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
 // Current Values
 $currentAppName     = get_setting('app_name', 'OMIT Shift Handover');
 $currentAppFullName = get_setting('app_full_name', 'Sistem Laporan Serah Terima Shift Operasional');
+$currentAppUrl      = get_setting('app_url', '');
 $currentLogo        = get_app_logo_url();
 $compressEnabled    = get_setting('compress_enabled', '1') === '1';
 $compressQuality    = (int)get_setting('compress_quality', '80');
@@ -250,6 +253,20 @@ require_once __DIR__ . '/../includes/header.php';
                    placeholder="Contoh: Sistem Laporan Serah Terima Shift Operasional"
                    class="w-full px-3.5 py-2.5 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700/70 text-xs font-extrabold text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#6558f5]/40 focus:outline-none transition" />
             <p class="text-[11px] text-slate-400 mt-1">Ditampilkan di header formulir cetak PDF standar OMIT dan login.</p>
+          </div>
+
+          <!-- URL Domain Publik / Akses Jaringan -->
+          <div>
+            <label class="block text-xs font-extrabold text-slate-600 dark:text-slate-300 mb-1.5 flex items-center justify-between">
+              <span>URL Domain Publik / Akses Jaringan (Opsional)</span>
+              <span class="text-[10px] text-slate-400 font-normal">Contoh: http://192.168.1.100:2031 atau https://handover.perusahaan.com</span>
+            </label>
+            <input type="text" name="app_url" value="<?= sanitize($currentAppUrl) ?>"
+                   placeholder="Kosongkan untuk deteksi otomatis dari alamat browser saat ini"
+                   class="w-full px-3.5 py-2.5 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700/70 text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#6558f5]/40 focus:outline-none transition" />
+            <p class="text-[11px] text-slate-400 mt-1">
+              Digunakan pada tautan dokumen yang dikirimkan via <strong>WhatsApp dan Email</strong> agar rekan kerja yang menerima di smartphone dapat langsung membuka dokumen. Jika dikosongkan, sistem otomatis mendeteksi URL aktif dari browser.
+            </p>
           </div>
         </div>
 
