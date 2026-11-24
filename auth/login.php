@@ -73,119 +73,29 @@ $appFullName = get_app_full_name();
               hover: '#5244e8',
               surface: '#f4f5fa'
             }
-          },
-          boxShadow: {
-            'glow': '0 0 40px -10px rgba(101, 88, 245, 0.35)',
-            'card': '0 20px 40px -15px rgba(15, 23, 42, 0.08)'
           }
         }
       }
     }
   </script>
-  <style>
-    @keyframes floatSlow {
-      0%, 100% { transform: translateY(0px) scale(1); }
-      50% { transform: translateY(-8px) scale(1.02); }
-    }
-    .animate-float-slow {
-      animation: floatSlow 6s ease-in-out infinite;
-    }
-  </style>
 </head>
-<body class="min-h-screen w-full bg-[#f4f5fa] dark:bg-[#0b0f19] text-slate-800 dark:text-slate-100 flex items-center justify-center p-3 sm:p-6 lg:p-10 font-sans transition-colors duration-300 relative overflow-x-hidden">
+<body class="min-h-screen w-full bg-[#f4f5fa] dark:bg-[#0b0f19] text-slate-800 dark:text-slate-100 flex items-center justify-center p-4 sm:p-6 lg:p-10 font-sans transition-colors duration-300 relative overflow-x-hidden">
 
   <!-- Ambient Background Accents -->
-  <div class="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[#6558f5]/10 dark:bg-[#6558f5]/15 blur-[120px] pointer-events-none"></div>
-  <div class="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-500/10 dark:bg-indigo-600/15 blur-[120px] pointer-events-none"></div>
+  <div class="fixed top-[-10%] right-[-10%] w-[550px] h-[550px] rounded-full bg-[#6558f5]/10 dark:bg-[#6558f5]/15 blur-[120px] pointer-events-none"></div>
+  <div class="fixed bottom-[-10%] left-[-10%] w-[550px] h-[550px] rounded-full bg-indigo-500/10 dark:bg-indigo-600/15 blur-[120px] pointer-events-none"></div>
 
-  <!-- Main Card Container -->
+  <!-- Main Card Container: Form on the Left (lg:col-span-7), Hero Banner on the Right (lg:col-span-5) -->
   <div class="w-full max-w-5xl bg-white dark:bg-[#131b2e] rounded-[28px] sm:rounded-[36px] shadow-2xl shadow-slate-200/50 dark:shadow-black/50 border border-slate-200/80 dark:border-slate-800/80 overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative z-10 transition-all">
 
-    <!-- LEFT COLUMN: Brand Hero & Operational SOP Showcase (Hidden on small screens, shown lg:grid-span-5) -->
-    <div class="lg:col-span-5 bg-gradient-to-br from-[#5946ea] via-[#6558f5] to-[#7f73fc] text-white p-8 sm:p-10 flex flex-col justify-between relative overflow-hidden">
-      
-      <!-- Ambient Decorative Rings -->
-      <div class="absolute -top-16 -right-16 w-56 h-56 rounded-full border border-white/10 pointer-events-none"></div>
-      <div class="absolute -top-8 -right-8 w-40 h-40 rounded-full border border-white/15 pointer-events-none"></div>
-      <div class="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-white/5 blur-2xl pointer-events-none"></div>
-
-      <!-- Hero Header -->
-      <div class="relative z-10">
-        <div class="flex items-center gap-3 mb-6">
-          <div class="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center shadow-lg p-2 overflow-hidden flex-shrink-0">
-            <?php if ($appLogo): ?>
-              <img src="<?= $appLogo ?>" alt="Logo" class="max-w-full max-h-full object-contain" />
-            <?php else: ?>
-              <i class="ph-fill ph-clipboard-text text-2xl text-white"></i>
-            <?php endif; ?>
-          </div>
-          <div>
-            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-white border border-white/20">
-              <i class="ph-bold ph-shield-check text-amber-300"></i> SOP OMIT
-            </div>
-            <h2 class="text-lg font-black tracking-tight leading-tight mt-0.5"><?= sanitize($appName) ?></h2>
-          </div>
-        </div>
-
-        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight leading-snug mt-4">
-          Standar Resmi Serah Terima Tugas Shift Operasional
-        </h1>
-        <p class="text-white/80 text-xs sm:text-sm mt-3 leading-relaxed font-normal">
-          Dokumentasikan perpindahan tugas stasiun kerja secara real-time, validasi e-sign digital, dan eskalasikan tiket kritis lintas shift tanpa kendala.
-        </p>
-
-        <!-- SOP Highlights List -->
-        <div class="mt-8 space-y-3.5">
-          <div class="flex items-start gap-3.5 p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 transition hover:bg-white/15">
-            <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 text-amber-300">
-              <i class="ph-bold ph-signature text-lg"></i>
-            </div>
-            <div>
-              <h3 class="text-xs font-bold text-white">Handover Digital & E-Sign</h3>
-              <p class="text-[11px] text-white/75 leading-relaxed mt-0.5">Tanda tangan digital kanvas, verifikasi QR code instan, dan upload bukti fisik.</p>
-            </div>
-          </div>
-
-          <div class="flex items-start gap-3.5 p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 transition hover:bg-white/15">
-            <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 text-emerald-300">
-              <i class="ph-bold ph-arrows-clockwise text-lg"></i>
-            </div>
-            <div>
-              <h3 class="text-xs font-bold text-white">Eskalasi Tiket Berkelanjutan</h3>
-              <p class="text-[11px] text-white/75 leading-relaxed mt-0.5">Zero unhandled ticket dengan pemantauan otomatis pekerjaan kritis antar shift.</p>
-            </div>
-          </div>
-
-          <div class="flex items-start gap-3.5 p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 transition hover:bg-white/15">
-            <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 text-cyan-300">
-              <i class="ph-bold ph-shield-check text-lg"></i>
-            </div>
-            <div>
-              <h3 class="text-xs font-bold text-white">Audit Trail & Redis Caching</h3>
-              <p class="text-[11px] text-white/75 leading-relaxed mt-0.5">Akses secepat kilat dengan perlindungan log aktivitas berstandar kepatuhan.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Hero Footer Badge -->
-      <div class="mt-8 pt-6 border-t border-white/15 flex items-center justify-between text-xs text-white/80 relative z-10">
-        <div class="flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span class="font-semibold text-[11px] tracking-wide">Sistem Aktif 24/7 • Rotasi Shift Aman</span>
-        </div>
-        <span class="text-[10px] font-mono text-white/60 bg-black/10 px-2 py-0.5 rounded-md border border-white/10">v2.4 LTS</span>
-      </div>
-    </div>
-
-    <!-- RIGHT COLUMN: Authentication Form (7 cols on lg) -->
-    <div class="lg:col-span-7 p-6 sm:p-10 lg:p-12 flex flex-col justify-between bg-white dark:bg-[#131b2e] transition-colors">
+    <!-- LEFT COLUMN: Authentication Form (7 cols on desktop) -->
+    <div class="lg:col-span-7 p-6 sm:p-10 lg:p-12 flex flex-col justify-between bg-white dark:bg-[#131b2e] transition-colors order-1">
       
       <div>
-        <!-- Top Toolbar: Mobile Brand + Theme Switcher -->
+        <!-- Top Toolbar: Brand & Theme Switcher -->
         <div class="flex items-center justify-between mb-8">
-          <div class="flex items-center gap-2.5 lg:hidden">
-            <div class="w-10 h-10 rounded-xl bg-[#6558f5] flex items-center justify-center text-white p-1.5 shadow-md shadow-[#6558f5]/20">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-[#6558f5] flex items-center justify-center text-white p-2 shadow-md shadow-[#6558f5]/25 flex-shrink-0">
               <?php if ($appLogo): ?>
                 <img src="<?= $appLogo ?>" alt="Logo" class="max-w-full max-h-full object-contain" />
               <?php else: ?>
@@ -193,32 +103,28 @@ $appFullName = get_app_full_name();
               <?php endif; ?>
             </div>
             <div>
-              <h2 class="text-sm font-black text-slate-900 dark:text-white leading-tight"><?= sanitize($appName) ?></h2>
-              <span class="text-[10px] text-slate-400 font-medium tracking-tight">SOP Shift Handover</span>
+              <h2 class="text-base font-extrabold text-slate-900 dark:text-white leading-tight tracking-tight"><?= sanitize($appName) ?></h2>
+              <span class="inline-flex items-center gap-1 text-[11px] font-bold text-[#6558f5] dark:text-indigo-400">
+                <i class="ph-bold ph-shield-check"></i> SOP Shift Handover
+              </span>
             </div>
-          </div>
-
-          <div class="hidden lg:block">
-            <span class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400 dark:text-slate-500">
-              <i class="ph-fill ph-lock-key text-[#6558f5]"></i> Portal Autentikasi Resmi
-            </span>
           </div>
 
           <!-- Theme Toggle Button -->
           <button onclick="toggleTheme()" type="button" 
-                  aria-label="Toggle Theme"
-                  class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition flex items-center gap-2 border border-slate-200/60 dark:border-slate-700">
+                  aria-label="Ganti Mode Tampilan"
+                  class="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition flex items-center gap-2 border border-slate-200/80 dark:border-slate-700/80">
             <i class="ph-bold ph-moon text-base dark:hidden"></i>
             <i class="ph-bold ph-sun text-base hidden dark:inline text-amber-400"></i>
-            <span class="text-xs font-semibold hidden sm:inline" id="themeLabel">Mode Tampilan</span>
+            <span class="text-xs font-semibold hidden sm:inline">Mode</span>
           </button>
         </div>
 
         <!-- Form Heading -->
         <div class="mb-7">
-          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Selamat Datang!
-          </h2>
+          </h1>
           <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
             Silakan masukkan kredensial akun terdaftar untuk memulai atau melanjutkan laporan serah terima shift Anda.
           </p>
@@ -226,7 +132,7 @@ $appFullName = get_app_full_name();
 
         <!-- Feedback Alert Messages -->
         <?php if (!empty($error)): ?>
-          <div class="mb-5 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 text-rose-700 dark:text-rose-300 text-xs sm:text-sm flex items-start gap-3 shadow-sm animate-shake">
+          <div class="mb-5 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 text-rose-700 dark:text-rose-300 text-xs sm:text-sm flex items-start gap-3 shadow-sm">
             <i class="ph-bold ph-warning-circle text-lg flex-shrink-0 mt-0.5 text-rose-500"></i>
             <div class="flex-1 font-medium leading-relaxed"><?= $error ?></div>
           </div>
@@ -270,9 +176,9 @@ $appFullName = get_app_full_name();
               <label for="password" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                 Kata Sandi <span class="text-rose-500">*</span>
               </label>
-              <span class="text-[11px] text-slate-400 hover:text-[#6558f5] transition cursor-pointer" onclick="showHelpModal()">
+              <button type="button" onclick="showHelpModal()" class="text-[11px] font-semibold text-slate-400 hover:text-[#6558f5] transition">
                 Lupa sandi?
-              </span>
+              </button>
             </div>
             <div class="relative">
               <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
@@ -292,18 +198,18 @@ $appFullName = get_app_full_name();
 
           <!-- Remember & Security Info -->
           <div class="flex items-center justify-between pt-1">
-            <label class="flex items-center gap-2 cursor-pointer select-none">
-              <input type="checkbox" name="remember" class="w-4 h-4 rounded text-[#6558f5] focus:ring-[#6558f5] border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 transition">
+            <label class="flex items-center gap-2.5 cursor-pointer select-none">
+              <input type="checkbox" name="remember" class="w-4 h-4 rounded-md text-[#6558f5] focus:ring-[#6558f5] border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 transition cursor-pointer">
               <span class="text-xs text-slate-600 dark:text-slate-400 font-medium">Ingat perangkat ini</span>
             </label>
-            <span class="text-[11px] text-slate-400 flex items-center gap-1">
+            <span class="text-[11px] text-slate-400 flex items-center gap-1.5 font-medium">
               <i class="ph-fill ph-shield-check text-emerald-500"></i> Audit Terproteksi
             </span>
           </div>
 
           <!-- Submit CTA -->
           <button type="submit" id="submitBtn"
-                  class="w-full mt-2 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#6558f5] to-[#5244e8] hover:from-[#584be3] hover:to-[#4335d6] text-white font-bold text-sm shadow-xl shadow-[#6558f5]/25 hover:shadow-[#6558f5]/40 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2.5">
+                  class="w-full mt-2 py-3.5 px-6 rounded-2xl bg-[#6558f5] hover:bg-[#5244e8] text-white font-bold text-sm shadow-xl shadow-[#6558f5]/25 hover:shadow-[#6558f5]/40 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2.5">
             <span>Masuk ke Sistem Operasional</span>
             <i class="ph-bold ph-arrow-right text-base"></i>
           </button>
@@ -313,13 +219,14 @@ $appFullName = get_app_full_name();
         <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
           <div class="flex items-center justify-between mb-3">
             <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-              <i class="ph-bold ph-lightning text-amber-500"></i> Akun Cepat Pengujian (Klik untuk Mengisi):
+              <i class="ph-bold ph-lightning text-amber-500"></i> Akun Cepat Pengujian:
             </span>
+            <span class="text-[10px] text-slate-400 font-medium">Klik untuk otomatis mengisi</span>
           </div>
 
-          <div class="grid grid-cols-3 gap-2">
+          <div class="grid grid-cols-3 gap-2 sm:gap-2.5">
             <button type="button" onclick="fillCreds('superadmin', 'password', this)"
-                    class="cred-pill group p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-left hover:border-[#6558f5] dark:hover:border-[#6558f5] hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 transition">
+                    class="cred-pill group p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-left hover:border-[#6558f5] dark:hover:border-[#6558f5] hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 transition cursor-pointer">
               <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#6558f5]">
                 <i class="ph-fill ph-crown text-amber-500"></i> Superadmin
               </div>
@@ -327,7 +234,7 @@ $appFullName = get_app_full_name();
             </button>
 
             <button type="button" onclick="fillCreds('admin', 'password', this)"
-                    class="cred-pill group p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-left hover:border-[#6558f5] dark:hover:border-[#6558f5] hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 transition">
+                    class="cred-pill group p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-left hover:border-[#6558f5] dark:hover:border-[#6558f5] hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 transition cursor-pointer">
               <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#6558f5]">
                 <i class="ph-fill ph-shield-check text-blue-500"></i> Admin
               </div>
@@ -335,7 +242,7 @@ $appFullName = get_app_full_name();
             </button>
 
             <button type="button" onclick="fillCreds('andi', 'password', this)"
-                    class="cred-pill group p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-left hover:border-[#6558f5] dark:hover:border-[#6558f5] hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 transition">
+                    class="cred-pill group p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-left hover:border-[#6558f5] dark:hover:border-[#6558f5] hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 transition cursor-pointer">
               <div class="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#6558f5]">
                 <i class="ph-fill ph-hard-hat text-emerald-500"></i> Operator
               </div>
@@ -355,6 +262,71 @@ $appFullName = get_app_full_name();
 
     </div>
 
+    <!-- RIGHT COLUMN: Brand Hero & Operational SOP Showcase (5 cols on desktop, hidden on small screens) -->
+    <div class="hidden lg:flex lg:col-span-5 bg-gradient-to-br from-[#5946ea] via-[#6558f5] to-[#7f73fc] text-white p-8 sm:p-10 flex-col justify-between relative overflow-hidden order-2">
+      
+      <!-- Ambient Decorative Rings -->
+      <div class="absolute -top-16 -right-16 w-56 h-56 rounded-full border border-white/10 pointer-events-none"></div>
+      <div class="absolute -top-8 -right-8 w-40 h-40 rounded-full border border-white/15 pointer-events-none"></div>
+      <div class="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-white/5 blur-2xl pointer-events-none"></div>
+
+      <!-- Hero Header -->
+      <div class="relative z-10">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-bold uppercase tracking-wider text-white border border-white/20 mb-4">
+          <i class="ph-bold ph-shield-check text-amber-300"></i> SOP OMIT Standard
+        </div>
+
+        <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight leading-snug">
+          Standar Resmi Serah Terima Tugas Shift Operasional
+        </h2>
+        <p class="text-white/80 text-xs sm:text-sm mt-3 leading-relaxed font-normal">
+          Dokumentasikan perpindahan tugas stasiun kerja secara real-time, validasi e-sign digital, dan eskalasikan tiket kritis lintas shift tanpa kendala.
+        </p>
+
+        <!-- SOP Highlights List -->
+        <div class="mt-8 space-y-3.5">
+          <div class="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 transition hover:bg-white/15">
+            <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 text-amber-300">
+              <i class="ph-bold ph-signature text-lg"></i>
+            </div>
+            <div>
+              <h3 class="text-xs font-bold text-white">Handover Digital & E-Sign</h3>
+              <p class="text-[11px] text-white/75 leading-relaxed mt-0.5">Tanda tangan digital kanvas, verifikasi QR code instan, dan upload bukti fisik.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 transition hover:bg-white/15">
+            <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 text-emerald-300">
+              <i class="ph-bold ph-arrows-clockwise text-lg"></i>
+            </div>
+            <div>
+              <h3 class="text-xs font-bold text-white">Eskalasi Tiket Berkelanjutan</h3>
+              <p class="text-[11px] text-white/75 leading-relaxed mt-0.5">Zero unhandled ticket dengan pemantauan otomatis pekerjaan kritis antar shift.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 transition hover:bg-white/15">
+            <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 text-cyan-300">
+              <i class="ph-bold ph-shield-check text-lg"></i>
+            </div>
+            <div>
+              <h3 class="text-xs font-bold text-white">Audit Trail & Redis Caching</h3>
+              <p class="text-[11px] text-white/75 leading-relaxed mt-0.5">Akses secepat kilat dengan perlindungan log aktivitas berstandar kepatuhan.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Footer Badge -->
+      <div class="mt-8 pt-6 border-t border-white/15 flex items-center justify-between text-xs text-white/80 relative z-10">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="font-semibold text-[11px] tracking-wide">Sistem Aktif 24/7 • Rotasi Shift Aman</span>
+        </div>
+        <span class="text-[10px] font-mono text-white/60 bg-black/10 px-2 py-0.5 rounded-md border border-white/10">v2.4 LTS</span>
+      </div>
+    </div>
+
   </div>
 
   <!-- Help Modal -->
@@ -371,7 +343,7 @@ $appFullName = get_app_full_name();
         Silakan hubungi admin piket atau koordinasikan via grup WhatsApp resmi operasional stasiun kerja Anda.
       </div>
       <button type="button" onclick="closeHelpModal()"
-              class="w-full mt-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold text-xs transition">
+              class="w-full mt-5 py-2.5 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] text-white font-bold text-xs transition cursor-pointer">
         Saya Mengerti
       </button>
     </div>
