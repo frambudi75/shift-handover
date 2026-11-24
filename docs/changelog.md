@@ -7,7 +7,7 @@ Semua perubahan dan peningkatan fungsionalitas sistem dicatat secara berkala pad
 
 ### Versi 2.5.0 (2026-11-24) - *Current Release*
 - **Docker Containerization**:
-  - Konfigurasi multi-kontainer Docker Compose (`app` PHP 8.2 Apache, `db` MySQL 8.0, `redis` Redis 7 Alpine).
+  - Konfigurasi multi-kontainer Docker Compose (`app` PHP 8.5 Apache, `db` MySQL 8.0, `redis` Redis 7 Alpine).
   - Port default aplikasi dialokasikan ke port **2032** untuk isolasi produksi.
   - OPcache aktif dengan alokasi memori RAM 128MB untuk kompilasi skrip instan.
 - **Redis In-Memory Caching Layer**:

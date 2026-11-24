@@ -2,7 +2,7 @@
 ## Sistem Informasi Laporan Serah Terima Shift Operasional (OMIT)
 
 ### 1. Ringkasan Eksekutif
-Aplikasi Laporan Serah Terima Shift Operasional adalah sistem web berbasis **PHP 8.2+ Native**, **MySQL 8.0**, dan **Redis In-Memory Cache** yang dirancang untuk mendigitalisasi proses serah terima kerja antar-shift di lingkungan operasional berisiko tinggi. Sistem ini mengusung antarmuka **Full-Width Responsive** dengan arsitektur modern berstandar NoteFlow, fitur tanda tangan digital multi-mode (Canvas, Barcode QR Code, Upload TTD Basah), eskalasi otomatis tugas kritis, pencadangan bencana instan, serta kontainerisasi **Docker**. Output dokumen cetak PDF 100% identik dengan standar formulir *Template_Serah_Terima_Shift_OMIT.pdf*.
+Aplikasi Laporan Serah Terima Shift Operasional adalah sistem web berbasis **PHP 8.5+ Native**, **MySQL 8.0**, dan **Redis In-Memory Cache** yang dirancang untuk mendigitalisasi proses serah terima kerja antar-shift di lingkungan operasional berisiko tinggi. Sistem ini mengusung antarmuka **Full-Width Responsive** dengan arsitektur modern berstandar NoteFlow, fitur tanda tangan digital multi-mode (Canvas, Barcode QR Code, Upload TTD Basah), eskalasi otomatis tugas kritis, pencadangan bencana instan, serta kontainerisasi **Docker**. Output dokumen cetak PDF 100% identik dengan standar formulir *Template_Serah_Terima_Shift_OMIT.pdf*.
 
 ---
 

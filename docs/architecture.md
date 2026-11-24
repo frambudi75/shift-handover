@@ -3,11 +3,11 @@
 
 ### 1. Gambaran Umum Arsitektur (High-Level Architecture)
 
-Aplikasi dibangun menggunakan arsitektur modular **Monolith Modern (MVC-Lite)** berbasis **PHP 8.2+ Native**, didukung oleh **MySQL 8.0** sebagai penyimpanan relasional berintegritas tinggi, **Redis 7** sebagai akselerator *in-memory cache*, serta dikemas dalam orkestrasi kontainer **Docker**.
+Aplikasi dibangun menggunakan arsitektur modular **Monolith Modern (MVC-Lite)** berbasis **PHP 8.5+ Native**, didukung oleh **MySQL 8.0** sebagai penyimpanan relasional berintegritas tinggi, **Redis 7** sebagai akselerator *in-memory cache*, serta dikemas dalam orkestrasi kontainer **Docker**.
 
 ```mermaid
 graph TD
-    UserClient[Pengguna: Browser Desktop / Tablet / Smartphone] --> |HTTP / HTTPS Port 2032| WebServer[Web Server: Apache 2.4 + PHP 8.2 + OPcache]
+    UserClient[Pengguna: Browser Desktop / Tablet / Smartphone] --> |HTTP / HTTPS Port 2032| WebServer[Web Server: Apache 2.4 + PHP 8.5 + OPcache]
     
     subgraph Kontainer Aplikasi (omit_shift_app)
         WebServer --> Router[Front Controller & Routing]
@@ -52,7 +52,7 @@ graph TD
   - Mobile: Floating bottom navigation bar, mobile drawer samping, responsive single dark mode toggle.
 - **Dual Mode**: Light Mode (`#f5f5fa`) dan Dark Mode (`#121421`) tersimpan di `localStorage`.
 
-#### B. Application & Logic Layer (PHP 8.2+)
+#### B. Application & Logic Layer (PHP 8.5+)
 - **OPcache Enabled**: Bytecode PHP disimpan di memori RAM (128MB) sehingga tidak ada proses kompilasi berulang pada setiap *request*.
 - **Multi-Mode Signature**: Mendukung 3 jenis tanda tangan:
   1. *Canvas Pad*: Goresan digital mouse / layar sentuh berbasis Base64 PNG.

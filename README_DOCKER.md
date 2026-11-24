@@ -8,7 +8,7 @@ Dokumen ini menjelaskan cara menjalankan sistem **OMIT Shift Handover** mengguna
 
 Sistem ini diorkestrasi menggunakan **Docker Compose** dengan 3 layanan utama:
 
-1. **`app` (PHP 8.2 + Apache + OPcache + Redis PECL Extension)**:
+1. **`app` (PHP 8.5 + Apache + OPcache + Redis PECL Extension)**:
    - Web server Apache dengan modul `rewrite` & `headers`.
    - Mengaktifkan **OPcache** (kompilasi bytecode PHP di RAM 128MB) sehingga eksekusi skrip instan tanpa kompilasi berulang.
    - Ekstensi PHP `gd` (kompresi gambar otomatis), `pdo_mysql`, `zip`, dan `redis`.
@@ -42,7 +42,7 @@ docker compose up -d
 ```
 Docker akan otomatis:
 - Mengunduh image dasar (`mysql:8.0`, `redis:7-alpine`).
-- Membangun image PHP 8.2 Apache dengan ekstensi OPcache & Redis.
+- Membangun image PHP 8.5 Apache dengan ekstensi OPcache & Redis.
 - Menjalankan kontainer dan menginisialisasi database dari `docker/init.sql`.
 
 ### 3. Cek Status Kontainer

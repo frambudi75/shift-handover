@@ -1,10 +1,10 @@
-FROM php:8.2-apache
+FROM php:8.5-apache
 
 # Metadata
 LABEL maintainer="OMIT Systems"
-LABEL description="Sistem Laporan Serah Terima Shift Operasional (PHP 8.2 + Apache + MySQL + Redis)"
+LABEL description="Sistem Laporan Serah Terima Shift Operasional (PHP 8.5 + Apache + MySQL + Redis)"
 
-# Install System Dependencies & Build Tools
+# Install System Dependencies & Tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng-dev \
     libjpeg62-turbo-dev \
@@ -17,18 +17,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     default-mysql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# Configure & Install PHP Core Extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
-    && docker-php-ext-install -j$(nproc) \
-        pdo_mysql \
-        mysqli \
-        gd \
-        zip \
-        opcache
+# Install Official PHP Extensions via Extension Installer (handles PHP 8.5 & Redis seamlessly)
+COPY --from=mlocati/php-extension-installer:latest /usr/bin/install-php-extensions /usr/local/bin/
 
-# Install & Enable Redis via PECL (for high-speed cache & session)
-RUN pecl install redis \
-    && docker-php-ext-enable redis
+RUN install-php-extensions \
+    pdo_mysql \
+    mysqli \
+    gd \
+    zip \
+    opcache \
+    redis
 
 # Enable Apache Modules
 RUN a2enmod rewrite headers expires

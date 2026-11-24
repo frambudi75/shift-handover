@@ -1,7 +1,7 @@
 # OMIT Shift Handover System
 ### Sistem Laporan Berita Acara Serah Terima Shift Operasional Berstandar Industri
 
-[![PHP Version](https://img.shields.io/badge/PHP-8.2%20%7C%208.5-777bb4?logo=php&logoColor=white)](https://www.php.net/)
+[![PHP Version](https://img.shields.io/badge/PHP-8.5%20%7C%208.5-777bb4?logo=php&logoColor=white)](https://www.php.net/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479a1?logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Redis](https://img.shields.io/badge/Redis-7%20Alpine-dc382d?logo=redis&logoColor=white)](https://redis.io/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ed?logo=docker&logoColor=white)](https://www.docker.com/)

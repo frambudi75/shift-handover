@@ -1,5 +1,5 @@
 services:
-  # 1. Web Application Service (PHP 8.2 + Apache + OPcache + Redis Ext)
+  # 1. Web Application Service (PHP 8.5 + Apache + OPcache + Redis Ext)
   app:
     build:
       context: .
