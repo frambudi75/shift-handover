@@ -16,7 +16,7 @@ $releaseDate    = '24 November 2026';
 $isDocker       = file_exists('/.dockerenv') || getenv('DB_HOST') !== false;
 $envLabel       = $isDocker ? 'Docker Container (PHP ' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . ')' : 'Web Server (' . PHP_OS_FAMILY . ')';
 $dbVersion      = $pdo->query("SELECT VERSION()")->fetchColumn();
-$cacheInfo      = cache_status();
+$cacheInfo      = cache_get_stats();
 $opcacheEnabled = function_exists('opcache_get_status') && @opcache_get_status(false) !== false;
 $uploadWritable = is_dir(UPLOAD_DIR) && is_writable(UPLOAD_DIR);
 $diskFreeBytes  = @disk_free_space(__DIR__);
@@ -194,10 +194,10 @@ $releases = [
       </div>
       <div class="mt-3">
         <div class="text-xl font-black text-[#181b2c] dark:text-white tracking-tight">
-          <?= $cacheInfo['connected'] ? 'Redis Aktif' : 'Fallback Mode' ?>
+          <?= !empty($cacheInfo['active']) ? 'Redis Aktif' : 'Fallback Mode' ?>
         </div>
         <div class="text-[11px] text-slate-400 font-semibold mt-0.5">
-          <?= $cacheInfo['connected'] ? "Memori: {$cacheInfo['memory_human']} • {$cacheInfo['keys_count']} Keys" : sanitize($cacheInfo['client']) ?>
+          <?= !empty($cacheInfo['active']) ? "Memori: {$cacheInfo['memory_human']} • {$cacheInfo['keys_count']} Keys" : sanitize($cacheInfo['client']) ?>
         </div>
       </div>
     </div>
