@@ -189,15 +189,25 @@ foreach ($lokasis as $l) {
                     <?= strtoupper($l['status']) ?>
                   </span>
                 </td>
-                <td class="py-3.5 px-5 text-center">
-                  <form method="POST" action="" class="inline" onsubmit="return confirm('Ubah status lokasi ini?')">
-                    <input type="hidden" name="action" value="toggle" />
-                    <input type="hidden" name="id" value="<?= $l['id'] ?>" />
-                    <button type="submit" 
-                            class="px-3 py-1.5 rounded-xl text-[10px] font-extrabold bg-[#efeffb] dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 active:scale-95 transition">
-                      <?= $l['status'] === 'aktif' ? 'Nonaktifkan' : 'Aktifkan' ?>
+                <td class="py-3.5 px-5 text-center whitespace-nowrap">
+                  <div class="inline-flex items-center justify-center gap-1.5">
+                    <button type="button"
+                            onclick='openEditLokasiModal(<?= json_encode(["id" => $l["id"], "nama_lokasi" => $l["nama_lokasi"], "keterangan" => $l["keterangan"] ?? ""], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)'
+                            title="Edit Nama &amp; Keterangan Lokasi"
+                            class="px-2.5 py-1.5 rounded-xl text-[10.5px] font-extrabold bg-[#efeffb] hover:bg-[#e0dffc] dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-[#6558f5] dark:text-indigo-300 active:scale-95 transition flex items-center gap-1 cursor-pointer border border-indigo-200/50 dark:border-indigo-800/50">
+                      <i class="ph-bold ph-pencil-simple text-xs"></i>
+                      <span>Edit</span>
                     </button>
-                  </form>
+
+                    <form method="POST" action="" class="inline" onsubmit="return confirm('Ubah status lokasi ini?')">
+                      <input type="hidden" name="action" value="toggle" />
+                      <input type="hidden" name="id" value="<?= $l['id'] ?>" />
+                      <button type="submit" 
+                              class="px-2.5 py-1.5 rounded-xl text-[10.5px] font-extrabold <?= $l['status'] === 'aktif' ? 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700' : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 border border-emerald-200 dark:border-emerald-800' ?> active:scale-95 transition cursor-pointer">
+                        <?= $l['status'] === 'aktif' ? 'Nonaktifkan' : 'Aktifkan' ?>
+                      </button>
+                    </form>
+                  </div>
                 </td>
               </tr>
             <?php endforeach; ?>
@@ -208,6 +218,71 @@ foreach ($lokasis as $l) {
   </div>
 
 </div>
+
+<!-- Modal Edit Lokasi / Unit -->
+<div id="editLokasiModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-[#1b1e30] rounded-[26px] max-w-md w-full p-6 border border-slate-100 dark:border-slate-800 shadow-2xl">
+    <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-[#efeffb] dark:bg-indigo-950/60 text-[#6558f5] flex items-center justify-center text-xl">
+          <i class="ph-bold ph-pencil-simple"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-extrabold text-[#181b2c] dark:text-white">Edit Lokasi / Unit</h3>
+          <p class="text-[11px] text-slate-400">Perbarui nama area atau deskripsi unit</p>
+        </div>
+      </div>
+      <button type="button" onclick="closeEditLokasiModal()" class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white transition cursor-pointer">
+        <i class="ph-bold ph-x text-lg"></i>
+      </button>
+    </div>
+
+    <form method="POST" action="" class="space-y-4">
+      <input type="hidden" name="action" value="edit" />
+      <input type="hidden" name="id" id="editLokasiId" />
+
+      <div>
+        <label class="block text-xs font-extrabold text-slate-600 dark:text-slate-300 mb-1.5">Nama Lokasi / Unit *</label>
+        <input type="text" name="nama_lokasi" id="editLokasiNama" required
+               class="w-full px-3.5 py-2.5 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700/70 text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#6558f5]/40 focus:outline-none transition" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-extrabold text-slate-600 dark:text-slate-300 mb-1.5">Keterangan / Fungsi Area</label>
+        <textarea name="keterangan" id="editLokasiKet" rows="3"
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700/70 text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#6558f5]/40 focus:outline-none transition"></textarea>
+      </div>
+
+      <div class="flex items-center gap-2.5 pt-2">
+        <button type="button" onclick="closeEditLokasiModal()"
+                class="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-xs transition cursor-pointer">
+          Batal
+        </button>
+        <button type="submit"
+                class="flex-1 py-2.5 px-4 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] active:scale-95 text-white font-extrabold text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+          <i class="ph-bold ph-check-circle text-base"></i>
+          <span>Simpan Perubahan</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openEditLokasiModal(data) {
+    document.getElementById('editLokasiId').value = data.id;
+    document.getElementById('editLokasiNama').value = data.nama_lokasi;
+    document.getElementById('editLokasiKet').value = data.keterangan || '';
+    document.getElementById('editLokasiModal').classList.remove('hidden');
+    document.getElementById('editLokasiNama').focus();
+  }
+  function closeEditLokasiModal() {
+    document.getElementById('editLokasiModal').classList.add('hidden');
+  }
+  document.getElementById('editLokasiModal').addEventListener('click', function(e) {
+    if (e.target === this) closeEditLokasiModal();
+  });
+</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
 
