@@ -19,6 +19,27 @@ function format_phone_wa(?string $phone): string {
 }
 
 /**
+ * Dapatkan URL absolut lengkap (termasuk protokol dan domain/host) agar link dapat diklik di WhatsApp
+ */
+function get_full_web_url(string $path = ''): string {
+    $path = ltrim($path, '/');
+    $baseUrl = BASE_URL; // e.g. /serah-terima/ or /
+    
+    $customDomain = get_setting('app_base_url_full', '');
+    if (!empty($customDomain)) {
+        return rtrim($customDomain, '/') . '/' . $path;
+    }
+
+    if (isset($_SERVER['HTTP_HOST'])) {
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'];
+        return "{$protocol}://{$host}{$baseUrl}{$path}";
+    }
+
+    return "http://localhost:2031/{$path}";
+}
+
+/**
  * Generate Click-to-Chat WhatsApp URL
  * If phone is empty, generates universal share URL (opens WhatsApp contact/group picker)
  */
@@ -31,37 +52,48 @@ function get_whatsapp_url(?string $phone, string $message): string {
 }
 
 /**
- * Build rich WhatsApp message containing shift info, tasks breakdown, and outstanding issues
+ * Bangun pesan WhatsApp laporan serah terima yang rapi, profesional, dan elegan
+ * tanpa tumpukan emoji warna-warni yang mengganggu tampilan resmi.
  */
 function build_handover_whatsapp_message(array $report, array $tasks): string {
     $appName = get_app_name();
-    $docUrl  = BASE_URL . "laporan/detail.php?id=" . ($report['id'] ?? 0);
+    $docUrl  = get_full_web_url("laporan/detail.php?id=" . ($report['id'] ?? 0));
     $tglFmt  = format_tanggal($report['tanggal'] ?? null);
     $jamFmt  = format_jam($report['jam_serah_terima'] ?? null);
     $kondisi = $report['kondisi_operasional'] ?? 'Normal';
     $status  = $report['status_validasi'] ?? 'MENUNGGU VALIDASI';
 
     $petugasMenyerahkan = $report['nama_menyerahkan'] ?? 'Petugas';
-    $petugasMenerima    = $report['nama_menerima'] ?? 'Menunggu Approval';
+    $petugasMenerima    = $report['nama_menerima'] ?? 'Menunggu Persetujuan';
+    $nomorLaporan       = $report['nomor_laporan'] ?? '-';
+    $namaShift          = $report['nama_shift'] ?? '-';
+    $namaLokasi         = $report['nama_lokasi'] ?? '-';
 
-    $msg = "📢 *LAPORAN SERAH TERIMA SHIFT - {$appName}*\n"
-         . "━━━━━━━━━━━━━━━━━━━━\n"
-         . "📄 *No. Dokumen:* " . ($report['nomor_laporan'] ?? '-') . "\n"
-         . "📅 *Tanggal:* {$tglFmt} ({$jamFmt} WIB)\n"
-         . "🔄 *Shift:* " . ($report['nama_shift'] ?? '-') . "\n"
-         . "📍 *Lokasi/Unit:* " . ($report['nama_lokasi'] ?? '-') . "\n"
-         . "👤 *Diserahkan Oleh:* {$petugasMenyerahkan}\n"
-         . "👤 *Diterima Oleh:* {$petugasMenerima}\n"
-         . "⚙️ *Kondisi Operasional:* {$kondisi}\n"
-         . "📌 *Status Dokumen:* {$status}\n";
+    $divider = "─────────────────────────────";
+
+    $msg = "*LAPORAN SERAH TERIMA SHIFT*\n"
+         . "*{$appName}*\n"
+         . "{$divider}\n"
+         . "*No. Dokumen* : {$nomorLaporan}\n"
+         . "*Waktu*       : {$tglFmt} ({$jamFmt} WIB)\n"
+         . "*Shift*       : {$namaShift}\n"
+         . "*Lokasi/Unit* : {$namaLokasi}\n"
+         . "*Kondisi*     : {$kondisi}\n"
+         . "*Status*      : {$status}\n\n"
+         . "*Personil:*\n"
+         . "• Menyerahkan : {$petugasMenyerahkan}\n"
+         . "• Menerima    : {$petugasMenerima}\n"
+         . "{$divider}\n";
 
     if (!empty($report['catatan_penting'])) {
-        $msg .= "\n📝 *CATATAN PENTING SHIFT:*\n"
-              . "> " . str_replace("\n", "\n> ", trim($report['catatan_penting'])) . "\n";
+        $catatan = trim($report['catatan_penting']);
+        $msg .= "*CATATAN PENTING:*\n"
+              . "{$catatan}\n"
+              . "{$divider}\n";
     }
 
     // Rincian Pekerjaan Shift Hari Ini
-    $msg .= "\n📋 *RINCIAN PEKERJAAN SHIFT HARI INI:*\n";
+    $msg .= "*RINCIAN PEKERJAAN:*\n";
     $outstanding = [];
     if (empty($tasks)) {
         $msg .= "_Tidak ada rincian pekerjaan tercatat pada shift ini._\n";
@@ -69,13 +101,13 @@ function build_handover_whatsapp_message(array $report, array $tasks): string {
         $i = 1;
         foreach ($tasks as $t) {
             $ticketStr = !empty($t['no_tiket']) ? "[{$t['no_tiket']}] " : "";
-            $prioEmoji = ($t['prioritas'] === 'Tinggi / Kritis') ? '🔴' : (($t['prioritas'] === 'Sedang') ? '🟡' : '🟢');
-            $statusEmoji = ($t['status'] === 'Selesai') ? '✅' : (($t['status'] === 'Berjalan') ? '🔄' : (($t['status'] === 'Tertunda') ? '⏸️' : '⏳'));
+            
+            // Format prioritas teks bersih tanpa emoji warna-warni
+            $prioText = ($t['prioritas'] === 'Tinggi / Kritis') ? '[Kritis]' : (($t['prioritas'] === 'Sedang') ? '[Sedang]' : '[Rendah]');
 
             $msg .= "{$i}. {$ticketStr}{$t['pekerjaan_masalah']}\n"
-                  . "   • Prioritas: {$prioEmoji} {$t['prioritas']}\n"
-                  . "   • Status: {$statusEmoji} {$t['status']}\n"
-                  . "   • PIC: {$t['pic']}" . (!empty($t['target_selesai']) ? " (Target: {$t['target_selesai']})" : "") . "\n";
+                  . "   • Prioritas : {$prioText} | Status: {$t['status']}\n"
+                  . "   • PIC : {$t['pic']}" . (!empty($t['target_selesai']) ? " (Target: {$t['target_selesai']})" : "") . "\n";
             if (!empty($t['kondisi_tindak_lanjut'])) {
                 $msg .= "   • Tindak Lanjut: {$t['kondisi_tindak_lanjut']}\n";
             }
@@ -87,35 +119,38 @@ function build_handover_whatsapp_message(array $report, array $tasks): string {
         }
     }
 
-    // Outstanding / Pekerjaan Belum Selesai (Wajib Tindak Lanjut)
-    $msg .= "\n⚠️ *OUTSTANDING / PEKERJAAN BELUM SELESAI:*\n";
+    // Bagian Pekerjaan Belum Selesai (Outstanding)
+    $msg .= "{$divider}\n"
+          . "*STATUS TINDAK LANJUT / OUTSTANDING:*\n";
     if (empty($outstanding)) {
-        $msg .= "✅ *Semua pekerjaan shift ini telah SELESAI (Nol Outstanding).*\n";
+        $msg .= "Seluruh pekerjaan pada shift ini telah selesai (Nol Outstanding).\n";
     } else {
         $totalOut = count($outstanding);
         $kritisCount = 0;
         foreach ($outstanding as $ot) {
             if ($ot['prioritas'] === 'Tinggi / Kritis') $kritisCount++;
         }
-        $msg .= "Terdapat *{$totalOut} pekerjaan* yang *wajib dipantau / dilanjutkan* shift berikutnya";
+
         if ($kritisCount > 0) {
-            $msg .= " (🚨 *{$kritisCount} Prioritas Kritis!*)";
+            $msg .= "Perhatian: Terdapat {$totalOut} pekerjaan belum selesai ({$kritisCount} berkategori Kritis):\n";
+        } else {
+            $msg .= "Terdapat {$totalOut} pekerjaan belum selesai yang dilanjutkan shift berikutnya:\n";
         }
-        $msg .= ":\n";
 
         $j = 1;
         foreach ($outstanding as $ot) {
             $tNo = !empty($ot['no_tiket']) ? "[{$ot['no_tiket']}] " : "";
-            $pEmoji = ($ot['prioritas'] === 'Tinggi / Kritis') ? '🔴 Kritis' : (($ot['prioritas'] === 'Sedang') ? '🟡 Sedang' : '🟢 Rendah');
-            $msg .= "  {$j}. {$tNo}{$ot['pekerjaan_masalah']} ({$pEmoji} - PIC: {$ot['pic']})\n";
+            $pTag = ($ot['prioritas'] === 'Tinggi / Kritis') ? 'Prioritas Kritis' : (($ot['prioritas'] === 'Sedang') ? 'Prioritas Sedang' : 'Prioritas Rendah');
+            $msg .= "  {$j}. {$tNo}{$ot['pekerjaan_masalah']} ({$pTag} • PIC: {$ot['pic']})\n";
             $j++;
         }
     }
 
-    $msg .= "\n🔗 *Buka Dokumen Lengkap & Approval:*\n"
-          . "👉 {$docUrl}\n\n"
-          . "━━━━━━━━━━━━━━━━━━━━\n"
-          . "_Sistem Handover Operasional {$appName}_";
+    // Footer & Tautan Akses Dokumen
+    $msg .= "{$divider}\n"
+          . "*Tautan Dokumen & Pengesahan:*\n"
+          . "{$docUrl}\n\n"
+          . "_{$appName} — Sistem Berita Acara Operasional_";
 
     return $msg;
 }
@@ -461,16 +496,21 @@ function notify_handover_approved(int $laporanId, PDO $pdo): array {
     }
 
     $appName = get_app_name();
-    $docUrl = BASE_URL . "laporan/detail.php?id={$rep['id']}";
+    $docUrl = get_full_web_url("laporan/detail.php?id={$rep['id']}");
     $tanggalFmt = format_tanggal($rep['tanggal']);
+    $divider = "─────────────────────────────";
 
     // WhatsApp Message
-    $waText = "✅ *DOKUMEN DISAHKAN - {$appName}*\n\n"
-            . "Halo *{$rep['nama_menyerahkan']}*,\n"
-            . "Laporan Serah Terima Shift *{$rep['nomor_laporan']}* ({$rep['nama_lokasi']}) telah *BERHASIL DIVALIDASI* dan ditandatangani oleh *{$rep['nama_menerima']}*.\n\n"
-            . "Dokumen resmi standar OMIT kini berstatus *TERVALIDASI* dan siap dicetak/diarsipkan:\n"
-            . "👉 {$docUrl}\n\n"
-            . "_Sistem Operasional {$appName}_";
+    $waText = "*PENGESAHAN SERAH TERIMA SHIFT*\n"
+            . "*{$appName}*\n"
+            . "{$divider}\n"
+            . "Yth. *{$rep['nama_menyerahkan']}*,\n\n"
+            . "Laporan Serah Terima Shift *{$rep['nomor_laporan']}* ({$rep['nama_lokasi']}) telah *DISETUJUI & DISAHKAN* oleh *{$rep['nama_menerima']}*.\n\n"
+            . "Status dokumen saat ini: *TERVALIDASI (LENGKAP)* dan siap untuk dicetak atau diarsipkan.\n\n"
+            . "*Tautan Dokumen Resmi:*\n"
+            . "{$docUrl}\n"
+            . "{$divider}\n"
+            . "_{$appName} — Sistem Berita Acara Operasional_";
 
     $waResult = null;
     if (!empty($rep['wa_menyerahkan'])) {
