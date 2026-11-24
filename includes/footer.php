@@ -92,6 +92,10 @@
               <i class="ph-fill ph-user-circle text-lg"></i>
               <span>Profil &amp; Kata Sandi</span>
             </a>
+            <a href="<?= BASE_URL ?>info" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'info' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
+              <i class="ph-fill ph-info text-lg"></i>
+              <span>Informasi Sistem &amp; Update</span>
+            </a>
           </nav>
         </div>
 

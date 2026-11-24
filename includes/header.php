@@ -188,6 +188,13 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
             <i class="ph-fill ph-user-circle text-lg"></i>
             <span class="sidebar-tooltip">Profil Saya</span>
           </a>
+
+          <!-- 9. Informasi Sistem & Pembaruan -->
+          <a href="<?= BASE_URL ?>info" 
+             class="sidebar-btn group relative w-10 h-10 rounded-[14px] flex items-center justify-center transition-all duration-200 shrink-0 <?= $current_page === 'info' ? 'bg-white text-[#6558f5] shadow-md scale-105' : 'text-white/80 hover:text-white hover:bg-white/15 hover:scale-105' ?>">
+            <i class="ph-fill ph-info text-lg"></i>
+            <span class="sidebar-tooltip">Informasi Sistem &amp; Update</span>
+          </a>
         </div>
 
         <!-- Bottom Cloud Sync / Reload Button with Smooth Micro-spin -->
