@@ -89,8 +89,8 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
     }
   </script>
 
-  <!-- NoteFlow Main Styling -->
-  <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css" />
+  <!-- NoteFlow Main Styling (Auto Cache-Busted) -->
+  <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css?v=<?= @filemtime(__DIR__ . '/../assets/css/style.css') ?: '250' ?>" />
 </head>
 
 <body class="p-2 sm:p-4 lg:p-5 flex items-center justify-center min-h-screen md:h-screen md:overflow-hidden relative select-none">

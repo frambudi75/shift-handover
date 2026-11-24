@@ -513,6 +513,9 @@
       if (!window.matchMedia('(hover: hover)').matches) return;
       const tt = document.createElement('div');
       tt.id = 'pc-sidebar-tooltip';
+      tt.style.position = 'fixed';
+      tt.style.pointerEvents = 'none';
+      tt.style.zIndex = '9999';
       tt.innerHTML = '<span class="tt-dot"></span><span class="tt-text"></span>';
       document.body.appendChild(tt);
 
