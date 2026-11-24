@@ -3,10 +3,10 @@
     <!-- Mobile drawer sidebar -->
     <div id="mobileDrawer" class="fixed inset-0 z-50 transform -translate-x-full transition-transform duration-300 md:hidden flex">
       <!-- Backdrop -->
-      <div onclick="toggleMobileMenu()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+      <div onclick="toggleMobileMenu()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm touch-none"></div>
 
       <!-- Drawer Content -->
-      <div class="relative w-72 max-w-[80vw] bg-[#6558f5] text-white h-full p-6 flex flex-col justify-between shadow-2xl z-10">
+      <div class="relative w-72 max-w-[80vw] bg-[#6558f5] text-white h-full overflow-y-auto overscroll-contain p-6 flex flex-col justify-between gap-6 shadow-2xl z-10">
         <div>
           <!-- Header Drawer -->
           <div class="flex items-center justify-between pb-6 border-b border-white/20 mb-6">
@@ -224,7 +224,14 @@
     function toggleMobileMenu() {
       const drawer = document.getElementById('mobileDrawer');
       if (drawer) {
-        drawer.classList.toggle('-translate-x-full');
+        const isClosed = drawer.classList.toggle('-translate-x-full');
+        const isOpen = !isClosed;
+        document.body.classList.toggle('overflow-hidden', isOpen);
+        const mainEl = document.querySelector('main');
+        if (mainEl) {
+          mainEl.classList.toggle('overflow-hidden', isOpen);
+          mainEl.classList.toggle('overflow-y-auto', !isOpen);
+        }
       }
     }
 
