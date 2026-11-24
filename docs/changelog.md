@@ -5,7 +5,23 @@ Semua perubahan dan peningkatan fungsionalitas sistem dicatat secara berkala pad
 
 ---
 
-### Versi 2.5.0 (2026-11-24) - *Current Release*
+### Versi 2.6.0 LTS (2026-11-25) - *Current Release*
+- **Sistem Notifikasi Lonceng & Pengumuman Superadmin**:
+  - Popover lonceng notifikasi real-time (`api/notifications`) dengan badge jumlah belum dibaca.
+  - Notifikasi otomatis ke lonceng dan Email petugas penerima saat serah terima dibuat/divalidasi (hilang otomatis dari daftar setelah diklik/dibaca).
+  - Fitur pembuatan Pengumuman Resmi khusus Superadmin dengan kategori (`Info`, `Penting`, `Darurat`) dan Banner Pengumuman di atas Dashboard.
+- **Peningkatan Antarmuka & Pengalaman Pengguna (UX)**:
+  - Widget **Live Shift Aktif & Jam Real-Time WIB** di Dashboard (mendukung shift malam lintas hari).
+  - Deretan **Chip Filter Cepat 1-Klik** pada Riwayat Laporan (`Semua`, `Hari Ini`, `Menunggu Validasi`, `Tervalidasi`, `Ada Gangguan`).
+  - **Floating Toast Notification** *frosted glass* yang menghilang otomatis dalam 4 detik.
+  - **Floating Glass Pill Tooltip** dengan animasi pegas pada sidebar PC serta auto *cache-buster* CSS.
+- **Backup Multi-Part Discord & Clean URLs**:
+  - Pemecahan otomatis file backup besar menjadi part 8 MB (`.part001`, `.part002`, ...) agar kompatibel dengan batas upload Discord Webhook.
+  - Clean URLs tanpa `.php`, favicon dinamis, logo PNG transparan murni, serta halaman **Informasi Sistem (`/info`)**.
+
+---
+
+### Versi 2.5.0 (2026-11-24)
 - **Docker Containerization**:
   - Konfigurasi multi-kontainer Docker Compose (`app` PHP 8.5 Apache, `db` MySQL 8.0, `redis` Redis 7 Alpine).
   - Port default aplikasi dialokasikan ke port **2032** untuk isolasi produksi.

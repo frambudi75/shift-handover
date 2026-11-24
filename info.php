@@ -11,8 +11,8 @@ require_login();
 require_once __DIR__ . '/includes/header.php';
 
 // Live System Telemetry
-$appVersion     = 'v2.5.0 LTS';
-$releaseDate    = '24 November 2026';
+$appVersion     = 'v2.6.0 LTS';
+$releaseDate    = '25 November 2026';
 $isDocker       = file_exists('/.dockerenv') || getenv('DB_HOST') !== false;
 $envLabel       = $isDocker ? 'Docker Container (PHP ' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . ')' : 'Web Server (' . PHP_OS_FAMILY . ')';
 $dbVersion      = $pdo->query("SELECT VERSION()")->fetchColumn();
@@ -43,11 +43,26 @@ $extensions = [
 // Release History / Changelog Data
 $releases = [
     [
+        'version' => 'v2.6.0 LTS',
+        'date'    => '25 Nov 2026',
+        'title'   => 'Notifikasi Lonceng, Pengumuman Superadmin, Live Shift & Modern UI',
+        'badge'   => 'TERBARU',
+        'color'   => 'bg-[#6558f5] text-white',
+        'items'   => [
+            ['type' => 'Baru',      'text' => 'Lonceng Notifikasi Interaktif dengan daftar notifikasi laporan (hilang otomatis setelah dibaca) & pengiriman Email penerima.'],
+            ['type' => 'Baru',      'text' => 'Pengumuman Resmi Superadmin lengkap dengan kategori urgensi, target peran, dan Banner Pengumuman di atas Dashboard.'],
+            ['type' => 'Baru',      'text' => 'Widget Live Shift Aktif & Jam Real-Time WIB di hero Dashboard (mendukung deteksi shift malam lintas hari).'],
+            ['type' => 'Baru',      'text' => 'Chip Filter Cepat 1-Klik di Riwayat Laporan (Semua, Hari Ini, Menunggu Validasi, Tervalidasi, Ada Gangguan).'],
+            ['type' => 'Baru',      'text' => 'Floating Toast Notification frosted glass yang otomatis menghilang lembut dalam 4 detik tanpa menggeser tata letak.'],
+            ['type' => 'Baru',      'text' => 'Floating Glass Pill Tooltip dengan animasi pegas pada ikon sidebar PC & multi-part backup otomatis 8 MB/part ke Discord.'],
+        ]
+    ],
+    [
         'version' => 'v2.5.0 LTS',
         'date'    => '24 Nov 2026',
         'title'   => 'Clean URLs, Custom Penomoran Dokumen & Proteksi Superadmin',
-        'badge'   => 'TERBARU',
-        'color'   => 'bg-[#6558f5] text-white',
+        'badge'   => 'STABLE',
+        'color'   => 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300',
         'items'   => [
             ['type' => 'Baru',      'text' => 'Penomoran dokumen serah terima dapat dikustomisasi di Pengaturan (Prefix kustom & siklus reset Harian/Bulanan).'],
             ['type' => 'Baru',      'text' => 'Clean URLs tanpa ekstensi .php di seluruh sistem (/dashboard, /auth/login, /master/lokasi).'],
