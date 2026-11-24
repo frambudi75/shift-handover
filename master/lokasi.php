@@ -220,8 +220,9 @@ foreach ($lokasis as $l) {
 </div>
 
 <!-- Modal Edit Lokasi / Unit -->
-<div id="editLokasiModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-  <div class="bg-white dark:bg-[#1b1e30] rounded-[26px] max-w-md w-full p-6 border border-slate-100 dark:border-slate-800 shadow-2xl">
+<div id="editLokasiModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeEditLokasiModal()"></div>
+  <div class="relative z-10 bg-white dark:bg-[#1b1e30] rounded-[26px] max-w-md w-full p-6 border border-slate-100 dark:border-slate-800 shadow-2xl">
     <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-5">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-2xl bg-[#efeffb] dark:bg-indigo-950/60 text-[#6558f5] flex items-center justify-center text-xl">
@@ -274,14 +275,11 @@ foreach ($lokasis as $l) {
     document.getElementById('editLokasiNama').value = data.nama_lokasi;
     document.getElementById('editLokasiKet').value = data.keterangan || '';
     document.getElementById('editLokasiModal').classList.remove('hidden');
-    document.getElementById('editLokasiNama').focus();
+    document.getElementById('editLokasiNama').focus({ preventScroll: true });
   }
   function closeEditLokasiModal() {
     document.getElementById('editLokasiModal').classList.add('hidden');
   }
-  document.getElementById('editLokasiModal').addEventListener('click', function(e) {
-    if (e.target === this) closeEditLokasiModal();
-  });
 </script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
