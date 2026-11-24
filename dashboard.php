@@ -100,6 +100,43 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
   </div>
 <?php endif; ?>
 
+<?php if (!empty($bellFeed['banners'])): ?>
+  <!-- BANNER PENGUMUMAN RESMI DARI SUPERADMIN -->
+  <div class="space-y-3 mb-6 animate-stagger-1">
+    <?php foreach ($bellFeed['banners'] as $b): ?>
+      <?php
+        $bannerStyle = match($b['category']) {
+            'darurat' => 'bg-gradient-to-r from-rose-600 to-rose-500 text-white shadow-rose-500/20',
+            'penting' => 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-amber-500/20',
+            default   => 'bg-gradient-to-r from-[#5946ea] to-[#6558f5] text-white shadow-[#6558f5]/20',
+        };
+      ?>
+      <div class="p-4 sm:p-5 rounded-3xl <?= $bannerStyle ?> shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-start sm:items-center gap-3.5">
+          <div class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0">
+            <i class="ph-fill ph-megaphone text-2xl"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="px-2 py-0.5 rounded-full bg-white/20 text-[9.5px] font-extrabold uppercase tracking-wider">
+                PENGUMUMAN <?= strtoupper($b['category']) ?>
+              </span>
+              <span class="text-[11px] text-white/80 font-semibold">• Cek detail di ikon lonceng notifikasi atas</span>
+            </div>
+            <h4 class="font-extrabold text-sm sm:text-base mt-1 leading-snug"><?= sanitize($b['title']) ?></h4>
+            <p class="text-xs text-white/90 mt-0.5 line-clamp-2"><?= sanitize($b['message']) ?></p>
+          </div>
+        </div>
+        <button type="button"
+                onclick='openReadAnnouncementModal(<?= json_encode($b, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)'
+                class="px-4 py-2 bg-white text-slate-900 font-extrabold text-xs rounded-xl hover:bg-slate-100 active:scale-95 transition shadow self-start sm:self-center whitespace-nowrap cursor-pointer">
+          Baca Pengumuman
+        </button>
+      </div>
+    <?php endforeach; ?>
+  </div>
+<?php endif; ?>
+
 <!-- NOTEFLOW HERO SECTION: GREETING + QUICK ADD + 3 ILLUSTRATED FEATURE CARDS -->
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch mb-8 animate-stagger-1">
 

@@ -465,6 +465,19 @@ function notify_handover_created(int $laporanId, PDO $pdo): array {
         $emailResult = send_smtp_email($rep['email_menerima'], $rep['nama_menerima'], $emailSubject, $htmlEmail);
     }
 
+    // In-App Bell Notification to Receiver
+    if (!empty($rep['petugas_menerima_id'])) {
+        require_once __DIR__ . '/bell_helper.php';
+        bell_create_notification(
+            $pdo,
+            (int)$rep['petugas_menerima_id'],
+            'handover',
+            "Serah Terima Baru: {$rep['nomor_laporan']}",
+            "{$rep['nama_menyerahkan']} menyerahkan shift {$rep['nama_shift']} di {$rep['nama_lokasi']}. Klik untuk tinjau & validasi.",
+            "laporan/detail?id={$rep['id']}"
+        );
+    }
+
     return [
         'success'      => true,
         'email_result' => $emailResult,
@@ -559,6 +572,19 @@ function notify_handover_approved(int $laporanId, PDO $pdo): array {
     $emailResult = null;
     if (!empty($rep['email_menyerahkan'])) {
         $emailResult = send_smtp_email($rep['email_menyerahkan'], $rep['nama_menyerahkan'], $emailSubject, $htmlEmail);
+    }
+
+    // In-App Bell Notification to Submitter
+    if (!empty($rep['petugas_menyerahkan_id'])) {
+        require_once __DIR__ . '/bell_helper.php';
+        bell_create_notification(
+            $pdo,
+            (int)$rep['petugas_menyerahkan_id'],
+            'approved',
+            "Laporan Divalidasi: {$rep['nomor_laporan']}",
+            "{$rep['nama_menerima']} telah menyetujui laporan serah terima di {$rep['nama_lokasi']}.",
+            "laporan/detail?id={$rep['id']}"
+        );
     }
 
     return [

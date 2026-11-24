@@ -272,15 +272,333 @@
       `;
     }
 
-    // Close search dropdown on click outside
+    // Close search & bell dropdowns on click outside
     document.addEventListener('click', (e) => {
       const wrap = document.getElementById('search-wrap');
       const dd = document.getElementById('search-dropdown');
       if (dd && wrap && !wrap.contains(e.target)) {
         dd.classList.add('hidden');
       }
+      const bellWrap = document.getElementById('bell-container');
+      const bellDd = document.getElementById('bell-dropdown');
+      if (bellDd && bellWrap && !bellWrap.contains(e.target)) {
+        bellDd.classList.add('hidden');
+      }
     });
+
+    // =========================================================================
+    // 5. Bell Notification & Broadcast Announcement System
+    // =========================================================================
+    const BASE_APP_URL = <?= json_encode(BASE_URL) ?>;
+    let bellLoadedOnce = false;
+
+    function escHtml(str) {
+      return String(str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    function toggleBellDropdown(e) {
+      if (e) e.stopPropagation();
+      const dd = document.getElementById('bell-dropdown');
+      if (!dd) return;
+      const isHidden = dd.classList.contains('hidden');
+      dd.classList.toggle('hidden');
+      if (isHidden) {
+        loadBellFeed();
+      }
+    }
+
+    async function loadBellFeed() {
+      const list = document.getElementById('bell-feed-list');
+      if (!list) return;
+      try {
+        const res = await fetch(BASE_APP_URL + 'api/notifications?action=feed');
+        const data = await res.json();
+        if (!data.success) return;
+
+        bellLoadedOnce = true;
+        updateBellBadge(data.unread_count);
+        renderBellFeed(data);
+      } catch (err) {
+        list.innerHTML = '<div class="p-5 text-center text-xs text-rose-500">Gagal memuat notifikasi.</div>';
+      }
+    }
+
+    function updateBellBadge(count) {
+      const badge = document.getElementById('bell-badge');
+      if (!badge) return;
+      if (count > 0) {
+        badge.textContent = count > 99 ? '99+' : count;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    function renderBellFeed(data) {
+      const list = document.getElementById('bell-feed-list');
+      if (!list) return;
+      let html = '';
+
+      const anns = data.announcements || [];
+      const notifs = data.notifications || [];
+
+      if (anns.length > 0) {
+        html += `<div class="px-4 py-2 bg-slate-50 dark:bg-slate-900/50 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Pengumuman Resmi</div>`;
+        anns.forEach(a => {
+          const unread = Number(a.is_read) === 0;
+          const catBadge = a.category === 'darurat'
+            ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/70 dark:text-rose-300'
+            : (a.category === 'penting'
+              ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/70 dark:text-amber-300'
+              : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/70 dark:text-indigo-300');
+          const delBtn = data.is_superadmin
+            ? `<button type="button" onclick="event.stopPropagation(); deleteAnnouncement(${a.id})" title="Hapus Pengumuman" class="p-1 text-slate-300 hover:text-rose-500 transition cursor-pointer"><i class="ph-bold ph-trash text-xs"></i></button>`
+            : '';
+
+          html += `
+            <div onclick='openReadAnnouncementModal(${JSON.stringify(a)})'
+                 class="p-3.5 hover:bg-[#f7f7fb] dark:hover:bg-slate-800/60 transition cursor-pointer flex items-start gap-3 ${unread ? 'bg-indigo-50/40 dark:bg-indigo-950/20' : ''}">
+              <div class="w-8 h-8 rounded-xl bg-[#efeffb] dark:bg-indigo-950/60 text-[#6558f5] flex items-center justify-center shrink-0 mt-0.5">
+                <i class="ph-fill ph-megaphone text-base"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase ${catBadge}">${escHtml(a.category)}</span>
+                  <div class="flex items-center gap-1">
+                    ${unread ? '<span class="w-2 h-2 rounded-full bg-[#6558f5]"></span>' : ''}
+                    ${delBtn}
+                  </div>
+                </div>
+                <div class="text-xs font-extrabold text-slate-800 dark:text-white mt-1 truncate">${escHtml(a.title)}</div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">${escHtml(a.message)}</div>
+                <div class="text-[10px] text-slate-400 mt-1">${escHtml(a.author_name || 'Superadmin')} • ${escHtml((a.created_at || '').slice(0, 16))}</div>
+              </div>
+            </div>`;
+        });
+      }
+
+      if (notifs.length > 0) {
+        html += `<div class="px-4 py-2 bg-slate-50 dark:bg-slate-900/50 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Aktivitas &amp; Serah Terima</div>`;
+        notifs.forEach(n => {
+          const unread = Number(n.is_read) === 0;
+          const icon = n.type === 'approved' ? 'ph-check-circle text-emerald-500' : 'ph-clipboard-text text-[#6558f5]';
+          html += `
+            <div onclick="openBellNotification(${n.id}, '${escHtml(n.link_url || '')}')"
+                 class="p-3.5 hover:bg-[#f7f7fb] dark:hover:bg-slate-800/60 transition cursor-pointer flex items-start gap-3 ${unread ? 'bg-indigo-50/40 dark:bg-indigo-950/20' : ''}">
+              <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 mt-0.5">
+                <i class="ph-fill ${icon} text-base"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs font-extrabold text-slate-800 dark:text-white truncate">${escHtml(n.title)}</span>
+                  ${unread ? '<span class="w-2 h-2 rounded-full bg-[#6558f5] shrink-0"></span>' : ''}
+                </div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">${escHtml(n.message)}</div>
+                <div class="text-[10px] text-slate-400 mt-1">${escHtml((n.created_at || '').slice(0, 16))}</div>
+              </div>
+            </div>`;
+        });
+      }
+
+      if (html === '') {
+        html = `
+          <div class="p-8 text-center">
+            <div class="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-2.5 text-xl">
+              <i class="ph ph-bell-slash"></i>
+            </div>
+            <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Belum ada notifikasi atau pengumuman.</p>
+          </div>`;
+      }
+
+      list.innerHTML = html;
+    }
+
+    async function markAllBellRead() {
+      const fd = new FormData();
+      fd.append('action', 'mark_all_read');
+      await fetch(BASE_APP_URL + 'api/notifications', { method: 'POST', body: fd });
+      updateBellBadge(0);
+      loadBellFeed();
+    }
+
+    async function openBellNotification(id, linkUrl) {
+      const fd = new FormData();
+      fd.append('action', 'mark_read');
+      fd.append('kind', 'notification');
+      fd.append('id', id);
+      await fetch(BASE_APP_URL + 'api/notifications', { method: 'POST', body: fd });
+      if (linkUrl) {
+        window.location.href = BASE_APP_URL + linkUrl;
+      } else {
+        loadBellFeed();
+      }
+    }
+
+    function openReadAnnouncementModal(ann) {
+      const modal = document.getElementById('modalReadAnnouncement');
+      if (!modal) return;
+      document.getElementById('readAnnTitle').textContent = ann.title || '';
+      document.getElementById('readAnnMessage').textContent = ann.message || '';
+      document.getElementById('readAnnMeta').textContent = `Oleh ${ann.author_name || 'Superadmin'} • ${(ann.created_at || '').slice(0, 16)}`;
+      const badge = document.getElementById('readAnnBadge');
+      badge.textContent = (ann.category || 'info').toUpperCase();
+      badge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ' + (
+        ann.category === 'darurat' ? 'bg-rose-100 text-rose-700' :
+        (ann.category === 'penting' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700')
+      );
+      modal.classList.remove('hidden');
+
+      const fd = new FormData();
+      fd.append('action', 'mark_read');
+      fd.append('kind', 'announcement');
+      fd.append('id', ann.id);
+      fetch(BASE_APP_URL + 'api/notifications', { method: 'POST', body: fd }).then(() => {
+        if (bellLoadedOnce) loadBellFeed();
+      });
+    }
+
+    function closeReadAnnouncementModal() {
+      document.getElementById('modalReadAnnouncement')?.classList.add('hidden');
+    }
+
+    function openCreateAnnouncementModal() {
+      document.getElementById('bell-dropdown')?.classList.add('hidden');
+      document.getElementById('modalCreateAnnouncement')?.classList.remove('hidden');
+      document.getElementById('annInputTitle')?.focus({ preventScroll: true });
+    }
+
+    function closeCreateAnnouncementModal() {
+      document.getElementById('modalCreateAnnouncement')?.classList.add('hidden');
+    }
+
+    async function submitAnnouncementForm(e) {
+      e.preventDefault();
+      const form = e.target;
+      const btn = document.getElementById('btnSubmitAnn');
+      btn.disabled = true;
+      btn.textContent = 'Mengirim...';
+      try {
+        const fd = new FormData(form);
+        fd.append('action', 'create_announcement');
+        const res = await fetch(BASE_APP_URL + 'api/notifications', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.success) {
+          form.reset();
+          closeCreateAnnouncementModal();
+          window.location.reload();
+        } else {
+          alert(data.message || 'Gagal membuat pengumuman.');
+        }
+      } catch (err) {
+        alert('Terjadi kesalahan jaringan.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Publikasikan Pengumuman';
+      }
+    }
+
+    async function deleteAnnouncement(id) {
+      if (!confirm('Arsipkan / hapus pengumuman ini?')) return;
+      const fd = new FormData();
+      fd.append('action', 'delete_announcement');
+      fd.append('id', id);
+      await fetch(BASE_APP_URL + 'api/notifications', { method: 'POST', body: fd });
+      loadBellFeed();
+    }
   </script>
+
+  <!-- Modal Baca Pengumuman -->
+  <div id="modalReadAnnouncement" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeReadAnnouncementModal()"></div>
+    <div class="relative z-10 bg-white dark:bg-[#1b1e30] rounded-[26px] max-w-lg w-full p-6 border border-slate-100 dark:border-slate-800 shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
+        <div class="flex items-center gap-2">
+          <i class="ph-fill ph-megaphone text-[#6558f5] text-xl"></i>
+          <span id="readAnnBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-indigo-100 text-indigo-700">INFO</span>
+        </div>
+        <button type="button" onclick="closeReadAnnouncementModal()" class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer">
+          <i class="ph-bold ph-x text-lg"></i>
+        </button>
+      </div>
+      <h3 id="readAnnTitle" class="text-base font-extrabold text-[#181b2c] dark:text-white leading-snug"></h3>
+      <p id="readAnnMeta" class="text-[11px] text-slate-400 font-semibold mt-1"></p>
+      <div id="readAnnMessage" class="mt-4 p-4 rounded-2xl bg-[#f7f7fb] dark:bg-[#151828] text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-line border border-slate-100 dark:border-slate-800"></div>
+      <button type="button" onclick="closeReadAnnouncementModal()" class="w-full mt-5 py-2.5 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] text-white font-extrabold text-xs transition cursor-pointer">
+        Tutup
+      </button>
+    </div>
+  </div>
+
+  <?php if (is_superadmin()): ?>
+  <!-- Modal Buat Pengumuman (Khusus Superadmin) -->
+  <div id="modalCreateAnnouncement" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeCreateAnnouncementModal()"></div>
+    <div class="relative z-10 bg-white dark:bg-[#1b1e30] rounded-[26px] max-w-lg w-full p-6 border border-slate-100 dark:border-slate-800 shadow-2xl">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-5">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-[#efeffb] dark:bg-indigo-950/60 text-[#6558f5] flex items-center justify-center text-xl">
+            <i class="ph-bold ph-megaphone"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-extrabold text-[#181b2c] dark:text-white">Buat Pengumuman Resmi</h3>
+            <p class="text-[11px] text-slate-400">Tampil di lonceng notifikasi &amp; banner Dashboard</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeCreateAnnouncementModal()" class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer">
+          <i class="ph-bold ph-x text-lg"></i>
+        </button>
+      </div>
+
+      <form onsubmit="submitAnnouncementForm(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-extrabold text-slate-600 dark:text-slate-300 mb-1.5">Judul Pengumuman *</label>
+          <input type="text" name="title" id="annInputTitle" required maxlength="150"
+                 placeholder="Contoh: Pemeliharaan Server Terjadwal Pukul 23:00 WIB"
+                 class="w-full px-3.5 py-2.5 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700/70 text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#6558f5]/40 focus:outline-none transition" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-extrabold text-slate-600 dark:text-slate-300 mb-1.5">Kategori</label>
+            <select name="category" class="w-full px-3 py-2.5 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700/70 text-xs font-bold text-slate-800 dark:text-slate-100">
+              <option value="info">Info Umum</option>
+              <option value="penting">Penting</option>
+              <option value="darurat">Darurat / Gangguan</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-extrabold text-slate-600 dark:text-slate-300 mb-1.5">Target Penerima</label>
+            <select name="target_role" class="w-full px-3 py-2.5 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700/70 text-xs font-bold text-slate-800 dark:text-slate-100">
+              <option value="all">Semua Pengguna</option>
+              <option value="admin">Admin &amp; Supervisor</option>
+              <option value="user">Operator Shift</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-extrabold text-slate-600 dark:text-slate-300 mb-1.5">Isi Pengumuman *</label>
+          <textarea name="message" rows="4" required placeholder="Tuliskan instruksi atau informasi lengkap untuk tim operasional..."
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700/70 text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#6558f5]/40 focus:outline-none transition"></textarea>
+        </div>
+
+        <label class="flex items-center gap-2.5 cursor-pointer select-none">
+          <input type="checkbox" name="show_banner" value="1" checked class="w-4 h-4 rounded text-[#6558f5] focus:ring-[#6558f5]" />
+          <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Sematkan sebagai banner pengumuman di atas Dashboard</span>
+        </label>
+
+        <div class="flex items-center gap-2.5 pt-2">
+          <button type="button" onclick="closeCreateAnnouncementModal()" class="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-extrabold text-xs cursor-pointer">
+            Batal
+          </button>
+          <button type="submit" id="btnSubmitAnn" class="flex-1 py-2.5 px-4 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] text-white font-extrabold text-xs shadow-md transition cursor-pointer">
+            Publikasikan Pengumuman
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <?php endif; ?>
 
 </body>
 </html>

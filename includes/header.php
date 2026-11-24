@@ -14,6 +14,10 @@ $appName     = get_app_name();
 $appFullName = get_app_full_name();
 $appLogo     = get_app_logo_url();
 
+require_once __DIR__ . '/bell_helper.php';
+$bellFeed    = bell_get_feed($pdo, (int)($user['id'] ?? 0), $user['role'] ?? 'user');
+$bellUnread  = (int)($bellFeed['unread_count'] ?? 0);
+
 // Opportunistic auto system maintenance check for admin/superadmin
 if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
     require_once __DIR__ . '/optimizer_helper.php';
@@ -291,14 +295,56 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
           </button>
         </div>
 
-        <!-- Notification Bell with Ping Indicator -->
-        <a href="<?= BASE_URL ?>laporan/index?status=MENUNGGU+VALIDASI" 
-           class="relative w-8 h-8 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors shrink-0" 
-           title="Notifikasi & Validasi">
-          <i class="ph ph-bell text-[17px]"></i>
-          <span class="w-2 h-2 rounded-full bg-[#6558f5] absolute top-1.5 right-1.5 animate-ping"></span>
-          <span class="w-1.5 h-1.5 rounded-full bg-[#6558f5] absolute top-1.5 right-1.5"></span>
-        </a>
+        <!-- Interactive Notification Bell & Broadcast Popover -->
+        <div id="bell-container" class="relative shrink-0">
+          <button type="button" id="bell-toggle-btn" onclick="toggleBellDropdown(event)"
+                  class="relative w-9 h-9 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  title="Notifikasi &amp; Pengumuman">
+            <i class="ph-bold ph-bell text-[18px]"></i>
+            <span id="bell-badge" class="<?= $bellUnread > 0 ? '' : 'hidden' ?> absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[9.5px] font-black flex items-center justify-center shadow-sm ring-2 ring-white dark:ring-[#131522]">
+              <?= $bellUnread > 99 ? '99+' : $bellUnread ?>
+            </span>
+          </button>
+
+          <!-- Bell Popover Dropdown -->
+          <div id="bell-dropdown" class="hidden fixed sm:absolute right-3 sm:right-0 top-16 sm:top-full sm:mt-2.5 w-[calc(100vw-1.5rem)] sm:w-[390px] max-w-[400px] bg-white dark:bg-[#1b1e30] rounded-[24px] shadow-2xl border border-slate-200/80 dark:border-slate-700/80 overflow-hidden z-50">
+            
+            <!-- Popover Header -->
+            <div class="px-4 py-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 bg-[#f7f7fb] dark:bg-[#151828]">
+              <div class="flex items-center gap-2">
+                <i class="ph-fill ph-bell-ringing text-[#6558f5] text-base"></i>
+                <span class="text-xs font-extrabold text-[#181b2c] dark:text-white">Notifikasi &amp; Pengumuman</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <?php if (is_superadmin()): ?>
+                  <button type="button" onclick="openCreateAnnouncementModal()"
+                          class="px-2.5 py-1 rounded-lg bg-[#6558f5] hover:bg-[#5244e8] text-white text-[10px] font-extrabold transition flex items-center gap-1 cursor-pointer shadow-xs">
+                    <i class="ph-bold ph-megaphone"></i>
+                    <span>+ Pengumuman</span>
+                  </button>
+                <?php endif; ?>
+                <button type="button" onclick="markAllBellRead()"
+                        title="Tandai semua sudah dibaca"
+                        class="px-2 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800 hover:bg-slate-300/70 text-slate-600 dark:text-slate-300 text-[10px] font-bold transition cursor-pointer">
+                  Dibaca
+                </button>
+              </div>
+            </div>
+
+            <!-- Feed Content Container -->
+            <div id="bell-feed-list" class="max-h-[400px] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/80">
+              <div class="p-6 text-center text-xs text-slate-400">Memuat notifikasi...</div>
+            </div>
+
+            <!-- Footer Link -->
+            <div class="px-4 py-2.5 bg-[#f7f7fb] dark:bg-[#151828] border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
+              <a href="<?= BASE_URL ?>laporan/index?status=MENUNGGU+VALIDASI" class="font-extrabold text-[#6558f5] hover:underline flex items-center gap-1">
+                <span>Lihat Laporan Menunggu Validasi</span>
+                <i class="ph-bold ph-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
 
         <!-- Quick Action "+ Buat Serah Terima" Button (Desktop Only) -->
         <a href="<?= BASE_URL ?>laporan/create"
