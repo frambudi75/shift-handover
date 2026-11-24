@@ -183,9 +183,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($targetUser['role'] === 'superadmin' && $superadminCount <= 1) {
                     flash_set('error', 'Tidak dapat menghapus superadmin terakhir pada sistem.');
                 } else {
-                    // Check reports association
-                    $stmtCheckReports = $pdo->prepare("SELECT COUNT(*) FROM laporan_serah_terima WHERE petugas_menyerahkan_id = :id OR petugas_menerima_id = :id OR created_by = :id");
-                    $stmtCheckReports->execute(['id' => $id]);
+                    // Check reports association (unique placeholders for native PDO prepared statements)
+                    $stmtCheckReports = $pdo->prepare("SELECT COUNT(*) FROM laporan_serah_terima WHERE petugas_menyerahkan_id = :id1 OR petugas_menerima_id = :id2 OR created_by = :id3");
+                    $stmtCheckReports->execute(['id1' => $id, 'id2' => $id, 'id3' => $id]);
                     $reportCount = (int)$stmtCheckReports->fetchColumn();
 
                     if ($reportCount > 0) {
@@ -322,8 +322,13 @@ $where = ["1=1"];
 $params = [];
 
 if ($search !== '') {
-    $where[] = "(nama_lengkap LIKE :search OR username LIKE :search OR email LIKE :search OR jabatan LIKE :search OR no_wa LIKE :search)";
-    $params['search'] = "%{$search}%";
+    $where[] = "(nama_lengkap LIKE :s1 OR username LIKE :s2 OR email LIKE :s3 OR jabatan LIKE :s4 OR no_wa LIKE :s5)";
+    $likeVal = "%{$search}%";
+    $params['s1'] = $likeVal;
+    $params['s2'] = $likeVal;
+    $params['s3'] = $likeVal;
+    $params['s4'] = $likeVal;
+    $params['s5'] = $likeVal;
 }
 if ($filterRole !== '' && in_array($filterRole, ['superadmin', 'admin', 'user'])) {
     $where[] = "role = :role";

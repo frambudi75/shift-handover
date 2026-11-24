@@ -26,8 +26,12 @@ $where = ["1=1"];
 $params = [];
 
 if ($search !== '') {
-    $where[] = "(l.nomor_laporan LIKE :search OR u1.nama_lengkap LIKE :search OR u2.nama_lengkap LIKE :search OR l.catatan_penting LIKE :search)";
-    $params['search'] = "%{$search}%";
+    $where[] = "(l.nomor_laporan LIKE :s1 OR u1.nama_lengkap LIKE :s2 OR u2.nama_lengkap LIKE :s3 OR l.catatan_penting LIKE :s4)";
+    $likeVal = "%{$search}%";
+    $params['s1'] = $likeVal;
+    $params['s2'] = $likeVal;
+    $params['s3'] = $likeVal;
+    $params['s4'] = $likeVal;
 }
 if ($filterShift > 0) {
     $where[] = "l.shift_id = :shift_id";
