@@ -236,7 +236,13 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
     </div>
     <div class="mt-4 flex items-baseline gap-2">
       <span class="text-3xl font-black text-[#181b2c] dark:text-white tracking-tight"><?= $laporanHariIni ?></span>
-      <span class="text-xs text-[#1c7a52] dark:text-emerald-400 font-extrabold">shift aktif</span>
+      <span class="inline-flex items-center gap-1.5 text-xs text-[#1c7a52] dark:text-emerald-400 font-extrabold">
+        <span class="pulse-radar-wrap w-2 h-2">
+          <span class="pulse-radar-ring"></span>
+          <span class="relative inline-flex rounded-full w-2 h-2 bg-emerald-500"></span>
+        </span>
+        <span>shift aktif</span>
+      </span>
     </div>
   </div>
 

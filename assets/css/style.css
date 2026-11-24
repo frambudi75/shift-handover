@@ -179,3 +179,104 @@ html.dark .dashed-lavender-box {
 button:active, a.sidebar-btn:active, .btn-micro:active {
   transform: scale(0.96);
 }
+
+/* ==========================================================================
+   NoteFlow Glassmorphism & Micro-Interactions System
+   ========================================================================== */
+
+/* Frosted Glassmorphism Card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 20px 50px -12px rgba(101, 88, 245, 0.12), 0 0 1px 1px rgba(255, 255, 255, 0.8);
+}
+html.dark .glass-card {
+  background: rgba(19, 27, 46, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.6);
+}
+
+/* Glass Header Sticky Navbar */
+.glass-header {
+  background: rgba(247, 247, 251, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+html.dark .glass-header {
+  background: rgba(19, 21, 34, 0.85);
+}
+
+/* Input Focus Glow & Icon Highlight */
+.input-interactive {
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.input-group:focus-within .input-icon {
+  color: #6558f5 !important;
+  transform: scale(1.1);
+}
+.input-group:focus-within input,
+.input-group:focus-within select,
+.input-group:focus-within textarea {
+  border-color: #6558f5 !important;
+  box-shadow: 0 0 0 4px rgba(101, 88, 245, 0.14) !important;
+  background-color: #ffffff !important;
+}
+html.dark .input-group:focus-within input,
+html.dark .input-group:focus-within select,
+html.dark .input-group:focus-within textarea {
+  background-color: #161b2e !important;
+  box-shadow: 0 0 0 4px rgba(101, 88, 245, 0.25) !important;
+}
+
+/* Theme Icon Rotate Transition */
+.theme-spin-icon {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+button:hover .theme-spin-icon {
+  transform: rotate(30deg);
+}
+
+/* Smooth Card Hover Lift */
+.card-lift {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-lift:hover {
+  transform: translateY(-3px) scale(1.008);
+  box-shadow: 0 20px 40px -10px rgba(101, 88, 245, 0.14);
+}
+
+/* Radar Pulse Indicator for Live Shifts */
+.pulse-radar-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.pulse-radar-ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: 9999px;
+  background-color: #10b981;
+  opacity: 0.75;
+  animation: radarPing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+@keyframes radarPing {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  75%, 100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* Subtle Floating Mesh Orbs */
+@keyframes floatSlow1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(25px, -20px) scale(1.08); }
+}
+@keyframes floatSlow2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-20px, 25px) scale(0.95); }
+}
+.animate-float-orb-1 {
+  animation: floatSlow1 12s ease-in-out infinite;
+}
+.animate-float-orb-2 {
+  animation: floatSlow2 15s ease-in-out infinite;
+}

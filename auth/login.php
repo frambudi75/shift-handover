@@ -1,5 +1,5 @@
 <?php
-// auth/login.php - Clean, Professional & Simple Login Template
+// auth/login.php - Professional NoteFlow Glassmorphism Login with Micro-Interactions
 require_once __DIR__ . '/../config/app.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/auth.php';
@@ -61,6 +61,7 @@ $appFullName = get_app_full_name();
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css" />
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -78,25 +79,26 @@ $appFullName = get_app_full_name();
     }
   </script>
 </head>
-<body class="min-h-screen w-full bg-[#f8fafc] dark:bg-[#0b0f19] text-slate-800 dark:text-slate-100 flex items-center justify-center p-4 sm:p-6 font-sans transition-colors duration-200 relative selection:bg-[#6558f5] selection:text-white">
+<body class="min-h-screen w-full bg-[#f8fafc] dark:bg-[#0b0f19] text-slate-800 dark:text-slate-100 flex items-center justify-center p-4 sm:p-6 font-sans transition-colors duration-300 relative overflow-x-hidden selection:bg-[#6558f5] selection:text-white">
 
-  <!-- Subtle Ambient Glow -->
-  <div class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-80 bg-gradient-to-b from-[#6558f5]/10 via-[#6558f5]/5 to-transparent blur-3xl pointer-events-none"></div>
+  <!-- Subtle Floating Ambient Mesh Orbs -->
+  <div class="fixed top-[-8%] left-[-8%] w-[420px] h-[420px] rounded-full bg-[#6558f5]/15 dark:bg-[#6558f5]/10 blur-[100px] pointer-events-none animate-float-orb-1"></div>
+  <div class="fixed bottom-[-8%] right-[-8%] w-[460px] h-[460px] rounded-full bg-indigo-500/15 dark:bg-indigo-600/10 blur-[120px] pointer-events-none animate-float-orb-2"></div>
 
-  <!-- Floating Dark/Light Toggle -->
+  <!-- Floating Dark/Light Toggle with Rotation Effect -->
   <button onclick="toggleTheme()" type="button" 
           aria-label="Ganti Tema"
-          class="fixed top-5 right-5 w-10 h-10 rounded-full bg-white dark:bg-[#131b2e] border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 shadow-sm hover:shadow hover:scale-105 active:scale-95 transition flex items-center justify-center cursor-pointer z-50">
-    <i class="ph-bold ph-moon text-lg dark:hidden"></i>
-    <i class="ph-bold ph-sun text-lg hidden dark:inline text-amber-400"></i>
+          class="fixed top-5 right-5 w-11 h-11 rounded-full bg-white/90 dark:bg-[#131b2e]/90 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 shadow-md hover:shadow-lg hover:scale-105 active:scale-90 transition-all flex items-center justify-center cursor-pointer z-50 group">
+    <i id="themeToggleIcon" class="theme-spin-icon ph-bold ph-moon text-lg dark:hidden"></i>
+    <i id="themeToggleIconDark" class="theme-spin-icon ph-bold ph-sun text-lg hidden dark:inline text-amber-400"></i>
   </button>
 
-  <!-- Login Card Container -->
-  <div class="w-full max-w-[420px] relative z-10">
+  <!-- Login Container -->
+  <div class="w-full max-w-[430px] relative z-10">
 
-    <!-- Brand Header -->
+    <!-- Brand Header with Micro-scale on Hover -->
     <div class="text-center mb-8">
-      <div class="inline-flex items-center justify-center w-16 h-16 rounded-[22px] bg-[#6558f5] text-white shadow-lg shadow-[#6558f5]/25 mb-4 p-3.5 transition hover:scale-105">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-[22px] bg-[#6558f5] text-white shadow-xl shadow-[#6558f5]/30 mb-4 p-3.5 transition-all duration-300 hover:scale-110 hover:-translate-y-0.5 cursor-default">
         <?php if ($appLogo): ?>
           <img src="<?= $appLogo ?>" alt="Logo" class="max-w-full max-h-full object-contain" />
         <?php else: ?>
@@ -111,9 +113,12 @@ $appFullName = get_app_full_name();
       </p>
     </div>
 
-    <!-- Main Card -->
-    <div class="bg-white dark:bg-[#131b2e] rounded-[28px] shadow-xl shadow-slate-200/60 dark:shadow-black/50 border border-slate-200/80 dark:border-slate-800 p-7 sm:p-9 transition-colors">
+    <!-- Main Frosted Glassmorphic Card -->
+    <div class="glass-card rounded-[30px] p-7 sm:p-9 transition-all duration-300 relative overflow-hidden">
       
+      <!-- Subtle internal top highlight line -->
+      <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#6558f5]/40 to-transparent"></div>
+
       <!-- Card Title -->
       <div class="mb-6">
         <h2 class="text-lg font-bold text-slate-900 dark:text-white">Masuk ke Akun</h2>
@@ -122,111 +127,114 @@ $appFullName = get_app_full_name();
 
       <!-- Feedback Alerts -->
       <?php if (!empty($error)): ?>
-        <div class="mb-5 p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2.5">
+        <div class="mb-5 p-3.5 rounded-2xl bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/80 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2.5 animate-shake shadow-sm">
           <i class="ph-bold ph-warning-circle text-base flex-shrink-0 mt-0.5 text-rose-500"></i>
           <span class="font-medium leading-relaxed"><?= $error ?></span>
         </div>
       <?php endif; ?>
 
       <?php if (isset($flashes['success'])): ?>
-        <div class="mb-5 p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 text-emerald-700 dark:text-emerald-300 text-xs flex items-start gap-2.5">
+        <div class="mb-5 p-3.5 rounded-2xl bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/80 text-emerald-700 dark:text-emerald-300 text-xs flex items-start gap-2.5 shadow-sm">
           <i class="ph-bold ph-check-circle text-base flex-shrink-0 mt-0.5 text-emerald-500"></i>
           <span class="font-medium leading-relaxed"><?= $flashes['success'] ?></span>
         </div>
       <?php endif; ?>
 
       <?php if (isset($flashes['error'])): ?>
-        <div class="mb-5 p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2.5">
+        <div class="mb-5 p-3.5 rounded-2xl bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/80 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2.5 shadow-sm">
           <i class="ph-bold ph-x-circle text-base flex-shrink-0 mt-0.5 text-rose-500"></i>
           <span class="font-medium leading-relaxed"><?= $flashes['error'] ?></span>
         </div>
       <?php endif; ?>
 
-      <!-- Login Form -->
-      <form method="POST" action="" class="space-y-4">
+      <!-- Login Form with Micro-Interaction Inputs -->
+      <form id="loginForm" method="POST" action="" onsubmit="handleLoginSubmit(event)" class="space-y-4">
         
-        <!-- Username Field -->
+        <!-- Username Field with Interactive Focus -->
         <div>
           <label for="username" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
             Username
           </label>
-          <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-              <i class="ph ph-user text-base"></i>
+          <div class="input-group relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <i class="input-icon ph ph-user text-base text-slate-400 dark:text-slate-500 transition-all duration-200"></i>
             </span>
             <input type="text" name="username" id="username" required autofocus autocomplete="username"
-                   class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6558f5] focus:border-transparent transition"
+                   class="input-interactive w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 text-sm placeholder-slate-400 focus:outline-none transition-all duration-200"
                    placeholder="Nama pengguna atau NIK" />
           </div>
         </div>
 
-        <!-- Password Field -->
+        <!-- Password Field with Interactive Focus & Smooth Morph Toggle -->
         <div>
           <div class="flex items-center justify-between mb-1.5">
             <label for="password" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
               Kata Sandi
             </label>
-            <button type="button" onclick="showHelpModal()" class="text-[11px] font-semibold text-slate-400 hover:text-[#6558f5] transition">
+            <button type="button" onclick="showHelpModal()" class="text-[11px] font-semibold text-slate-400 hover:text-[#6558f5] dark:hover:text-[#7f73fc] transition">
               Lupa sandi?
             </button>
           </div>
-          <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-              <i class="ph ph-lock-key text-base"></i>
+          <div class="input-group relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <i class="input-icon ph ph-lock-key text-base text-slate-400 dark:text-slate-500 transition-all duration-200"></i>
             </span>
             <input type="password" name="password" id="password" required autocomplete="current-password"
-                   class="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#6558f5] focus:border-transparent transition"
+                   class="input-interactive w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-50/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 text-sm placeholder-slate-400 focus:outline-none transition-all duration-200"
                    placeholder="••••••••" />
             <button type="button" onclick="togglePasswordVisibility()" 
                     tabindex="-1"
                     title="Lihat / Sembunyikan Kata Sandi"
-                    class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
-              <i id="togglePasswordIcon" class="ph ph-eye text-base"></i>
+                    class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 active:scale-75 transition-all duration-200 cursor-pointer">
+              <i id="togglePasswordIcon" class="ph ph-eye text-base transition-transform duration-200"></i>
             </button>
           </div>
         </div>
 
         <!-- Remember Me Checkbox -->
         <div class="flex items-center justify-between pt-1">
-          <label class="flex items-center gap-2 cursor-pointer select-none">
+          <label class="flex items-center gap-2 cursor-pointer select-none group">
             <input type="checkbox" name="remember" class="w-4 h-4 rounded text-[#6558f5] focus:ring-[#6558f5] border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 transition cursor-pointer">
-            <span class="text-xs text-slate-600 dark:text-slate-400 font-medium">Ingat saya</span>
+            <span class="text-xs text-slate-600 dark:text-slate-400 font-medium group-hover:text-slate-900 dark:group-hover:text-slate-200 transition">Ingat saya</span>
           </label>
         </div>
 
-        <!-- Submit Button -->
-        <button type="submit"
-                class="w-full mt-2 py-3 px-4 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] active:scale-[0.99] text-white font-bold text-sm shadow-md shadow-[#6558f5]/20 hover:shadow-lg hover:shadow-[#6558f5]/30 transition-all flex items-center justify-center gap-2 cursor-pointer">
-          <span>Masuk ke Sistem</span>
-          <i class="ph-bold ph-arrow-right"></i>
+        <!-- Submit Button with Tactile Press & Loading State -->
+        <button type="submit" id="submitBtn"
+                class="w-full mt-2 py-3 px-4 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] active:scale-[0.98] text-white font-bold text-sm shadow-md shadow-[#6558f5]/25 hover:shadow-xl hover:shadow-[#6558f5]/35 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer">
+          <span id="submitBtnText">Masuk ke Sistem</span>
+          <i id="submitBtnIcon" class="ph-bold ph-arrow-right text-base transition-transform group-hover:translate-x-1"></i>
         </button>
 
       </form>
 
     </div>
 
-    <!-- Security & Status Footer -->
+    <!-- Security & Status Footer with Subtle Radar Pulse -->
     <div class="mt-6 text-center">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-200/50 dark:bg-slate-800/50 text-[11px] font-medium text-slate-500 dark:text-slate-400 border border-slate-200/50 dark:border-slate-700/50">
-        <i class="ph-fill ph-shield-check text-emerald-500"></i>
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/70 dark:bg-[#131b2e]/70 backdrop-blur-md text-[11px] font-medium text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-slate-800 shadow-sm">
+        <span class="pulse-radar-wrap w-2 h-2">
+          <span class="pulse-radar-ring"></span>
+          <span class="relative inline-flex rounded-full w-2 h-2 bg-emerald-500"></span>
+        </span>
         <span>SOP Shift Handover • Akses Terenkripsi</span>
       </div>
     </div>
 
   </div>
 
-  <!-- Help Modal -->
-  <div id="helpModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-[#131b2e] rounded-3xl max-w-sm w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl">
-      <div class="w-11 h-11 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 text-[#6558f5] flex items-center justify-center text-xl mb-3.5">
+  <!-- Help Modal with Backdrop Blur -->
+  <div id="helpModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 transition-opacity">
+    <div class="glass-card rounded-3xl max-w-sm w-full p-6 shadow-2xl animate-pop">
+      <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-[#6558f5] flex items-center justify-center text-2xl mb-4 shadow-sm">
         <i class="ph-bold ph-key"></i>
       </div>
       <h3 class="text-base font-bold text-slate-900 dark:text-white">Bantuan Akses Akun</h3>
       <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
-        Sesuai regulasi keamanan operasional, permohonan reset kata sandi atau pembuatan akun baru dilakukan melalui <b>Super Administrator</b> atau tim IT Administrasi.
+        Sesuai regulasi keamanan operasional, permohonan reset kata sandi atau pembuatan akun baru dilakukan melalui <b>Super Administrator</b> atau tim IT Administrasi setempat.
       </p>
       <button type="button" onclick="closeHelpModal()"
-              class="w-full mt-5 py-2.5 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] text-white font-bold text-xs transition cursor-pointer">
+              class="w-full mt-5 py-2.5 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] active:scale-95 text-white font-bold text-xs shadow-md shadow-[#6558f5]/25 transition-all cursor-pointer">
         Tutup
       </button>
     </div>
@@ -235,7 +243,16 @@ $appFullName = get_app_full_name();
   <script>
     function toggleTheme() {
       const html = document.documentElement;
-      if (html.classList.contains('dark')) {
+      const isDark = html.classList.contains('dark');
+      
+      // Animate icon rotation
+      const icons = document.querySelectorAll('.theme-spin-icon');
+      icons.forEach(icon => {
+        icon.style.transform = 'rotate(180deg)';
+        setTimeout(() => icon.style.transform = '', 350);
+      });
+
+      if (isDark) {
         html.classList.remove('dark');
         localStorage.setItem('theme', 'light');
       } else {
@@ -247,15 +264,32 @@ $appFullName = get_app_full_name();
     function togglePasswordVisibility() {
       const passInput = document.getElementById('password');
       const toggleIcon = document.getElementById('togglePasswordIcon');
-      if (passInput.type === 'password') {
-        passInput.type = 'text';
-        toggleIcon.classList.remove('ph-eye');
-        toggleIcon.classList.add('ph-eye-slash');
-      } else {
-        passInput.type = 'password';
-        toggleIcon.classList.remove('ph-eye-slash');
-        toggleIcon.classList.add('ph-eye');
-      }
+      
+      toggleIcon.style.transform = 'scale(0.7) rotate(90deg)';
+      setTimeout(() => {
+        if (passInput.type === 'password') {
+          passInput.type = 'text';
+          toggleIcon.classList.remove('ph-eye');
+          toggleIcon.classList.add('ph-eye-slash');
+        } else {
+          passInput.type = 'password';
+          toggleIcon.classList.remove('ph-eye-slash');
+          toggleIcon.classList.add('ph-eye');
+        }
+        toggleIcon.style.transform = 'scale(1) rotate(0deg)';
+      }, 120);
+    }
+
+    function handleLoginSubmit(e) {
+      const btn = document.getElementById('submitBtn');
+      const text = document.getElementById('submitBtnText');
+      const icon = document.getElementById('submitBtnIcon');
+
+      // Loading state micro-interaction
+      btn.disabled = true;
+      btn.classList.add('opacity-90', 'cursor-wait');
+      text.textContent = 'Memverifikasi...';
+      icon.className = 'ph-bold ph-spinner animate-spin text-base';
     }
 
     function showHelpModal() {
