@@ -1,0 +1,49 @@
+# ==============================================================================
+# OMIT Shift Handover - Production Web Server Configuration (.htaccess)
+# Compatible with: cPanel, aaPanel (Apache/LiteSpeed), DirectAdmin, XAMPP, Docker
+# ==============================================================================
+
+# 1. Default Index
+DirectoryIndex index.php dashboard.php
+
+# 2. Disable Directory Browsing
+Options -Indexes +FollowSymLinks
+
+# 3. Protect Sensitive Files & Directories
+<FilesMatch "^\.|\.env|composer\.(json|lock)|Dockerfile|docker-compose\.yml|schema\.sql$">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block access to hidden files and internal storage
+    RewriteRule ^(\.git|\.env|docker|tests|storage/backups) - [F,L]
+</IfModule>
+
+# 4. Security Headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# 5. Asset Compression (Gzip / Deflate)
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css application/xml application/xhtml+xml application/rss+xml application/javascript application/x-javascript application/json image/svg+xml
+</IfModule>
+
+# 6. Browser Caching for Performance
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
