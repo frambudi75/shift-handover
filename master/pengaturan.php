@@ -259,7 +259,7 @@ require_once __DIR__ . '/../includes/header.php';
           <div>
             <label class="block text-xs font-extrabold text-slate-600 dark:text-slate-300 mb-1.5 flex items-center justify-between">
               <span>URL Domain Publik / Akses Jaringan (Opsional)</span>
-              <span class="text-[10px] text-slate-400 font-normal">Contoh: http://192.168.1.100:2031 atau https://handover.perusahaan.com</span>
+              <span class="text-[10px] text-slate-400 font-normal">Contoh: http://192.168.1.100:2032 atau https://handover.perusahaan.com</span>
             </label>
             <input type="text" name="app_url" value="<?= sanitize($currentAppUrl) ?>"
                    placeholder="Kosongkan untuk deteksi otomatis dari alamat browser saat ini"

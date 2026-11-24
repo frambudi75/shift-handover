@@ -37,7 +37,7 @@ cp .env.example .env
 docker compose up -d
 
 # 3. Buka di browser
-# URL: http://localhost:2031
+# URL: http://localhost:2032
 ```
 
 ### B. Menggunakan XAMPP / Manual Local Server

@@ -36,7 +36,7 @@ function get_full_web_url(string $path = ''): string {
         return "{$protocol}://{$host}{$baseUrl}{$path}";
     }
 
-    return "http://localhost:2031/{$path}";
+    return "http://localhost:2032/{$path}";
 }
 
 /**

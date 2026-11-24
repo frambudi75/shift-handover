@@ -5,7 +5,7 @@
 
 | Layanan | Image Dasar | Port Host | Port Kontainer | Fungsi |
 | :--- | :--- | :---: | :---: | :--- |
-| **`app`** | Custom (`Dockerfile` berbasis `php:8.2-apache`) | **2031** | 80 | Web server Apache, PHP 8.2 runtime, OPcache, Redis extension |
+| **`app`** | Custom (`Dockerfile` berbasis `php:8.2-apache`) | **2032** | 80 | Web server Apache, PHP 8.2 runtime, OPcache, Redis extension |
 | **`db`** | `mysql:8.0` | **3307** | 3306 | Database relasional MySQL dengan buffer pool 256MB |
 | **`redis`** | `redis:7-alpine` | **6380** | 6379 | In-memory cache server dengan limit 128MB dan kebijakan LRU |
 
@@ -15,7 +15,7 @@
 
 ```ini
 # Port Web Aplikasi Utama
-APP_PORT=2031
+APP_PORT=2032
 APP_BASE_URL=/
 
 # Konfigurasi Database MySQL

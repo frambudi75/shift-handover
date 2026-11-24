@@ -14,7 +14,7 @@ Digunakan untuk memicu proses pemeliharaan sistem, defragmentasi database, rotas
 
 #### Contoh Request:
 ```bash
-curl -s "http://localhost:2031/cron/auto_optimize.php?token=f91c5ca9d00a0222988eafd1d16f4264&force=1"
+curl -s "http://localhost:2032/cron/auto_optimize.php?token=f91c5ca9d00a0222988eafd1d16f4264&force=1"
 ```
 
 #### Contoh Response Berhasil (HTTP 200):

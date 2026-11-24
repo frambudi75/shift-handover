@@ -38,7 +38,7 @@ docker compose up -d
 
 ### 3. Akses Aplikasi
 Buka browser pada alamat:
-👉 **`http://localhost:2031`**
+👉 **`http://localhost:2032`**
 
 **Kredensial Default:**
 - **Superadmin**: `superadmin` / `password`

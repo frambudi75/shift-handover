@@ -12,7 +12,7 @@ Sistem ini diorkestrasi menggunakan **Docker Compose** dengan 3 layanan utama:
    - Web server Apache dengan modul `rewrite` & `headers`.
    - Mengaktifkan **OPcache** (kompilasi bytecode PHP di RAM 128MB) sehingga eksekusi skrip instan tanpa kompilasi berulang.
    - Ekstensi PHP `gd` (kompresi gambar otomatis), `pdo_mysql`, `zip`, dan `redis`.
-   - Port default: `http://localhost:2031` (dapat diubah di file `.env`).
+   - Port default: `http://localhost:2032` (dapat diubah di file `.env`).
 
 2. **`db` (MySQL 8.0)**:
    - Database MySQL dengan konfigurasi `InnoDB Buffer Pool 256MB` dan charset `utf8mb4`.
@@ -53,7 +53,7 @@ Pastikan ketiga kontainer (`omit_shift_app`, `omit_shift_db`, `omit_shift_redis`
 
 ### 4. Akses Aplikasi di Browser
 Buka browser dan kunjungi:
-👉 **`http://localhost:2031`**
+👉 **`http://localhost:2032`**
 
 **Akun Login Default:**
 - **Username**: `superadmin`

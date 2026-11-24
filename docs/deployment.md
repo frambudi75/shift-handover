@@ -32,7 +32,7 @@ cp .env.example .env
 ```
 Sesuaikan kata sandi database dan token rahasia pada berkas `.env`:
 ```ini
-APP_PORT=2031
+APP_PORT=2032
 APP_BASE_URL=/
 DB_NAME=db_serah_terima
 DB_USER=serahterima_user
@@ -76,7 +76,7 @@ server {
     client_max_body_size 35M;
 
     location / {
-        proxy_pass http://127.0.0.1:2031;
+        proxy_pass http://127.0.0.1:2032;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -94,5 +94,5 @@ crontab -e
 ```
 Tambahkan baris berikut:
 ```bash
-0 2 * * 0 curl -s "http://127.0.0.1:2031/cron/auto_optimize.php?token=TOKEN_ANDA_DISINI" > /dev/null 2>&1
+0 2 * * 0 curl -s "http://127.0.0.1:2032/cron/auto_optimize.php?token=TOKEN_ANDA_DISINI" > /dev/null 2>&1
 ```

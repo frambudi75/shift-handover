@@ -7,7 +7,7 @@ services:
     container_name: omit_shift_app
     restart: unless-stopped
     ports:
-      - "${APP_PORT:-2031}:80"
+      - "${APP_PORT:-2032}:80"
     environment:
       DB_HOST: "db"
       DB_PORT: "3306"

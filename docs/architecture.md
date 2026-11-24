@@ -7,7 +7,7 @@ Aplikasi dibangun menggunakan arsitektur modular **Monolith Modern (MVC-Lite)** 
 
 ```mermaid
 graph TD
-    UserClient[Pengguna: Browser Desktop / Tablet / Smartphone] --> |HTTP / HTTPS Port 2031| WebServer[Web Server: Apache 2.4 + PHP 8.2 + OPcache]
+    UserClient[Pengguna: Browser Desktop / Tablet / Smartphone] --> |HTTP / HTTPS Port 2032| WebServer[Web Server: Apache 2.4 + PHP 8.2 + OPcache]
     
     subgraph Kontainer Aplikasi (omit_shift_app)
         WebServer --> Router[Front Controller & Routing]

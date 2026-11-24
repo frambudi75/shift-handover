@@ -3,7 +3,7 @@
 
 ### 1. Akses Sistem & Login
 1. Buka browser dan arahkan ke alamat sistem:
-   - **Lingkungan Docker**: `http://localhost:2031`
+   - **Lingkungan Docker**: `http://localhost:2032`
    - **Lingkungan XAMPP**: `http://localhost/serah-terima/`
 2. Masukkan username dan password resmi:
    - **Superadmin**: `superadmin` / `password`
