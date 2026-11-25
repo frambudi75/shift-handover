@@ -1166,8 +1166,10 @@ require_once __DIR__ . '/../includes/header.php';
     const qrSignerEl = document.getElementById('qrSignerName');
     if (qrSignerEl) qrSignerEl.innerText = signerName;
 
-    // Generate Verification Payload
-    const verifyUrl = `${window.location.origin}/serah-terima/laporan/verify.php?doc=${encodeURIComponent(docNo)}`;
+    // Generate Verification Payload (gunakan Domain dari Pengaturan jika ada, atau origin + BASE_URL saat ini)
+    <?php $customAppUrl = rtrim(get_setting('app_url', get_setting('app_base_url_full', '')), '/'); ?>
+    const verifyBase = <?= $customAppUrl !== '' ? json_encode($customAppUrl . '/laporan/verify?doc=') : 'window.location.origin + ' . json_encode(BASE_URL . 'laporan/verify?doc=') ?>;
+    const verifyUrl = verifyBase + encodeURIComponent(docNo);
     
     qrContainer.innerHTML = '';
     qrcodeObj = new QRCode(qrContainer, {

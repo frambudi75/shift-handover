@@ -609,7 +609,9 @@ require_once __DIR__ . '/../includes/header.php';
   const qrRecContainer = document.getElementById('qrReceiverContainer');
   if (qrRecContainer) {
     const docNo = "<?= $report['nomor_laporan'] ?>";
-    const verifyUrl = `${window.location.origin}/serah-terima/laporan/verify.php?doc=${encodeURIComponent(docNo)}`;
+    <?php $customAppUrl = rtrim(get_setting('app_url', get_setting('app_base_url_full', '')), '/'); ?>
+    const verifyBase = <?= $customAppUrl !== '' ? json_encode($customAppUrl . '/laporan/verify?doc=') : 'window.location.origin + ' . json_encode(BASE_URL . 'laporan/verify?doc=') ?>;
+    const verifyUrl = verifyBase + encodeURIComponent(docNo);
     new QRCode(qrRecContainer, {
       text: verifyUrl,
       width: 72,
