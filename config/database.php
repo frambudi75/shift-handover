@@ -43,6 +43,7 @@ try {
             $mysqlInitCmdKey             => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
         ]
     );
+    $pdo->exec("SET time_zone = '+07:00'");
 } catch (PDOException $e) {
     die("Koneksi Database Gagal: " . $e->getMessage());
 }
