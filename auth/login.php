@@ -15,7 +15,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    if (empty($username) || empty($password)) {
+    // Rate-limit failed logins per IP (max 8 attempts per 10 minutes)
+    require_once __DIR__ . '/../includes/audit_helper.php';
+    ensure_audit_table($pdo);
+    $clientIp = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    if (strpos($clientIp, ',') !== false) {
+        $clientIp = trim(explode(',', $clientIp)[0]);
+    }
+    $stmtRate = $pdo->prepare("
+        SELECT COUNT(*) FROM activity_logs
+        WHERE action = 'LOGIN_FAILED'
+          AND ip_address = :ip
+          AND created_at >= DATE_SUB(NOW(), INTERVAL 10 MINUTE)
+    ");
+    $stmtRate->execute(['ip' => mb_substr($clientIp, 0, 45)]);
+    $recentFails = (int)$stmtRate->fetchColumn();
+
+    if ($recentFails >= 8) {
+        $error = 'Terlalu banyak percobaan login gagal. Silakan tunggu 10 menit sebelum mencoba lagi.';
+    } elseif (empty($username) || empty($password)) {
         $error = 'Username dan kata sandi wajib diisi!';
     } else {
         $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username AND status = 'aktif' LIMIT 1");
@@ -23,20 +41,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password'])) {
+            session_regenerate_id(true);
             $_SESSION['user_id']      = $user['id'];
             $_SESSION['nama_lengkap'] = $user['nama_lengkap'];
             $_SESSION['username']     = $user['username'];
             $_SESSION['role']         = $user['role'];
             $_SESSION['jabatan']      = $user['jabatan'];
 
-            require_once __DIR__ . '/../includes/audit_helper.php';
             log_activity($pdo, 'LOGIN_SUCCESS', "Login berhasil ke sistem ({$user['role']}).", (int)$user['id'], $user['username']);
 
             flash_set('success', "Selamat datang kembali, {$user['nama_lengkap']}!");
             header('Location: ' . BASE_URL . 'dashboard');
             exit;
         } else {
-            require_once __DIR__ . '/../includes/audit_helper.php';
             log_activity($pdo, 'LOGIN_FAILED', "Percobaan login gagal untuk username '{$username}'.", null, $username);
             $error = 'Username atau kata sandi tidak valid. Silakan periksa kembali kredensial Anda.';
         }

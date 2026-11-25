@@ -10,15 +10,15 @@ DirectoryIndex index.php dashboard.php
 Options -Indexes +FollowSymLinks
 
 # 3. Protect Sensitive Files & Directories
-<FilesMatch "^\.|\.env|composer\.(json|lock)|Dockerfile|docker-compose\.yml|schema\.sql$">
+<FilesMatch "^\.|\.env|composer\.(json|lock)|Dockerfile|docker-compose\.yml|tailwind\.config\.js|\.(sql|md|log)$">
     Require all denied
 </FilesMatch>
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Block access to hidden files and internal storage
-    RewriteRule ^(\.git|\.env|docker|tests|storage/backups) - [F,L]
+    # Block access to hidden files, internal directories, and backups
+    RewriteRule ^(\.git|\.env|docker|tests|docs|includes|config|storage) - [F,L]
 
     # Redirect external GET .php requests to clean URLs (preserves POST & query strings)
     RewriteCond %{REQUEST_METHOD} =GET
