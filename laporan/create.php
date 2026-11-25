@@ -18,12 +18,45 @@ $masterKondisi = get_master_kondisi(true);
 
 $nomorOtomatis = generate_nomor_laporan($pdo);
 
+// Check Edit Draft Mode (?edit=ID)
+$editId = isset($_GET['edit']) ? (int)$_GET['edit'] : 0;
+$editReport = null;
+$editTasks  = [];
+if ($editId > 0) {
+    $stmtEdit = $pdo->prepare("SELECT * FROM laporan_serah_terima WHERE id = :id LIMIT 1");
+    $stmtEdit->execute(['id' => $editId]);
+    $editReport = $stmtEdit->fetch();
+    if (!$editReport || $editReport['status_validasi'] !== 'DRAFT' || ($editReport['created_by'] != $user['id'] && !is_admin())) {
+        flash_set('error', 'Draft laporan tidak ditemukan atau Anda tidak memiliki akses untuk mengeditnya.');
+        header('Location: ' . BASE_URL . 'laporan/index');
+        exit;
+    }
+    $nomorOtomatis = $editReport['nomor_laporan'];
+    $stmtET = $pdo->prepare("SELECT * FROM laporan_pekerjaan WHERE laporan_id = :id ORDER BY urutan ASC, id ASC");
+    $stmtET->execute(['id' => $editId]);
+    $editTasks = $stmtET->fetchAll();
+}
+
 // Handle Form Submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $pdo->beginTransaction();
 
-        $nomor_laporan = trim($_POST['nomor_laporan'] ?? $nomorOtomatis);
+        $draftId = (int)($_POST['draft_id'] ?? 0);
+        $submitAction = ($_POST['submit_action'] ?? 'submit') === 'draft' ? 'draft' : 'submit';
+        $isDraft = ($submitAction === 'draft');
+
+        $existingDraft = null;
+        if ($draftId > 0) {
+            $stmtCheck = $pdo->prepare("SELECT * FROM laporan_serah_terima WHERE id = :id LIMIT 1");
+            $stmtCheck->execute(['id' => $draftId]);
+            $existingDraft = $stmtCheck->fetch();
+            if (!$existingDraft || $existingDraft['status_validasi'] !== 'DRAFT' || ($existingDraft['created_by'] != $user['id'] && !is_admin())) {
+                throw new Exception('Draft tidak valid atau sudah diajukan.');
+            }
+        }
+
+        $nomor_laporan = $existingDraft ? $existingDraft['nomor_laporan'] : trim($_POST['nomor_laporan'] ?? $nomorOtomatis);
         $tanggal = $_POST['tanggal'] ?? date('Y-m-d');
         $shift_id = (int)($_POST['shift_id'] ?? 1);
         $lokasi_id = (int)($_POST['lokasi_id'] ?? 1);
@@ -34,14 +67,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $petugas_menerima_id = !empty($_POST['petugas_menerima_id']) ? (int)$_POST['petugas_menerima_id'] : null;
         $catatan_penting = trim($_POST['catatan_penting'] ?? '');
 
-        // Upload 3 Photos
-        $foto_1 = isset($_FILES['foto_1']) ? upload_foto($_FILES['foto_1'], 'f1_') : null;
+        if (!$isDraft && empty($petugas_menerima_id)) {
+            throw new Exception('Silakan pilih Petugas Menerima (Shift Baru) sebelum mengajukan laporan.');
+        }
+
+        // Upload 3 Photos (pertahankan foto lama jika edit draft dan tidak upload baru)
+        $foto_1_new = isset($_FILES['foto_1']) ? upload_foto($_FILES['foto_1'], 'f1_') : null;
+        $foto_1 = $foto_1_new ?: ($existingDraft['foto_1'] ?? null);
         $ket_foto_1 = trim($_POST['ket_foto_1'] ?? '');
 
-        $foto_2 = isset($_FILES['foto_2']) ? upload_foto($_FILES['foto_2'], 'f2_') : null;
+        $foto_2_new = isset($_FILES['foto_2']) ? upload_foto($_FILES['foto_2'], 'f2_') : null;
+        $foto_2 = $foto_2_new ?: ($existingDraft['foto_2'] ?? null);
         $ket_foto_2 = trim($_POST['ket_foto_2'] ?? '');
 
-        $foto_3 = isset($_FILES['foto_3']) ? upload_foto($_FILES['foto_3'], 'f3_') : null;
+        $foto_3_new = isset($_FILES['foto_3']) ? upload_foto($_FILES['foto_3'], 'f3_') : null;
+        $foto_3 = $foto_3_new ?: ($existingDraft['foto_3'] ?? null);
         $ket_foto_3 = trim($_POST['ket_foto_3'] ?? '');
 
         // Checklists
@@ -50,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $check_risiko = $_POST['check_risiko'] ?? 'Ya';
         $check_kunci = $_POST['check_kunci'] ?? 'Ya';
 
-        // Signature Submitter (Shift Lama) - Otomatis dari Profil
+        // Signature Submitter (Shift Lama) - Hanya dibuat saat diajukan (bukan saat draft)
         $jenis_ttd = $user['ttd_type'] ?? 'barcode';
         if (!empty($_POST['jenis_ttd_menyerahkan'])) {
             $jenis_ttd = $_POST['jenis_ttd_menyerahkan'];
@@ -59,68 +99,100 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $ttd_base64 = $_POST['ttd_base64_menyerahkan'] ?? null;
 
         $ttd_menyerahkan = null;
-
-        // Gunakan tanda tangan tersimpan di profil (Upload TTD Basah / Canvas)
-        if (($jenis_ttd === 'upload' || $jenis_ttd === 'canvas') && !empty($user['ttd_file'])) {
-            $srcPath = UPLOAD_DIR . $user['ttd_file'];
-            if (file_exists($srcPath)) {
-                $ext = pathinfo($user['ttd_file'], PATHINFO_EXTENSION);
-                $destFilename = 'signatures/ttd_lama_' . date('Ymd_His') . '_' . bin2hex(random_bytes(3)) . '.' . $ext;
-                if (copy($srcPath, UPLOAD_DIR . $destFilename)) {
-                    $ttd_menyerahkan = $destFilename;
+        if (!$isDraft) {
+            if (($jenis_ttd === 'upload' || $jenis_ttd === 'canvas') && !empty($user['ttd_file'])) {
+                $srcPath = UPLOAD_DIR . $user['ttd_file'];
+                if (file_exists($srcPath)) {
+                    $ext = pathinfo($user['ttd_file'], PATHINFO_EXTENSION);
+                    $destFilename = 'signatures/ttd_lama_' . date('Ymd_His') . '_' . bin2hex(random_bytes(3)) . '.' . $ext;
+                    if (copy($srcPath, UPLOAD_DIR . $destFilename)) {
+                        $ttd_menyerahkan = $destFilename;
+                    }
                 }
+            }
+            if (empty($ttd_menyerahkan)) {
+                $ttd_menyerahkan = process_signature($jenis_ttd, $ttd_file, $ttd_base64, 'ttd_lama_');
             }
         }
 
-        // Jika barcode QR atau fallback, generate dari signature processor
-        if (empty($ttd_menyerahkan)) {
-            $ttd_menyerahkan = process_signature($jenis_ttd, $ttd_file, $ttd_base64, 'ttd_lama_');
+        $status_validasi = $isDraft ? 'DRAFT' : 'MENUNGGU VALIDASI';
+
+        if ($existingDraft) {
+            $stmt = $pdo->prepare("UPDATE laporan_serah_terima SET
+                tanggal = :tanggal, shift_id = :shift_id, lokasi_id = :lokasi_id, jam_serah_terima = :jam_serah_terima,
+                kondisi_operasional = :kondisi_operasional, petugas_menerima_id = :petugas_menerima_id, catatan_penting = :catatan_penting,
+                foto_1 = :foto_1, ket_foto_1 = :ket_foto_1, foto_2 = :foto_2, ket_foto_2 = :ket_foto_2, foto_3 = :foto_3, ket_foto_3 = :ket_foto_3,
+                check_lisan = :check_lisan, check_tiket = :check_tiket, check_risiko = :check_risiko, check_kunci = :check_kunci,
+                ttd_menyerahkan = :ttd_menyerahkan, jenis_ttd_menyerahkan = :jenis_ttd_menyerahkan, status_validasi = :status_validasi
+                WHERE id = :id");
+            $stmt->execute([
+                'tanggal'               => $tanggal,
+                'shift_id'              => $shift_id,
+                'lokasi_id'             => $lokasi_id,
+                'jam_serah_terima'      => $jam_serah_terima,
+                'kondisi_operasional'   => $kondisi_operasional,
+                'petugas_menerima_id'   => $petugas_menerima_id,
+                'catatan_penting'       => $catatan_penting,
+                'foto_1'                => $foto_1,
+                'ket_foto_1'            => $ket_foto_1,
+                'foto_2'                => $foto_2,
+                'ket_foto_2'            => $ket_foto_2,
+                'foto_3'                => $foto_3,
+                'ket_foto_3'            => $ket_foto_3,
+                'check_lisan'           => $check_lisan,
+                'check_tiket'           => $check_tiket,
+                'check_risiko'          => $check_risiko,
+                'check_kunci'           => $check_kunci,
+                'ttd_menyerahkan'       => $ttd_menyerahkan,
+                'jenis_ttd_menyerahkan' => $jenis_ttd,
+                'status_validasi'       => $status_validasi,
+                'id'                    => $draftId,
+            ]);
+            $laporanId = $draftId;
+            $pdo->prepare("DELETE FROM laporan_pekerjaan WHERE laporan_id = :id")->execute(['id' => $laporanId]);
+        } else {
+            $stmt = $pdo->prepare("INSERT INTO laporan_serah_terima (
+                nomor_laporan, tanggal, shift_id, lokasi_id, jam_serah_terima,
+                kondisi_operasional, petugas_menyerahkan_id, petugas_menerima_id, catatan_penting,
+                foto_1, ket_foto_1, foto_2, ket_foto_2, foto_3, ket_foto_3,
+                check_lisan, check_tiket, check_risiko, check_kunci,
+                ttd_menyerahkan, jenis_ttd_menyerahkan, status_validasi, created_by
+            ) VALUES (
+                :nomor_laporan, :tanggal, :shift_id, :lokasi_id, :jam_serah_terima,
+                :kondisi_operasional, :petugas_menyerahkan_id, :petugas_menerima_id, :catatan_penting,
+                :foto_1, :ket_foto_1, :foto_2, :ket_foto_2, :foto_3, :ket_foto_3,
+                :check_lisan, :check_tiket, :check_risiko, :check_kunci,
+                :ttd_menyerahkan, :jenis_ttd_menyerahkan, :status_validasi, :created_by
+            )");
+
+            $stmt->execute([
+                'nomor_laporan'          => $nomor_laporan,
+                'tanggal'                => $tanggal,
+                'shift_id'               => $shift_id,
+                'lokasi_id'              => $lokasi_id,
+                'jam_serah_terima'       => $jam_serah_terima,
+                'kondisi_operasional'    => $kondisi_operasional,
+                'petugas_menyerahkan_id' => $petugas_menyerahkan_id,
+                'petugas_menerima_id'    => $petugas_menerima_id,
+                'catatan_penting'        => $catatan_penting,
+                'foto_1'                 => $foto_1,
+                'ket_foto_1'             => $ket_foto_1,
+                'foto_2'                 => $foto_2,
+                'ket_foto_2'             => $ket_foto_2,
+                'foto_3'                 => $foto_3,
+                'ket_foto_3'             => $ket_foto_3,
+                'check_lisan'            => $check_lisan,
+                'check_tiket'            => $check_tiket,
+                'check_risiko'           => $check_risiko,
+                'check_kunci'            => $check_kunci,
+                'ttd_menyerahkan'        => $ttd_menyerahkan,
+                'jenis_ttd_menyerahkan'  => $jenis_ttd,
+                'status_validasi'        => $status_validasi,
+                'created_by'             => $user['id']
+            ]);
+
+            $laporanId = $pdo->lastInsertId();
         }
-
-        // Status awal: MENUNGGU VALIDASI (Tanda tangan penerima baru ada setelah approval)
-        $status_validasi = 'MENUNGGU VALIDASI';
-
-        $stmt = $pdo->prepare("INSERT INTO laporan_serah_terima (
-            nomor_laporan, tanggal, shift_id, lokasi_id, jam_serah_terima,
-            kondisi_operasional, petugas_menyerahkan_id, petugas_menerima_id, catatan_penting,
-            foto_1, ket_foto_1, foto_2, ket_foto_2, foto_3, ket_foto_3,
-            check_lisan, check_tiket, check_risiko, check_kunci,
-            ttd_menyerahkan, jenis_ttd_menyerahkan, status_validasi, created_by
-        ) VALUES (
-            :nomor_laporan, :tanggal, :shift_id, :lokasi_id, :jam_serah_terima,
-            :kondisi_operasional, :petugas_menyerahkan_id, :petugas_menerima_id, :catatan_penting,
-            :foto_1, :ket_foto_1, :foto_2, :ket_foto_2, :foto_3, :ket_foto_3,
-            :check_lisan, :check_tiket, :check_risiko, :check_kunci,
-            :ttd_menyerahkan, :jenis_ttd_menyerahkan, :status_validasi, :created_by
-        )");
-
-        $stmt->execute([
-            'nomor_laporan'          => $nomor_laporan,
-            'tanggal'                => $tanggal,
-            'shift_id'               => $shift_id,
-            'lokasi_id'              => $lokasi_id,
-            'jam_serah_terima'       => $jam_serah_terima,
-            'kondisi_operasional'    => $kondisi_operasional,
-            'petugas_menyerahkan_id' => $petugas_menyerahkan_id,
-            'petugas_menerima_id'    => $petugas_menerima_id,
-            'catatan_penting'        => $catatan_penting,
-            'foto_1'                 => $foto_1,
-            'ket_foto_1'             => $ket_foto_1,
-            'foto_2'                 => $foto_2,
-            'ket_foto_2'             => $ket_foto_2,
-            'foto_3'                 => $foto_3,
-            'ket_foto_3'             => $ket_foto_3,
-            'check_lisan'            => $check_lisan,
-            'check_tiket'            => $check_tiket,
-            'check_risiko'           => $check_risiko,
-            'check_kunci'            => $check_kunci,
-            'ttd_menyerahkan'        => $ttd_menyerahkan,
-            'jenis_ttd_menyerahkan'  => $jenis_ttd,
-            'status_validasi'        => $status_validasi,
-            'created_by'             => $user['id']
-        ]);
-
-        $laporanId = $pdo->lastInsertId();
 
         // Save Tasks
         if (isset($_POST['pekerjaan_masalah']) && is_array($_POST['pekerjaan_masalah'])) {
@@ -151,7 +223,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
 
                 // Sinkronisasi: jika tiket ini diselesaikan (Selesai), sinkronkan riwayat tiket lama agar tidak terus muncul sebagai eskalasi aktif
-                if ($statusTugas === 'Selesai' && !empty($noTiket)) {
+                if (!$isDraft && $statusTugas === 'Selesai' && !empty($noTiket)) {
                     $stmtSync = $pdo->prepare("UPDATE laporan_pekerjaan SET status = 'Selesai' WHERE no_tiket = :tiket AND laporan_id != :laporanId");
                     $stmtSync->execute(['tiket' => $noTiket, 'laporanId' => $laporanId]);
                 }
@@ -160,11 +232,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $pdo->commit();
 
+        require_once __DIR__ . '/../includes/audit_helper.php';
+        if ($isDraft) {
+            log_activity($pdo, 'HANDOVER_DRAFT', "Menyimpan draft laporan serah terima {$nomor_laporan}.");
+            flash_set('success', "Draft {$nomor_laporan} berhasil disimpan! Anda dapat mencicil pengisian atau mengirimnya kapan saja.");
+            header('Location: ' . BASE_URL . 'laporan/create?edit=' . $laporanId);
+            exit;
+        }
+
         // Trigger Email & WhatsApp Notification to Shift Receiver
         require_once __DIR__ . '/../includes/notifications.php';
         notify_handover_created($laporanId, $pdo);
 
-        require_once __DIR__ . '/../includes/audit_helper.php';
         log_activity($pdo, 'HANDOVER_CREATE', "Membuat laporan serah terima {$nomor_laporan}.");
 
         flash_set('success', "Laporan serah terima {$nomor_laporan} berhasil disimpan! Notifikasi telah dikirimkan ke petugas penerima.");
@@ -177,12 +256,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Fetch carry-over tasks from previous shift / specified report
+// Fetch carry-over tasks from previous shift / specified report (skip when editing an existing draft)
 $carryFromId = isset($_GET['carry_from']) ? (int)$_GET['carry_from'] : 0;
 $carryReport = null;
 $carryTasks  = [];
+$isEditDraft = !empty($editReport);
 
-if ($carryFromId > 0) {
+if ($isEditDraft) {
+    $carryTasks = $editTasks;
+} elseif ($carryFromId > 0) {
     $stmtCarry = $pdo->prepare("
         SELECT l.*, s.nama_shift, m.nama_lokasi 
         FROM laporan_serah_terima l 
@@ -203,12 +285,13 @@ if ($carryFromId > 0) {
         $carryTasks = $stmtT->fetchAll();
     }
 } else {
-    // Auto-detect unfinished tasks from the most recent handover report
+    // Auto-detect unfinished tasks from the most recent submitted handover report
     $stmtLatest = $pdo->query("
         SELECT l.*, s.nama_shift, m.nama_lokasi 
         FROM laporan_serah_terima l 
         JOIN master_shift s ON l.shift_id = s.id 
         JOIN master_lokasi m ON l.lokasi_id = m.id 
+        WHERE l.status_validasi != 'DRAFT'
         ORDER BY l.tanggal DESC, l.jam_serah_terima DESC, l.id DESC 
         LIMIT 1
     ");
@@ -228,7 +311,16 @@ if ($carryFromId > 0) {
     }
 }
 
-$selectedLokasiId = $carryReport['lokasi_id'] ?? 1;
+$selectedLokasiId = $isEditDraft ? (int)$editReport['lokasi_id'] : ($carryReport['lokasi_id'] ?? 1);
+$valTanggal       = $isEditDraft ? $editReport['tanggal'] : date('Y-m-d');
+$valShiftId       = $isEditDraft ? (int)$editReport['shift_id'] : ($masterShift[0]['id'] ?? 1);
+$valKondisi       = $isEditDraft ? $editReport['kondisi_operasional'] : '';
+$valPenerimaId    = $isEditDraft ? (int)($editReport['petugas_menerima_id'] ?? 0) : 0;
+$valCatatan       = $isEditDraft ? ($editReport['catatan_penting'] ?? '') : '';
+$valCheckLisan    = $isEditDraft ? ($editReport['check_lisan'] ?? 'Ya') : 'Ya';
+$valCheckTiket    = $isEditDraft ? ($editReport['check_tiket'] ?? 'Ya') : 'Ya';
+$valCheckRisiko   = $isEditDraft ? ($editReport['check_risiko'] ?? 'Ya') : 'Ya';
+$valCheckKunci    = $isEditDraft ? ($editReport['check_kunci'] ?? 'Ya') : 'Ya';
 
 require_once __DIR__ . '/../includes/header.php';
 ?>
@@ -247,10 +339,15 @@ require_once __DIR__ . '/../includes/header.php';
       </a>
       <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
         <i class="ph-fill ph-file-plus text-[#6558f5]"></i>
-        <span>Formulir Serah Terima Shift Operasional</span>
+        <span><?= $isEditDraft ? 'Lanjutkan Draft Serah Terima' : 'Formulir Serah Terima Shift Operasional' ?></span>
+        <?php if ($isEditDraft): ?>
+          <span class="px-2.5 py-0.5 rounded-full bg-slate-500 text-white text-[10px] font-black uppercase tracking-wider">DRAFT</span>
+        <?php endif; ?>
       </h2>
       <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-        Isi data serah terima shift. Dilengkapi opsi TTD Barcode Digital QR &amp; Upload TTD Basah.
+        <?= $isEditDraft
+          ? 'Anda sedang melengkapi draft <strong class="font-mono text-[#6558f5]">' . sanitize($nomorOtomatis) . '</strong>. Simpan draft kapan saja atau langsung ajukan ke shift penerima.'
+          : 'Isi data serah terima shift. Anda dapat menyimpan sebagai <strong>Draft</strong> terlebih dahulu untuk mencicil pengisian pekerjaan.' ?>
       </p>
     </div>
   </div>
@@ -263,6 +360,7 @@ require_once __DIR__ . '/../includes/header.php';
   <?php endif; ?>
 
   <form method="POST" action="" enctype="multipart/form-data" id="formHandover" class="space-y-8">
+    <input type="hidden" name="draft_id" value="<?= $isEditDraft ? (int)$editReport['id'] : 0 ?>" />
     
     <!-- ==========================================
          BAGIAN 1: INFORMASI SHIFT & KONDISI UMUM
@@ -287,7 +385,7 @@ require_once __DIR__ . '/../includes/header.php';
 
         <div>
           <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Tanggal <span class="text-rose-500">*</span></label>
-          <input type="date" name="tanggal" value="<?= date('Y-m-d') ?>" required
+          <input type="date" name="tanggal" value="<?= htmlspecialchars($valTanggal) ?>" required
                  class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-semibold focus:ring-2 focus:ring-[#6558f5] focus:outline-none" />
         </div>
 
@@ -298,7 +396,7 @@ require_once __DIR__ . '/../includes/header.php';
             <?php foreach ($masterShift as $s): 
               $handoverTime = !empty($s['jam_serah_terima']) ? substr($s['jam_serah_terima'], 0, 5) : substr($s['jam_selesai'], 0, 5);
             ?>
-              <option value="<?= $s['id'] ?>" data-handover="<?= $handoverTime ?>">Shift <?= sanitize($s['nama_shift']) ?> (<?= format_jam($s['jam_mulai']) ?> - <?= format_jam($s['jam_selesai']) ?>)</option>
+              <option value="<?= $s['id'] ?>" data-handover="<?= $handoverTime ?>" <?= $s['id'] == $valShiftId ? 'selected' : '' ?>>Shift <?= sanitize($s['nama_shift']) ?> (<?= format_jam($s['jam_mulai']) ?> - <?= format_jam($s['jam_selesai']) ?>)</option>
             <?php endforeach; ?>
           </select>
         </div>
@@ -313,9 +411,11 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
           </div>
           <?php 
-          $initialHandover = !empty($masterShift[0]['jam_serah_terima']) ? substr($masterShift[0]['jam_serah_terima'], 0, 5) : (!empty($masterShift[0]['jam_selesai']) ? substr($masterShift[0]['jam_selesai'], 0, 5) : date('H:i'));
+          $initialHandover = $isEditDraft
+            ? substr($editReport['jam_serah_terima'], 0, 5)
+            : (!empty($masterShift[0]['jam_serah_terima']) ? substr($masterShift[0]['jam_serah_terima'], 0, 5) : (!empty($masterShift[0]['jam_selesai']) ? substr($masterShift[0]['jam_selesai'], 0, 5) : date('H:i')));
           ?>
-          <input type="time" name="jam_serah_terima" id="jam_serah_terima" value="<?= $initialHandover ?>" required
+          <input type="time" name="jam_serah_terima" id="jam_serah_terima" value="<?= htmlspecialchars($initialHandover) ?>" required
                  class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-semibold focus:ring-2 focus:ring-[#6558f5] focus:outline-none" />
         </div>
 
@@ -346,7 +446,8 @@ require_once __DIR__ . '/../includes/header.php';
               <option value="Ada Gangguan">Ada Gangguan</option>
             <?php else: ?>
               <?php foreach ($masterKondisi as $mk): ?>
-                <option value="<?= sanitize($mk['nama_kondisi']) ?>" <?= !empty($mk['is_default']) ? 'selected' : '' ?>>
+                <?php $isCondSelected = $valKondisi !== '' ? ($mk['nama_kondisi'] === $valKondisi) : !empty($mk['is_default']); ?>
+                <option value="<?= sanitize($mk['nama_kondisi']) ?>" <?= $isCondSelected ? 'selected' : '' ?>>
                   <?= sanitize($mk['nama_kondisi']) ?>
                 </option>
               <?php endforeach; ?>
@@ -385,7 +486,7 @@ require_once __DIR__ . '/../includes/header.php';
             <option value="">-- Pilih Petugas Penerima --</option>
             <?php foreach ($masterUsers as $u): ?>
               <?php if ($u['id'] != $user['id']): ?>
-                <option value="<?= $u['id'] ?>" data-name="<?= sanitize($u['nama_lengkap']) ?>">
+                <option value="<?= $u['id'] ?>" data-name="<?= sanitize($u['nama_lengkap']) ?>" <?= $u['id'] == $valPenerimaId ? 'selected' : '' ?>>
                   <?= sanitize($u['nama_lengkap']) ?> (<?= sanitize($u['jabatan'] ?? $u['role']) ?>)
                 </option>
               <?php endif; ?>
@@ -412,7 +513,7 @@ require_once __DIR__ . '/../includes/header.php';
         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Catatan Penting / Kendala Utama Shift Ini (Opsional)</label>
         <textarea name="catatan_penting" rows="2"
                   placeholder="Contoh: Suhu chiller 2 sedikit meningkat pada pukul 14:00, perlu dipantau berkala..."
-                  class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-normal focus:ring-2 focus:ring-[#6558f5] focus:outline-none"></textarea>
+                  class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-normal focus:ring-2 focus:ring-[#6558f5] focus:outline-none"><?= sanitize($valCatatan) ?></textarea>
       </div>
     </div>
 
@@ -437,7 +538,7 @@ require_once __DIR__ . '/../includes/header.php';
         </button>
       </div>
 
-      <?php if (!empty($carryTasks)): ?>
+      <?php if (!$isEditDraft && !empty($carryTasks)): ?>
         <!-- Smart Carry-Over / Escalation Notification Banner -->
         <div id="carryOverBanner" class="mb-5 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-indigo-50/90 via-purple-50/70 to-rose-50/80 dark:from-indigo-950/60 dark:via-purple-950/40 dark:to-rose-950/40 border border-indigo-200/90 dark:border-indigo-800/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div class="flex items-start sm:items-center gap-3.5">
@@ -612,55 +713,58 @@ require_once __DIR__ . '/../includes/header.php';
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- FOTO 1 -->
+        <?php $f1Url = ($isEditDraft && !empty($editReport['foto_1'])) ? (UPLOAD_URL . $editReport['foto_1']) : ''; ?>
         <div class="rounded-2xl border border-slate-200 dark:border-slate-700 p-4 bg-slate-50/50 dark:bg-slate-900/40 flex flex-col">
           <span class="text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Foto 1: Kondisi Area / Peralatan</span>
           <div class="relative w-full h-44 rounded-xl bg-slate-100 dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 flex flex-col items-center justify-center overflow-hidden group cursor-pointer"
                onclick="document.getElementById('foto_1').click()">
-            <img id="preview_foto_1" class="hidden w-full h-full object-cover" />
-            <div id="placeholder_foto_1" class="text-center p-4">
+            <img id="preview_foto_1" src="<?= htmlspecialchars($f1Url) ?>" class="<?= $f1Url ? '' : 'hidden' ?> w-full h-full object-cover" />
+            <div id="placeholder_foto_1" class="<?= $f1Url ? 'hidden' : '' ?> text-center p-4">
               <i class="ph ph-camera text-3xl text-slate-400 group-hover:text-[#6558f5] transition"></i>
               <p class="text-[11px] font-semibold text-slate-500 mt-1">Upload Foto 1</p>
             </div>
           </div>
           <input type="file" name="foto_1" id="foto_1" accept="image/*" class="hidden" onchange="previewImg(this, 'preview_foto_1', 'placeholder_foto_1')" />
           <div class="mt-3">
-            <input type="text" name="ket_foto_1" placeholder="Keterangan Foto 1..."
+            <input type="text" name="ket_foto_1" value="<?= sanitize($isEditDraft ? ($editReport['ket_foto_1'] ?? '') : '') ?>" placeholder="Keterangan Foto 1..."
                    class="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs" />
           </div>
         </div>
 
         <!-- FOTO 2 -->
+        <?php $f2Url = ($isEditDraft && !empty($editReport['foto_2'])) ? (UPLOAD_URL . $editReport['foto_2']) : ''; ?>
         <div class="rounded-2xl border border-slate-200 dark:border-slate-700 p-4 bg-slate-50/50 dark:bg-slate-900/40 flex flex-col">
           <span class="text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Foto 2: Temuan / Kendala / Indikator</span>
           <div class="relative w-full h-44 rounded-xl bg-slate-100 dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 flex flex-col items-center justify-center overflow-hidden group cursor-pointer"
                onclick="document.getElementById('foto_2').click()">
-            <img id="preview_foto_2" class="hidden w-full h-full object-cover" />
-            <div id="placeholder_foto_2" class="text-center p-4">
+            <img id="preview_foto_2" src="<?= htmlspecialchars($f2Url) ?>" class="<?= $f2Url ? '' : 'hidden' ?> w-full h-full object-cover" />
+            <div id="placeholder_foto_2" class="<?= $f2Url ? 'hidden' : '' ?> text-center p-4">
               <i class="ph ph-warning text-3xl text-slate-400 group-hover:text-[#6558f5] transition"></i>
               <p class="text-[11px] font-semibold text-slate-500 mt-1">Upload Foto 2</p>
             </div>
           </div>
           <input type="file" name="foto_2" id="foto_2" accept="image/*" class="hidden" onchange="previewImg(this, 'preview_foto_2', 'placeholder_foto_2')" />
           <div class="mt-3">
-            <input type="text" name="ket_foto_2" placeholder="Keterangan Foto 2..."
+            <input type="text" name="ket_foto_2" value="<?= sanitize($isEditDraft ? ($editReport['ket_foto_2'] ?? '') : '') ?>" placeholder="Keterangan Foto 2..."
                    class="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs" />
           </div>
         </div>
 
         <!-- FOTO 3 -->
+        <?php $f3Url = ($isEditDraft && !empty($editReport['foto_3'])) ? (UPLOAD_URL . $editReport['foto_3']) : ''; ?>
         <div class="rounded-2xl border border-slate-200 dark:border-slate-700 p-4 bg-slate-50/50 dark:bg-slate-900/40 flex flex-col">
           <span class="text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Foto 3: Bukti Serah Terima / Lainnya</span>
           <div class="relative w-full h-44 rounded-xl bg-slate-100 dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 flex flex-col items-center justify-center overflow-hidden group cursor-pointer"
                onclick="document.getElementById('foto_3').click()">
-            <img id="preview_foto_3" class="hidden w-full h-full object-cover" />
-            <div id="placeholder_foto_3" class="text-center p-4">
+            <img id="preview_foto_3" src="<?= htmlspecialchars($f3Url) ?>" class="<?= $f3Url ? '' : 'hidden' ?> w-full h-full object-cover" />
+            <div id="placeholder_foto_3" class="<?= $f3Url ? 'hidden' : '' ?> text-center p-4">
               <i class="ph ph-handshake text-3xl text-slate-400 group-hover:text-[#6558f5] transition"></i>
               <p class="text-[11px] font-semibold text-slate-500 mt-1">Upload Foto 3</p>
             </div>
           </div>
           <input type="file" name="foto_3" id="foto_3" accept="image/*" class="hidden" onchange="previewImg(this, 'preview_foto_3', 'placeholder_foto_3')" />
           <div class="mt-3">
-            <input type="text" name="ket_foto_3" placeholder="Keterangan Foto 3..."
+            <input type="text" name="ket_foto_3" value="<?= sanitize($isEditDraft ? ($editReport['ket_foto_3'] ?? '') : '') ?>" placeholder="Keterangan Foto 3..."
                    class="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs" />
           </div>
         </div>
@@ -686,36 +790,36 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
           <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">1. Pekerjaan &amp; kendala sudah dijelaskan lisan?</span>
           <select name="check_lisan" class="px-3 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-xs font-bold text-indigo-600">
-            <option value="Ya" selected>Ya</option>
-            <option value="Belum">Belum</option>
-            <option value="N/A">N/A</option>
+            <option value="Ya" <?= $valCheckLisan === 'Ya' ? 'selected' : '' ?>>Ya</option>
+            <option value="Belum" <?= $valCheckLisan === 'Belum' ? 'selected' : '' ?>>Belum</option>
+            <option value="N/A" <?= $valCheckLisan === 'N/A' ? 'selected' : '' ?>>N/A</option>
           </select>
         </div>
 
         <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
           <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">2. Tiket / catatan sistem sudah diperbarui?</span>
           <select name="check_tiket" class="px-3 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-xs font-bold text-indigo-600">
-            <option value="Ya" selected>Ya</option>
-            <option value="Belum">Belum</option>
-            <option value="N/A">N/A</option>
+            <option value="Ya" <?= $valCheckTiket === 'Ya' ? 'selected' : '' ?>>Ya</option>
+            <option value="Belum" <?= $valCheckTiket === 'Belum' ? 'selected' : '' ?>>Belum</option>
+            <option value="N/A" <?= $valCheckTiket === 'N/A' ? 'selected' : '' ?>>N/A</option>
           </select>
         </div>
 
         <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
           <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">3. Risiko &amp; target waktu sudah diinfokan?</span>
           <select name="check_risiko" class="px-3 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-xs font-bold text-indigo-600">
-            <option value="Ya" selected>Ya</option>
-            <option value="Belum">Belum</option>
-            <option value="N/A">N/A</option>
+            <option value="Ya" <?= $valCheckRisiko === 'Ya' ? 'selected' : '' ?>>Ya</option>
+            <option value="Belum" <?= $valCheckRisiko === 'Belum' ? 'selected' : '' ?>>Belum</option>
+            <option value="N/A" <?= $valCheckRisiko === 'N/A' ? 'selected' : '' ?>>N/A</option>
           </select>
         </div>
 
         <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
           <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">4. Kunci / alat / akses sudah diserahkan?</span>
           <select name="check_kunci" class="px-3 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-xs font-bold text-indigo-600">
-            <option value="Ya" selected>Ya</option>
-            <option value="Belum">Belum</option>
-            <option value="N/A">N/A</option>
+            <option value="Ya" <?= $valCheckKunci === 'Ya' ? 'selected' : '' ?>>Ya</option>
+            <option value="Belum" <?= $valCheckKunci === 'Belum' ? 'selected' : '' ?>>Belum</option>
+            <option value="N/A" <?= $valCheckKunci === 'N/A' ? 'selected' : '' ?>>N/A</option>
           </select>
         </div>
       </div>
@@ -831,14 +935,19 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 
     <!-- Submit Button -->
-    <div class="flex items-center justify-end gap-3 pt-2">
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-2">
       <a href="<?= BASE_URL ?>laporan/index" 
-         class="px-6 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 font-bold text-sm transition">
+         class="px-6 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 font-bold text-sm transition text-center">
         Batal
       </a>
-      <button type="submit" id="btnSubmitForm"
-              class="px-8 py-3 rounded-2xl bg-[#6558f5] hover:bg-[#5244e8] text-white font-extrabold text-sm shadow-lg shadow-indigo-500/30 transition flex items-center gap-2">
-        <i class="ph-bold ph-floppy-disk text-lg"></i>
+      <button type="submit" name="submit_action" value="draft" formnovalidate id="btnSaveDraft"
+              class="px-6 py-3 rounded-2xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700/70 font-extrabold text-sm transition flex items-center justify-center gap-2 cursor-pointer">
+        <i class="ph-bold ph-note-pencil text-lg"></i>
+        <span>Simpan Draft</span>
+      </button>
+      <button type="submit" name="submit_action" value="submit" id="btnSubmitForm"
+              class="px-8 py-3 rounded-2xl bg-[#6558f5] hover:bg-[#5244e8] text-white font-extrabold text-sm shadow-lg shadow-indigo-500/30 transition flex items-center justify-center gap-2 cursor-pointer">
+        <i class="ph-bold ph-paper-plane-tilt text-lg"></i>
         <span>Simpan &amp; Ajukan ke Shift Penerima</span>
       </button>
     </div>

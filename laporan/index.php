@@ -285,6 +285,13 @@ require_once __DIR__ . '/../includes/header.php';
 
                 <td class="py-3.5 px-4 text-center">
                   <div class="flex items-center justify-center gap-1.5">
+                    <?php if ($r['status_validasi'] === 'DRAFT' && ($r['created_by'] == $user['id'] || is_admin())): ?>
+                      <a href="<?= BASE_URL ?>laporan/create?edit=<?= $r['id'] ?>"
+                         title="Lanjutkan Edit Draft"
+                         class="p-2 rounded-xl bg-amber-50 dark:bg-amber-900/40 text-amber-600 dark:text-amber-300 hover:bg-amber-500 hover:text-white transition">
+                        <i class="ph-bold ph-pencil-simple text-sm"></i>
+                      </a>
+                    <?php endif; ?>
                     <!-- Detail -->
                     <a href="<?= BASE_URL ?>laporan/detail?id=<?= $r['id'] ?>" 
                        title="Lihat Detail & Pengesahan"

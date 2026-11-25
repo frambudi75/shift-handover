@@ -81,6 +81,13 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 
     <div class="flex items-center gap-2.5 flex-wrap">
+      <?php if ($report['status_validasi'] === 'DRAFT' && ($report['created_by'] == $user['id'] || is_admin())): ?>
+        <a href="<?= BASE_URL ?>laporan/create?edit=<?= $report['id'] ?>"
+           class="px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs shadow-md transition flex items-center gap-2 active:scale-95">
+          <i class="ph-bold ph-pencil-simple text-base"></i>
+          <span>Lanjutkan Edit Draft</span>
+        </a>
+      <?php endif; ?>
       <?php
       require_once __DIR__ . '/../includes/notifications.php';
       $targetWaPhone = ($report['status_validasi'] === 'MENUNGGU VALIDASI') ? ($report['wa_menerima'] ?: '') : ($report['wa_menyerahkan'] ?: '');
