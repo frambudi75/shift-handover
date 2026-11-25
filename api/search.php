@@ -60,6 +60,30 @@ try {
         ];
     }, $rows);
 
+    // Search Notulen Meeting / Briefing
+    require_once __DIR__ . '/../includes/notulen_helper.php';
+    ensure_notulen_tables($pdo);
+    $stmtN = $pdo->prepare("
+        SELECT id, nomor_notulen, judul, jenis, tanggal, lokasi, pimpinan_rapat, status
+        FROM notulen_meeting
+        WHERE nomor_notulen LIKE :n1 OR judul LIKE :n2 OR pimpinan_rapat LIKE :n3 OR lokasi LIKE :n4
+        ORDER BY tanggal DESC, id DESC
+        LIMIT 4
+    ");
+    $stmtN->execute(['n1' => $like, 'n2' => $like, 'n3' => $like, 'n4' => $like]);
+    foreach ($stmtN->fetchAll() as $n) {
+        $results[] = [
+            'id'      => (int)$n['id'],
+            'nomor'   => $n['nomor_notulen'],
+            'tanggal' => format_tanggal($n['tanggal']),
+            'lokasi'  => $n['lokasi'],
+            'shift'   => $n['jenis'] . ' • ' . mb_strimwidth($n['judul'], 0, 32, '...'),
+            'petugas' => $n['pimpinan_rapat'],
+            'status'  => $n['status'],
+            'url'     => BASE_URL . 'notulen/detail?id=' . (int)$n['id'],
+        ];
+    }
+
     echo json_encode(['success' => true, 'results' => $results]);
 } catch (Throwable $e) {
     echo json_encode(['success' => false, 'results' => []]);
