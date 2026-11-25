@@ -23,13 +23,30 @@ foreach ($activeShifts as $sh) {
     }
 }
 
-// Fetch statistics
-$totalLaporan = $pdo->query("SELECT COUNT(*) FROM laporan_serah_terima")->fetchColumn();
+// Fetch statistics (exclude DRAFT from official submitted counts)
+$totalLaporan = $pdo->query("SELECT COUNT(*) FROM laporan_serah_terima WHERE status_validasi != 'DRAFT'")->fetchColumn();
 
 $today = date('Y-m-d');
-$stmtToday = $pdo->prepare("SELECT COUNT(*) FROM laporan_serah_terima WHERE tanggal = :today");
+$stmtToday = $pdo->prepare("SELECT COUNT(*) FROM laporan_serah_terima WHERE tanggal = :today AND status_validasi != 'DRAFT'");
 $stmtToday->execute(['today' => $today]);
 $laporanHariIni = $stmtToday->fetchColumn();
+
+// Drafts belonging to current user (or all for admin)
+$stmtDrafts = $pdo->prepare("SELECT id, nomor_laporan, tanggal, updated_at FROM laporan_serah_terima WHERE status_validasi = 'DRAFT' AND (created_by = :uid OR :is_admin = 1) ORDER BY updated_at DESC LIMIT 3");
+$stmtDrafts->execute(['uid' => $user['id'], 'is_admin' => is_admin() ? 1 : 0]);
+$myDrafts = $stmtDrafts->fetchAll();
+
+// Recent Notulen & open action items
+require_once __DIR__ . '/includes/notulen_helper.php';
+ensure_notulen_tables($pdo);
+$recentNotulen = $pdo->query("
+    SELECT n.*,
+           (SELECT COUNT(*) FROM notulen_action_items a WHERE a.notulen_id = n.id) AS total_items,
+           (SELECT COUNT(*) FROM notulen_action_items a WHERE a.notulen_id = n.id AND a.status = 'Selesai') AS done_items
+    FROM notulen_meeting n
+    ORDER BY n.tanggal DESC, n.jam_mulai DESC, n.id DESC
+    LIMIT 4
+")->fetchAll();
 
 // Total pekerjaan aktif (berdasarkan status terbaru tiap nomor tiket / pekerjaan)
 $queryLatestAktif = "
@@ -201,8 +218,8 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
     </p>
   </div>
 
-  <!-- Quick Add Dashed Box + 3 Feature Cards (8 cols) -->
-  <div class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
+  <!-- Quick Add Dashed Box + 4 Feature Cards (8 cols) -->
+  <div class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
 
     <!-- Card 0: Dashed Lavender Quick Add Box -->
     <a href="<?= BASE_URL ?>laporan/create"
@@ -271,8 +288,49 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
       </div>
     </a>
 
+    <!-- Card 4: Notulen & Briefing -->
+    <a href="<?= BASE_URL ?>notulen/index"
+       class="widget-card bg-white dark:bg-[#1b1e30] rounded-[24px] p-5 shadow-feature flex flex-col justify-between group border border-transparent hover:border-[#6558f5]/20 cursor-pointer">
+      <div class="h-20 flex items-center justify-center">
+        <div class="w-14 h-14 rounded-2xl bg-[#efeffb] dark:bg-indigo-950/60 text-[#6558f5] dark:text-indigo-300 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shadow-sm">
+          <i class="ph-fill ph-notepad"></i>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xs font-extrabold text-[#181b2c] dark:text-white leading-tight">Notulen &amp; Briefing</h3>
+        <p class="text-[10.5px] text-slate-400 mt-0.5 leading-snug">Catatan meeting &amp; action item</p>
+      </div>
+    </a>
+
   </div>
 </div>
+
+<?php if (!empty($myDrafts)): ?>
+  <div class="mb-6 p-4 rounded-[22px] bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+        <i class="ph-bold ph-note-pencil text-lg"></i>
+      </div>
+      <div>
+        <p class="text-xs font-extrabold text-amber-900 dark:text-amber-200">
+          Ada <?= count($myDrafts) ?> Draft Serah Terima yang Belum Diajukan
+        </p>
+        <p class="text-[11px] text-amber-700/90 dark:text-amber-300/80">
+          Klik untuk melanjutkan pengisian pekerjaan sebelum dikirim ke shift penerima.
+        </p>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <?php foreach ($myDrafts as $dr): ?>
+        <a href="<?= BASE_URL ?>laporan/create?edit=<?= $dr['id'] ?>"
+           class="px-3.5 py-2 rounded-xl bg-white dark:bg-[#1b1e30] border border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200 text-xs font-extrabold hover:bg-amber-100 transition flex items-center gap-1.5 shadow-2xs">
+          <i class="ph-bold ph-pencil-simple"></i>
+          <span class="font-mono"><?= sanitize($dr['nomor_laporan']) ?></span>
+        </a>
+      <?php endforeach; ?>
+    </div>
+  </div>
+<?php endif; ?>
 
 <!-- 4 STATS CARDS (NOTEFLOW METRIC CARDS WITH HOVER LIFT) -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-8 animate-stagger-2">
@@ -498,6 +556,66 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
     </div>
   </div>
 
+</div>
+
+<!-- NOTULEN MEETING & BRIEFING TERBARU -->
+<div class="mt-6 bg-white dark:bg-[#1b1e30] rounded-[26px] border border-slate-100 dark:border-slate-800/80 shadow-feature p-5 sm:p-6 widget-card animate-stagger-3">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+    <div>
+      <h3 class="text-sm font-extrabold text-[#181b2c] dark:text-white flex items-center gap-2">
+        <i class="ph-fill ph-notepad text-[#6558f5]"></i>
+        <span>Notulen Meeting &amp; Briefing Terbaru</span>
+      </h3>
+      <p class="text-xs text-slate-400 mt-0.5">Catatan rapat, keputusan, dan tindak lanjut operasional terbaru</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <a href="<?= BASE_URL ?>notulen/create"
+         class="px-3.5 py-2 rounded-xl bg-[#efeffb] dark:bg-indigo-950/60 text-[#6558f5] dark:text-indigo-300 hover:bg-[#6558f5] hover:text-white text-xs font-extrabold transition flex items-center gap-1.5">
+        <i class="ph-bold ph-plus"></i>
+        <span>Catat Notulen</span>
+      </a>
+      <a href="<?= BASE_URL ?>notulen/index" class="text-xs font-extrabold text-[#6558f5] hover:underline flex items-center gap-1 ml-2">
+        <span>Semua Notulen</span>
+        <i class="ph-bold ph-arrow-right"></i>
+      </a>
+    </div>
+  </div>
+
+  <?php if (empty($recentNotulen)): ?>
+    <div class="p-6 rounded-2xl bg-[#f7f7fb] dark:bg-[#151828] text-center text-xs text-slate-400">
+      Belum ada catatan notulen meeting atau briefing. Klik <strong>Catat Notulen</strong> untuk memulai.
+    </div>
+  <?php else: ?>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <?php foreach ($recentNotulen as $rn): ?>
+        <a href="<?= BASE_URL ?>notulen/detail?id=<?= $rn['id'] ?>"
+           class="p-4 rounded-2xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-100 dark:border-slate-800 hover:border-[#6558f5]/40 transition flex flex-col justify-between gap-3 group">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-[#6558f5] dark:text-indigo-300">
+                <?= sanitize($rn['jenis']) ?>
+              </span>
+              <?= badge_status_notulen($rn['status']) ?>
+            </div>
+            <h4 class="text-xs font-extrabold text-[#181b2c] dark:text-white group-hover:text-[#6558f5] transition line-clamp-2">
+              <?= sanitize($rn['judul']) ?>
+            </h4>
+            <p class="text-[11px] text-slate-400 mt-1">
+              <?= format_tanggal($rn['tanggal']) ?> • <?= sanitize($rn['lokasi']) ?>
+            </p>
+          </div>
+          <div class="pt-2.5 border-t border-slate-200/60 dark:border-slate-800 flex items-center justify-between text-[10.5px] text-slate-500">
+            <span class="font-mono font-bold text-[#6558f5]"><?= sanitize($rn['nomor_notulen']) ?></span>
+            <?php if ((int)$rn['total_items'] > 0): ?>
+              <span class="font-bold"><?= (int)$rn['done_items'] ?>/<?= (int)$rn['total_items'] ?> selesai</span>
+            <?php else: ?>
+              <span><?= sanitize($rn['pimpinan_rapat']) ?></span>
+            <?php endif; ?>
+          </div>
+        </a>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
 </div>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
