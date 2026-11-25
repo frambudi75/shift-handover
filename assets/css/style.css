@@ -76,8 +76,13 @@ html.dark body {
   width: 68px;
   z-index: 30;
   pointer-events: none;
-  display: flex;
   flex-direction: column;
+}
+
+@media (max-width: 767px) {
+  .curved-sidebar-wrapper {
+    display: none !important;
+  }
 }
 
 /* Main Purple Sidebar Bar */

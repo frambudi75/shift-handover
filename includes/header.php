@@ -82,8 +82,8 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
   <!-- Main application shell -->
   <div id="app-shell" class="relative z-10 w-full max-w-[1580px] min-h-[92vh] md:h-[calc(100vh-1.5rem)] lg:h-[calc(100vh-2.5rem)] bg-[#f7f7fb] dark:bg-[#131522] rounded-3xl lg:rounded-[34px] shadow-shell border border-white/80 dark:border-slate-800/80 transition-colors duration-300 overflow-hidden flex flex-col">
 
-    <!-- Curved purple sidebar -->
-    <aside class="curved-sidebar-wrapper hidden md:flex shrink-0">
+    <!-- Curved purple sidebar (Desktop Only) -->
+    <aside class="curved-sidebar-wrapper hidden md:flex md:flex-col shrink-0">
       <!-- Top concave curve -->
       <svg class="sidebar-curve-top" viewBox="0 0 38 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M0 0 C0 26, 20 38, 38 48 L0 48 Z" fill="#6558f5"/>
