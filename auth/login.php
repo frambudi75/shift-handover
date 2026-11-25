@@ -58,6 +58,7 @@ $appFullName = get_app_full_name();
   <link rel="icon" href="<?= $faviconUrl ?>" />
   <link rel="manifest" href="<?= BASE_URL ?>manifest" />
   <meta name="theme-color" content="#6558f5" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <script>
     if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {

@@ -34,6 +34,7 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
   <link rel="icon" href="<?= $faviconUrl ?>" />
   <link rel="manifest" href="<?= BASE_URL ?>manifest" />
   <meta name="theme-color" content="#6558f5" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   
   <!-- Prevent FOUC (Flash of Unstyled Theme) -->
