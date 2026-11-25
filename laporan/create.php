@@ -203,11 +203,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             )");
 
             $count = count($_POST['pekerjaan_masalah']);
+            $seq = 0;
             for ($i = 0; $i < $count; $i++) {
                 $masalah = trim($_POST['pekerjaan_masalah'][$i] ?? '');
                 if ($masalah === '') continue;
+                $seq++;
 
                 $noTiket = trim($_POST['no_tiket'][$i] ?? '');
+                if ($noTiket === '') {
+                    $noTiket = 'TK-' . $laporanId . '-' . str_pad((string)$seq, 2, '0', STR_PAD_LEFT);
+                }
                 $statusTugas = $_POST['status_tugas'][$i] ?? 'Berjalan';
 
                 $stmtTask->execute([
@@ -648,7 +653,7 @@ require_once __DIR__ . '/../includes/header.php';
               <tr class="task-row">
                 <td class="py-3 px-3 text-center font-bold text-slate-400 row-number">1</td>
                 <td class="py-3 px-3">
-                  <input type="text" name="no_tiket[]" placeholder="TK-01" 
+                  <input type="text" name="no_tiket[]" placeholder="Otomatis" 
                          class="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-mono" />
                 </td>
                 <td class="py-3 px-3">
@@ -966,7 +971,7 @@ require_once __DIR__ . '/../includes/header.php';
     tr.innerHTML = `
       <td class="py-3 px-3 text-center font-bold text-slate-400 row-number">${rowCount}</td>
       <td class="py-3 px-3">
-        <input type="text" name="no_tiket[]" placeholder="TK-0${rowCount}" 
+        <input type="text" name="no_tiket[]" placeholder="Otomatis" 
                class="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-mono" />
       </td>
       <td class="py-3 px-3">

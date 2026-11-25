@@ -398,9 +398,15 @@ $appFullName = get_app_full_name();
         </tr>
       </thead>
       <tbody>
-        <?php foreach ($displayRows as $row): ?>
+        <?php foreach ($displayRows as $idx => $row): ?>
+          <?php
+            $printTiket = trim((string)($row['no_tiket'] ?? ''));
+            if ($printTiket === '' && trim((string)($row['pekerjaan_masalah'] ?? '')) !== '') {
+                $printTiket = 'TK-' . $report['id'] . '-' . str_pad((string)($idx + 1), 2, '0', STR_PAD_LEFT);
+            }
+          ?>
           <tr style="height: 18px;">
-            <td class="text-center bg-krem font-bold" style="font-size: 7.5pt;"><?= sanitize($row['no_tiket']) ?: '&nbsp;' ?></td>
+            <td class="text-center bg-krem font-bold" style="font-size: 7.5pt;"><?= $printTiket !== '' ? sanitize($printTiket) : '&nbsp;' ?></td>
             <td class="text-left bg-krem" style="font-size: 7.5pt;"><?= sanitize($row['pekerjaan_masalah']) ?: '&nbsp;' ?></td>
             <td class="text-center bg-krem" style="font-size: 7.5pt; <?= $row['prioritas'] === 'Tinggi / Kritis' ? 'color: #b91c1c; font-weight: bold;' : '' ?>">
               <?= sanitize($row['prioritas']) ?: '&nbsp;' ?>
