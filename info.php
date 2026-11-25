@@ -43,11 +43,24 @@ $extensions = [
 // Release History / Changelog Data
 $releases = [
     [
+        'version' => 'v2.8.0 LTS',
+        'date'    => '25 Nov 2026',
+        'title'   => 'Notulen Meeting & Briefing, Simpan Draft Laporan & Sinkronisasi WIB',
+        'badge'   => 'TERBARU',
+        'color'   => 'bg-[#6558f5] text-white',
+        'items'   => [
+            ['type' => 'Baru',      'text' => 'Modul Notulen Meeting & Briefing (/notulen) terbuka untuk semua pengguna: catat agenda, pembahasan, keputusan, peserta, foto dokumentasi, Action Items, cetak PDF A4, salin WhatsApp, serta notifikasi lonceng peserta saat finalisasi.'],
+            ['type' => 'Baru',      'text' => 'Fitur Simpan Draft & Lanjutkan Edit Draft pada Serah Terima Shift agar pengisian pekerjaan bisa dicicil bertahap sebelum diajukan ke shift penerima.'],
+            ['type' => 'Tampilan',  'text' => 'Pembaruan Dashboard dengan kartu cepat & widget Notulen Terbaru, banner lanjutan Draft, dan filter statistik resmi tanpa Draft.'],
+            ['type' => 'Perbaikan', 'text' => 'Penegakan sesi MySQL/MariaDB time_zone = +07:00 (WIB) pada PDO (jam Audit Trail akurat), scroll independen pada mobile side drawer, serta penambahan meta tag mobile-web-app-capable.'],
+        ]
+    ],
+    [
         'version' => 'v2.7.0 LTS',
         'date'    => '25 Nov 2026',
         'title'   => 'Audit Trail, Live Search (Ctrl+K), Idle Auto-Logout & PWA Support',
-        'badge'   => 'TERBARU',
-        'color'   => 'bg-[#6558f5] text-white',
+        'badge'   => 'LTS',
+        'color'   => 'bg-indigo-100 text-[#6558f5] dark:bg-indigo-950/60 dark:text-indigo-300',
         'items'   => [
             ['type' => 'Baru',      'text' => 'Live Quick Search AJAX di header (Ctrl+K) untuk mencari nomor laporan, tiket pekerjaan, lokasi, dan petugas secara instan.'],
             ['type' => 'Keamanan',  'text' => 'Halaman Audit Trail & Log Aktivitas khusus Superadmin (/audit) mencatat login, serah terima, validasi, reset password, dan ubah pengaturan.'],

@@ -5,7 +5,19 @@ Semua perubahan dan peningkatan fungsionalitas sistem dicatat secara berkala pad
 
 ---
 
-### Versi 2.7.0 LTS (2026-11-25) - *Current Release*
+### Versi 2.8.0 LTS (2026-11-25) - *Current Release*
+- **Modul Notulen Meeting & Briefing (`/notulen`)**:
+  - Pencatatan notulen rapat/briefing mandiri terbuka untuk seluruh pengguna (lihat, catat, dan update isi maupun status *Action Items*).
+  - Mendukung mode **Draft** & **Finalisasi**, notifikasi lonceng otomatis ke peserta internal saat finalisasi, cetak PDF A4, salin ringkasan WhatsApp, serta terintegrasi ke *Live Quick Search* (`Ctrl + K`).
+- **Simpan Draft Serah Terima Shift**:
+  - Tombol **Simpan Draft** dan mode **Lanjutkan Edit Draft** (`laporan/create?edit=<id>`) agar pengisian daftar pekerjaan bisa dicicil sebelum diajukan ke shift penerima.
+- **Dashboard & Perbaikan Sistem**:
+  - Penambahan kartu cepat & widget **Notulen Meeting & Briefing Terbaru** serta banner **Draft Serah Terima** di Dashboard.
+  - Penegakan `SET time_zone = '+07:00'` pada koneksi PDO agar waktu Audit Trail & timestamp selalu dalam WIB, perbaikan *scroll* mobile side drawer, dan tag meta PWA `mobile-web-app-capable`.
+
+---
+
+### Versi 2.7.0 LTS (2026-11-25)
 - **Enterprise Security & Audit Trail**:
   - Halaman **Audit Trail & Log Aktivitas (`/audit`)** khusus Superadmin dengan tabel filter & rekam jejak IP Address (`LOGIN_SUCCESS`, `LOGIN_FAILED`, `HANDOVER_CREATE`, `HANDOVER_APPROVE`, `USER_RESET_PASS`, `USER_DELETE`, `SETTINGS_UPDATE`).
   - **Control Room Idle Auto-Logout**: Otomatis memunculkan dialog hitung mundur 60 detik setelah 45 menit tanpa aktivitas sebelum logout otomatis.
