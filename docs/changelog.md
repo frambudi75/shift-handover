@@ -5,7 +5,20 @@ Semua perubahan dan peningkatan fungsionalitas sistem dicatat secara berkala pad
 
 ---
 
-### Versi 2.8.0 LTS (2026-11-25) - *Current Release*
+### Versi 2.8.1 LTS (2026-11-25) - *Current Release*
+- **Performa & Aset Lokal**:
+  - Compile **Tailwind CSS lokal** (`assets/css/tailwind.min.css`) menggantikan `cdn.tailwindcss.com` agar loading lebih cepat di LAN/offline dan bebas warning di DevTools Console.
+- **Keamanan (*Hardening*)**:
+  - Blokir akses HTTP langsung ke folder sensitif (`storage/`, `docs/`, `includes/`, `config/`, `.git`, `.env`, `.sql`, `.md`) via `.htaccess`.
+  - Penegakan `SameSite=Lax` + `HttpOnly` pada cookie sesi, `session_regenerate_id(true)` saat login, dan *rate limit* percobaan login gagal (maks. 8x per 10 menit per IP).
+- **Perbaikan Operasional & Mobile**:
+  - URL verifikasi **Barcode QR TTD** fleksibel mengikuti alamat aktif di browser (IP maupun domain).
+  - Penomoran tiket otomatis (`TK-{id_laporan}-01`) jika kolom `No / Tiket` dikosongkan + fallback cetak PDF.
+  - Perbaikan CSS `.curved-sidebar-wrapper` agar sidebar PC tidak muncul di layar mobile.
+
+---
+
+### Versi 2.8.0 LTS (2026-11-25)
 - **Modul Notulen Meeting & Briefing (`/notulen`)**:
   - Pencatatan notulen rapat/briefing mandiri terbuka untuk seluruh pengguna (lihat, catat, dan update isi maupun status *Action Items*).
   - Mendukung mode **Draft** & **Finalisasi**, notifikasi lonceng otomatis ke peserta internal saat finalisasi, cetak PDF A4, salin ringkasan WhatsApp, serta terintegrasi ke *Live Quick Search* (`Ctrl + K`).

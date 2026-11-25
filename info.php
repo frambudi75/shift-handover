@@ -43,11 +43,23 @@ $extensions = [
 // Release History / Changelog Data
 $releases = [
     [
+        'version' => 'v2.8.1 LTS',
+        'date'    => '25 Nov 2026',
+        'title'   => 'Tailwind CSS Lokal, Pengerasan Keamanan, QR Fleksibel & Nomor Tiket Otomatis',
+        'badge'   => 'TERBARU',
+        'color'   => 'bg-[#6558f5] text-white',
+        'items'   => [
+            ['type' => 'Performa',  'text' => 'Compile Tailwind CSS lokal (assets/css/tailwind.min.css) menggantikan CDN agar loading lebih cepat di LAN dan bebas warning console.'],
+            ['type' => 'Keamanan',  'text' => 'Blokir akses HTTP ke direktori internal/backup (.htaccess), cookie sesi SameSite=Lax + session_regenerate_id, serta rate limit login 8x/10 menit.'],
+            ['type' => 'Perbaikan', 'text' => 'Barcode QR TTD kini fleksibel mengikuti domain/IP aktif di browser, nomor tiket otomatis (TK-{id}-01) saat dikosongkan, dan perbaikan sidebar PC agar tersembunyi di mobile.'],
+        ]
+    ],
+    [
         'version' => 'v2.8.0 LTS',
         'date'    => '25 Nov 2026',
         'title'   => 'Notulen Meeting & Briefing, Simpan Draft Laporan & Sinkronisasi WIB',
-        'badge'   => 'TERBARU',
-        'color'   => 'bg-[#6558f5] text-white',
+        'badge'   => 'LTS',
+        'color'   => 'bg-indigo-100 text-[#6558f5] dark:bg-indigo-950/60 dark:text-indigo-300',
         'items'   => [
             ['type' => 'Baru',      'text' => 'Modul Notulen Meeting & Briefing (/notulen) terbuka untuk semua pengguna: catat agenda, pembahasan, keputusan, peserta, foto dokumentasi, Action Items, cetak PDF A4, salin WhatsApp, serta notifikasi lonceng peserta saat finalisasi.'],
             ['type' => 'Baru',      'text' => 'Fitur Simpan Draft & Lanjutkan Edit Draft pada Serah Terima Shift agar pengisian pekerjaan bisa dicicil bertahap sebelum diajukan ke shift penerima.'],
