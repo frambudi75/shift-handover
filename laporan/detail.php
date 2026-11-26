@@ -108,6 +108,15 @@ require_once __DIR__ . '/../includes/header.php';
         <span>Kirim ke WhatsApp</span>
       </button>
 
+      <!-- Copy Public Share Link (No Login Required) -->
+      <?php $publicShareUrl = get_full_web_url("laporan/share?id={$report['id']}&token=" . get_report_share_token((int)$report['id'], $report['nomor_laporan'])); ?>
+      <button type="button" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($publicShareUrl, ENT_QUOTES) ?>').then(() => alert('Link laporan tanpa login berhasil disalin!'))"
+              title="Salin tautan baca-saja khusus laporan ini (tanpa login)"
+              class="px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-extrabold text-xs transition flex items-center gap-1.5 cursor-pointer">
+        <i class="ph-bold ph-link text-base"></i>
+        <span>Salin Link Publik</span>
+      </button>
+
       <!-- Print Button (1:1 OMIT Template) -->
       <a href="<?= BASE_URL ?>laporan/print?id=<?= $report['id'] ?>" target="_blank"
          class="px-5 py-2.5 rounded-2xl bg-[#6558f5] hover:bg-[#5244e8] text-white font-extrabold text-xs shadow-md shadow-indigo-500/20 transition flex items-center gap-2 active:scale-95">

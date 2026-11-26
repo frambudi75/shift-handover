@@ -31,7 +31,9 @@ function get_full_web_url(string $path = ''): string {
     }
 
     if (isset($_SERVER['HTTP_HOST'])) {
-        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+                || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+        $protocol = $isHttps ? 'https' : 'http';
         $host = $_SERVER['HTTP_HOST'];
         return "{$protocol}://{$host}{$baseUrl}{$path}";
     }
@@ -57,7 +59,10 @@ function get_whatsapp_url(?string $phone, string $message): string {
  */
 function build_handover_whatsapp_message(array $report, array $tasks): string {
     $appName = get_app_name();
-    $docUrl  = get_full_web_url("laporan/detail?id=" . ($report['id'] ?? 0));
+    $repId   = (int)($report['id'] ?? 0);
+    $nomorLaporan = $report['nomor_laporan'] ?? '-';
+    $shareToken   = get_report_share_token($repId, $nomorLaporan);
+    $docUrl  = get_full_web_url("laporan/share?id={$repId}&token={$shareToken}");
     $tglFmt  = format_tanggal($report['tanggal'] ?? null);
     $jamFmt  = format_jam($report['jam_serah_terima'] ?? null);
     $kondisi = $report['kondisi_operasional'] ?? 'Normal';

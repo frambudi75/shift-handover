@@ -430,3 +430,11 @@ function badge_status_validasi(string $status): string {
         return '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-400 text-white shadow-sm"><i class="ph-bold ph-pencil-simple mr-1 text-sm"></i> DRAFT</span>';
     }
 }
+
+/**
+ * Generate unguessable HMAC share token for public read-only report link.
+ */
+function get_report_share_token(int $reportId, string $nomorLaporan): string {
+    $secret = get_setting('cron_secret_key', 'omit-handover-share-secret-v1');
+    return substr(hash_hmac('sha256', "share:{$reportId}:{$nomorLaporan}", $secret), 0, 24);
+}
