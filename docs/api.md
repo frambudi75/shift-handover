@@ -89,7 +89,28 @@ Mengambil daftar notifikasi serah terima pengguna dan pengumuman resmi Superadmi
 
 ---
 
-### 4. Payload Notifikasi Eksternal
+### 4. Tautan Publik Baca-Saja (`/laporan/share`)
+
+Menampilkan detail 1 laporan serah terima tanpa login menggunakan token HMAC SHA-256.
+
+- **URL**: `GET /laporan/share?id={id}&token={hmac_24chars}` (`laporan/share.php`)
+- **Validasi**: `hash_equals(get_report_share_token($id, $nomor_laporan), $token)` — mengembalikan tampilan akses ditolak apabila token tidak cocok atau laporan berstatus `DRAFT`.
+
+---
+
+### 5. Endpoint Backup Terjadwal (`cron/auto_backup`)
+
+Memicu backup database/full sistem otomatis dan mengirimkannya ke Discord Webhook (mendukung pemecahan multi-part 8 MB).
+
+- **CLI / Docker Crontab**:
+  ```bash
+  docker exec omit_shift_app php /var/www/html/cron/auto_backup.php --type=db --discord=1
+  ```
+- **HTTP Webhook**: `GET /cron/auto_backup?token={cron_secret_key}&type=db|full&discord=1`
+
+---
+
+### 6. Payload Notifikasi Eksternal
 
 #### A. Webhook Discord (`POST {discord_webhook_url}`)
 Sistem mengirimkan kartu *rich embed* setiap kali serah terima baru dibuat atau dicadangkan:

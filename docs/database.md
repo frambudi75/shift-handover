@@ -1,7 +1,7 @@
 # Dokumentasi Basis Data Lengkap (Database Schema & Indexing)
 ## Sistem Laporan Serah Terima Shift Operasional (OMIT)
 
-### 1. Daftar Tabel (7 Tabel Inti + 4 Tabel Auto-Migrating)
+### 1. Daftar Tabel (7 Tabel Inti + 6 Tabel Auto-Migrating)
 
 ```mermaid
 erDiagram
@@ -14,6 +14,7 @@ erDiagram
     users ||--o{ activity_logs : "aktivitas"
     users ||--o{ user_notifications : "notifikasi"
     announcements ||--o{ announcement_reads : "dibaca"
+    notulen_meeting ||--|{ notulen_action_items : "tindak lanjut"
     app_settings
 ```
 
@@ -214,7 +215,7 @@ CREATE TABLE `announcement_reads` (
 ```
 
 #### 11. Tabel `user_notifications` *(Auto-Migrating)*
-Menyimpan notifikasi lonceng personal terkait pembuatan dan validasi laporan (`includes/bell_helper.php`).
+Menyimpan notifikasi lonceng personal terkait pembuatan, validasi laporan, dan finalisasi notulen (`includes/bell_helper.php`).
 ```sql
 CREATE TABLE `user_notifications` (
   `id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -226,5 +227,52 @@ CREATE TABLE `user_notifications` (
   `is_read` TINYINT(1) NOT NULL DEFAULT 0,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX `idx_notif_user_read` (`user_id`, `is_read`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+#### 12. Tabel `notulen_meeting` *(Auto-Migrating)*
+Menyimpan arsip notulen meeting & briefing operasional (`includes/notulen_helper.php`).
+```sql
+CREATE TABLE `notulen_meeting` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `nomor_notulen` VARCHAR(50) NOT NULL UNIQUE,
+  `judul` VARCHAR(200) NOT NULL,
+  `jenis` ENUM('Briefing Shift','Meeting Operasional','Evaluasi','Koordinasi') NOT NULL DEFAULT 'Briefing Shift',
+  `tanggal` DATE NOT NULL,
+  `jam_mulai` TIME NOT NULL,
+  `jam_selesai` TIME DEFAULT NULL,
+  `lokasi` VARCHAR(120) NOT NULL,
+  `pimpinan_rapat` VARCHAR(100) NOT NULL,
+  `peserta_ids` TEXT DEFAULT NULL,
+  `peserta_eksternal` VARCHAR(255) DEFAULT NULL,
+  `agenda` TEXT DEFAULT NULL,
+  `pembahasan` LONGTEXT DEFAULT NULL,
+  `keputusan` TEXT DEFAULT NULL,
+  `lampiran_foto` VARCHAR(255) DEFAULT NULL,
+  `status` ENUM('DRAFT','FINAL') NOT NULL DEFAULT 'DRAFT',
+  `notified_at` DATETIME DEFAULT NULL,
+  `created_by` INT(11) NOT NULL,
+  `updated_by` INT(11) DEFAULT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX `idx_notulen_tanggal` (`tanggal`),
+  INDEX `idx_notulen_status` (`status`),
+  INDEX `idx_notulen_jenis` (`jenis`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+#### 13. Tabel `notulen_action_items` *(Auto-Migrating)*
+Daftar tindak lanjut hasil rapat yang berelasi dengan `notulen_meeting`.
+```sql
+CREATE TABLE `notulen_action_items` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `notulen_id` INT(11) NOT NULL,
+  `uraian_tugas` TEXT NOT NULL,
+  `pic` VARCHAR(100) DEFAULT NULL,
+  `target_tanggal` DATE DEFAULT NULL,
+  `status` ENUM('Belum Mulai','Berjalan','Selesai') NOT NULL DEFAULT 'Belum Mulai',
+  `urutan` INT(11) NOT NULL DEFAULT 1,
+  INDEX `idx_action_notulen` (`notulen_id`),
+  FOREIGN KEY (`notulen_id`) REFERENCES `notulen_meeting`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```

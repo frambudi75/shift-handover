@@ -46,12 +46,12 @@ graph TD
 
 #### A. Presentation Layer (Antarmuka Pengguna)
 - **Desain UI**: NoteFlow Design Language (Modern, Clean, Rounded-2xl, Elevated Cards) dengan motif **Batik Kawung** SVG pada halaman login.
-- **Styling**: Tailwind CSS CDN + Phosphor Icons + Custom Canvas Signature Engine + *cache-busting* CSS otomatis via `filemtime`.
+- **Styling**: Tailwind CSS ter-compile lokal (`assets/css/tailwind.min.css`) + Phosphor Icons + Custom Canvas Signature Engine + *cache-busting* CSS otomatis via `filemtime`.
 - **Responsivitas & PWA**:
   - Desktop: Docked sidebar ramping di kiri dengan *Floating Glass Pill Tooltip*, serta header *Live Quick Search* (`Ctrl + K`).
-  - Mobile: Floating bottom navigation bar, mobile drawer samping, responsive single dark mode toggle.
+  - Mobile: Floating bottom navigation bar, mobile drawer samping (*scroll* independen), responsive single dark mode toggle.
   - **Progressive Web App (PWA)**: `manifest.php` dinamis dan Service Worker `sw.js`.
-- **Dual Mode**: Light Mode (`#f5f5fa`) dan Dark Mode (`#121421`) tersimpan di `localStorage`.
+- **Dual Mode**: Default **Light Mode** (`#f5f5fa`) dengan opsi **Dark Mode** (`#121421`) tersimpan di `localStorage`.
 
 #### B. Application & Logic Layer (PHP 8.5+)
 - **OPcache Enabled**: Bytecode PHP disimpan di memori RAM (128MB) sehingga tidak ada proses kompilasi berulang pada setiap *request*.
@@ -60,10 +60,12 @@ graph TD
   2. *Barcode QR Code*: Kode verifikasi kriptografis unik yang dapat dipindai publik.
   3. *Wet Signature Upload*: Unggah foto tanda tangan fisik / basah asli di atas kertas.
 - **Escalation Engine**: Tiket pekerjaan yang belum terselesaikan (`prioritas = 'Tinggi / Kritis'` atau `status != 'Selesai'`) secara otomatis dipindahkan (*carried over*) ke form shift berikutnya dan dimonitor hingga tuntas.
-- **Enterprise Security & Observability**:
+- **Enterprise Security, Integrasi & Observability**:
+  - **Integrasi LDAP / AD (`/master/ldap`)**: Autentikasi *Hybrid* (`includes/ldap_helper.php` + `ext-ldap`) serta sinkronisasi massal user.
   - **Audit Trail (`/audit`)**: Rekam jejak aktivitas dan IP Address (`includes/audit_helper.php`).
   - **Control Room Idle Auto-Logout**: Peringatan hitung mundur 60 detik setelah 45 menit tanpa aktivitas.
   - **System Info (`/info`)**: Telemetri versi aplikasi, PHP, MariaDB/MySQL, dan Redis cache.
+  - **Modul Mandiri & Disaster Recovery**: Notulen Meeting (`/notulen`), Tautan Publik HMAC (`/laporan/share`), Restore & Migrasi Sistem (`master/backup.php`), dan Cron Auto-Backup (`cron/auto_backup.php`).
 
 #### C. Caching Layer (Redis 7 In-Memory with Safe Fallback)
 - **Komponen**: `includes/cache.php` (`OmitCache`).
