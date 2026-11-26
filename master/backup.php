@@ -8,6 +8,7 @@ require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/backup_helper.php';
 require_once __DIR__ . '/../includes/optimizer_helper.php';
+require_once __DIR__ . '/../includes/notifications.php';
 
 require_admin();
 $user = current_user();
@@ -978,31 +979,35 @@ require_once __DIR__ . '/../includes/header.php';
     <div class="space-y-4 text-xs text-slate-600 dark:text-slate-300">
       <div>
         <h4 class="font-extrabold text-slate-800 dark:text-slate-100 mb-1 flex items-center gap-1.5">
-          <i class="ph-bold ph-windows-logo text-blue-500"></i>
-          <span>1. Windows Task Scheduler (XAMPP / Laragon):</span>
+          <i class="ph-bold ph-database text-indigo-500"></i>
+          <span>1. Crontab Backup Otomatis (Docker Host Ubuntu):</span>
         </h4>
-        <div class="p-3 rounded-xl bg-slate-900 text-emerald-400 font-mono text-[11px] select-all break-all leading-relaxed">
-          php C:\xampp\htdocs\serah-terima\cron\auto_optimize.php
+        <div class="p-3 rounded-xl bg-slate-900 text-emerald-400 font-mono text-[10.5px] select-all break-all leading-relaxed space-y-1.5">
+          <div># Backup Database (.zip) setiap hari pukul 02:00 + kirim Discord:</div>
+          <div>0 2 * * * docker exec omit_shift_app php /var/www/html/cron/auto_backup.php --type=db --discord=1 &gt; /dev/null 2&gt;&amp;1</div>
+          <div class="pt-1"># Backup Full System (.zip) setiap Minggu pukul 02:30 + kirim Discord:</div>
+          <div>30 2 * * 0 docker exec omit_shift_app php /var/www/html/cron/auto_backup.php --type=full --discord=1 &gt; /dev/null 2&gt;&amp;1</div>
         </div>
       </div>
 
       <div>
         <h4 class="font-extrabold text-slate-800 dark:text-slate-100 mb-1 flex items-center gap-1.5">
           <i class="ph-bold ph-linux-logo text-amber-500"></i>
-          <span>2. Linux Crontab (Misal pukul 03:00 Subuh):</span>
+          <span>2. Crontab Auto-Optimise &amp; Rotasi Retensi (03:00 WIB):</span>
         </h4>
-        <div class="p-3 rounded-xl bg-slate-900 text-emerald-400 font-mono text-[11px] select-all break-all leading-relaxed">
-          0 3 * * * /usr/bin/php /var/www/serah-terima/cron/auto_optimize.php &gt; /dev/null 2&gt;&amp;1
+        <div class="p-3 rounded-xl bg-slate-900 text-emerald-400 font-mono text-[10.5px] select-all break-all leading-relaxed">
+          0 3 * * * docker exec omit_shift_app php /var/www/html/cron/auto_optimize.php &gt; /dev/null 2&gt;&amp;1
         </div>
       </div>
 
       <div>
         <h4 class="font-extrabold text-slate-800 dark:text-slate-100 mb-1 flex items-center gap-1.5">
           <i class="ph-bold ph-globe text-purple-500"></i>
-          <span>3. Webhook / URL Cron (Eksternal UptimeBot / EasyCron):</span>
+          <span>3. Webhook / URL Cron (Eksternal UptimeBot / EasyCron / curl):</span>
         </h4>
-        <div class="p-3 rounded-xl bg-slate-900 text-amber-300 font-mono text-[10.5px] select-all break-all leading-relaxed">
-          <?= BASE_URL ?>cron/auto_optimize?token=<?= $cronSecretKey ?>
+        <div class="p-3 rounded-xl bg-slate-900 text-amber-300 font-mono text-[10.5px] select-all break-all leading-relaxed space-y-1.5">
+          <div><?= htmlspecialchars(get_full_web_url('cron/auto_backup?token=' . $cronSecretKey . '&type=db&discord=1')) ?></div>
+          <div><?= htmlspecialchars(get_full_web_url('cron/auto_optimize?token=' . $cronSecretKey)) ?></div>
         </div>
       </div>
 
