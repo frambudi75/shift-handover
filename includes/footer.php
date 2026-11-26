@@ -79,15 +79,15 @@
                 <i class="ph-fill ph-users-three text-lg"></i>
                 <span>Kelola Pengguna Sistem</span>
               </a>
-              <a href="<?= BASE_URL ?>master/pengaturan" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'master_pengaturan' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
-                <i class="ph-fill ph-gear text-lg"></i>
-                <span>Pengaturan &amp; Logo</span>
-              </a>
               <a href="<?= BASE_URL ?>master/backup" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'master_backup' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
                 <i class="ph-fill ph-database text-lg"></i>
                 <span>Pusat Backup &amp; Pemulihan</span>
               </a>
               <?php if (is_superadmin()): ?>
+                <a href="<?= BASE_URL ?>master/pengaturan" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'master_pengaturan' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
+                  <i class="ph-fill ph-gear text-lg"></i>
+                  <span>Pengaturan &amp; Logo</span>
+                </a>
                 <a href="<?= BASE_URL ?>audit" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'audit' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
                   <i class="ph-fill ph-fingerprint text-lg"></i>
                   <span>Audit Trail &amp; Log</span>

@@ -146,13 +146,6 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
               <span class="sidebar-tooltip">Kelola Pengguna Sistem</span>
             </a>
 
-            <!-- 8. Pengaturan & Logo -->
-            <a href="<?= BASE_URL ?>master/pengaturan" 
-               class="sidebar-btn group relative w-10 h-10 rounded-[14px] flex items-center justify-center transition-all duration-200 shrink-0 <?= $current_page === 'master_pengaturan' ? 'bg-white text-[#6558f5] shadow-md scale-105' : 'text-white/80 hover:text-white hover:bg-white/15 hover:scale-105' ?>">
-              <i class="ph-fill ph-gear text-lg"></i>
-              <span class="sidebar-tooltip">Pengaturan Sistem &amp; Logo</span>
-            </a>
-
             <!-- 9. Backup & Disaster Recovery -->
             <a href="<?= BASE_URL ?>master/backup" 
                class="sidebar-btn group relative w-10 h-10 rounded-[14px] flex items-center justify-center transition-all duration-200 shrink-0 <?= $current_page === 'master_backup' ? 'bg-white text-[#6558f5] shadow-md scale-105' : 'text-white/80 hover:text-white hover:bg-white/15 hover:scale-105' ?>">
@@ -161,6 +154,13 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
             </a>
 
             <?php if (is_superadmin()): ?>
+              <!-- 8. Pengaturan & Logo (Superadmin Only) -->
+              <a href="<?= BASE_URL ?>master/pengaturan" 
+                 class="sidebar-btn group relative w-10 h-10 rounded-[14px] flex items-center justify-center transition-all duration-200 shrink-0 <?= $current_page === 'master_pengaturan' ? 'bg-white text-[#6558f5] shadow-md scale-105' : 'text-white/80 hover:text-white hover:bg-white/15 hover:scale-105' ?>">
+                <i class="ph-fill ph-gear text-lg"></i>
+                <span class="sidebar-tooltip">Pengaturan Sistem &amp; Logo</span>
+              </a>
+
               <!-- 10. Audit Trail (Superadmin Only) -->
               <a href="<?= BASE_URL ?>audit" 
                  class="sidebar-btn group relative w-10 h-10 rounded-[14px] flex items-center justify-center transition-all duration-200 shrink-0 <?= $current_page === 'audit' ? 'bg-white text-[#6558f5] shadow-md scale-105' : 'text-white/80 hover:text-white hover:bg-white/15 hover:scale-105' ?>">
