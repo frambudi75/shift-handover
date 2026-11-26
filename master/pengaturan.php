@@ -108,7 +108,17 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
             }
         }
 
-        flash_set('success', 'Semua pengaturan aplikasi, SMTP email, dan WhatsApp berhasil disimpan!');
+        // Discord Security & Audit Alert Settings (Superadmin Only)
+        $discordAuditEnabled = isset($_POST['discord_audit_enabled']) ? '1' : '0';
+        $discordAuditWebhook = trim($_POST['discord_audit_webhook'] ?? '');
+        $discordAuditEvents  = isset($_POST['discord_audit_events']) && is_array($_POST['discord_audit_events'])
+            ? array_values(array_intersect($_POST['discord_audit_events'], ['login_failed', 'login_success', 'handover', 'admin_critical']))
+            : [];
+        set_setting('discord_audit_enabled', $discordAuditEnabled);
+        set_setting('discord_audit_webhook', $discordAuditWebhook);
+        set_setting('discord_audit_events', json_encode($discordAuditEvents));
+
+        flash_set('success', 'Semua pengaturan aplikasi, SMTP email, WhatsApp, dan Audit Discord berhasil disimpan!');
         header('Location: ' . BASE_URL . 'master/pengaturan');
         exit;
     } elseif ($action === 'delete_logo') {
@@ -646,6 +656,69 @@ require_once __DIR__ . '/../includes/header.php';
           <p>&bull; Notifikasi status backup database (.sql / .zip)</p>
           <p>&bull; Pengiriman otomatis arsip full zip aplikasi ke Discord</p>
           <p>&bull; Auto-Optimise MySQL &amp; Rotasi Sampah</p>
+        </div>
+      </div>
+
+      <!-- Notifikasi Keamanan & Audit Trail ke Discord (Superadmin Only) -->
+      <?php
+        $auditDcEnabled = get_setting('discord_audit_enabled', '0') === '1';
+        $auditDcWebhook = get_setting('discord_audit_webhook', '');
+        $auditDcEvents  = json_decode(get_setting('discord_audit_events', '["login_failed","handover","admin_critical"]'), true);
+        if (!is_array($auditDcEvents)) $auditDcEvents = ['login_failed', 'handover', 'admin_critical'];
+      ?>
+      <div class="pt-5 border-t border-slate-100 dark:border-slate-800 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h4 class="text-xs font-extrabold text-[#181b2c] dark:text-white flex items-center gap-1.5">
+              <i class="ph-bold ph-shield-warning text-rose-500"></i>
+              <span>Notifikasi Keamanan &amp; Audit Log ke Discord (Khusus Superadmin)</span>
+            </h4>
+            <p class="text-[11px] text-slate-400 mt-0.5">Kirim peringatan real-time ke channel Discord saat terjadi percobaan login gagal, laporan dibuat/disahkan, atau perubahan kritis.</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer shrink-0">
+            <input type="checkbox" name="discord_audit_enabled" value="1" <?= $auditDcEnabled ? 'checked' : '' ?> class="sr-only peer" />
+            <div class="w-11 h-6 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#6558f5]"></div>
+          </label>
+        </div>
+
+        <div>
+          <label class="block text-xs font-extrabold text-slate-600 dark:text-slate-300 mb-1.5">
+            URL Webhook Discord Khusus Keamanan / Audit (Opsional — kosongkan untuk memakai Webhook utama di atas)
+          </label>
+          <input type="url" name="discord_audit_webhook" value="<?= sanitize($auditDcWebhook) ?>"
+                 placeholder="https://discord.com/api/webhooks/..."
+                 class="w-full px-4 py-2.5 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700/70 text-xs font-mono text-slate-800 dark:text-slate-100" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
+          <label class="flex items-center gap-2.5 p-3 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/70 dark:border-slate-800 cursor-pointer">
+            <input type="checkbox" name="discord_audit_events[]" value="login_failed" <?= in_array('login_failed', $auditDcEvents, true) ? 'checked' : '' ?> class="rounded text-[#6558f5]" />
+            <div>
+              <span class="font-extrabold text-rose-600 dark:text-rose-400 block">Login Gagal</span>
+              <span class="text-[10px] text-slate-400">Deteksi salah password / brute force</span>
+            </div>
+          </label>
+          <label class="flex items-center gap-2.5 p-3 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/70 dark:border-slate-800 cursor-pointer">
+            <input type="checkbox" name="discord_audit_events[]" value="login_success" <?= in_array('login_success', $auditDcEvents, true) ? 'checked' : '' ?> class="rounded text-[#6558f5]" />
+            <div>
+              <span class="font-extrabold text-emerald-600 dark:text-emerald-400 block">Login Berhasil</span>
+              <span class="text-[10px] text-slate-400">Notif setiap user masuk</span>
+            </div>
+          </label>
+          <label class="flex items-center gap-2.5 p-3 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/70 dark:border-slate-800 cursor-pointer">
+            <input type="checkbox" name="discord_audit_events[]" value="handover" <?= in_array('handover', $auditDcEvents, true) ? 'checked' : '' ?> class="rounded text-[#6558f5]" />
+            <div>
+              <span class="font-extrabold text-[#6558f5] dark:text-indigo-400 block">Laporan &amp; Notulen</span>
+              <span class="text-[10px] text-slate-400">Buat, validasi &amp; finalisasi</span>
+            </div>
+          </label>
+          <label class="flex items-center gap-2.5 p-3 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/70 dark:border-slate-800 cursor-pointer">
+            <input type="checkbox" name="discord_audit_events[]" value="admin_critical" <?= in_array('admin_critical', $auditDcEvents, true) ? 'checked' : '' ?> class="rounded text-[#6558f5]" />
+            <div>
+              <span class="font-extrabold text-amber-600 dark:text-amber-400 block">Aksi Kritis Sistem</span>
+              <span class="text-[10px] text-slate-400">User, Pengaturan, LDAP, Restore</span>
+            </div>
+          </label>
         </div>
       </div>
     </div>
