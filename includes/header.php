@@ -37,9 +37,9 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   
-  <!-- Prevent FOUC (Flash of Unstyled Theme) -->
+  <!-- Prevent FOUC (Default Light Mode unless explicitly switched to Dark) -->
   <script>
-    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    if (localStorage.getItem('theme') === 'dark') {
       document.documentElement.classList.add('dark');
       document.documentElement.classList.remove('light');
     } else {
