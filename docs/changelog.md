@@ -5,7 +5,20 @@ Semua perubahan dan peningkatan fungsionalitas sistem dicatat secara berkala pad
 
 ---
 
-### Versi 2.8.1 LTS (2026-11-25) - *Current Release*
+### Versi 2.9.0 LTS (2026-11-26) - *Current Release*
+- **Integrasi LDAP / Active Directory (`/master/ldap`)**:
+  - Menu khusus **Superadmin** untuk konfigurasi server AD / OpenLDAP / FreeIPA, Test Koneksi, dan **Impor / Sync massal user** ke database lokal.
+  - Autentikasi **Hybrid** di halaman login (LDAP terlebih dahulu dengan fallback akun lokal) serta pemasangan ekstensi `ext-ldap` di `Dockerfile` & container produksi.
+- **Restore, Migrasi Sistem & Cron Auto-Backup**:
+  - Fitur **Restore & Migrasi** (`.sql` / `.zip`) di `master/backup.php` khusus Superadmin dengan *pre-restore safety snapshot* otomatis dan pemulihan folder `uploads/`.
+  - Skrip `cron/auto_backup.php` untuk backup terjadwal (CLI Docker Crontab & Webhook) dengan pengiriman otomatis ke Discord Webhook (multi-part 8 MB).
+- **Tautan Publik, RBAC & Default Tema**:
+  - Halaman publik baca-saja `/laporan/share` bertoken HMAC pada tautan WhatsApp agar 1 laporan dapat dilihat tanpa login.
+  - Pembatasan menu **Pengaturan Sistem (`/master/pengaturan`)** khusus Superadmin, serta penyeragaman tema default ke **Light Mode**.
+
+---
+
+### Versi 2.8.1 LTS (2026-11-25)
 - **Performa & Aset Lokal**:
   - Compile **Tailwind CSS lokal** (`assets/css/tailwind.min.css`) menggantikan `cdn.tailwindcss.com` agar loading lebih cepat di LAN/offline dan bebas warning di DevTools Console.
 - **Keamanan (*Hardening*)**:

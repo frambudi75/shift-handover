@@ -12,7 +12,7 @@ require_once __DIR__ . '/includes/header.php';
 
 // Live System Telemetry
 $appVersion     = APP_VERSION;
-$releaseDate    = '25 November 2026';
+$releaseDate    = '26 November 2026';
 $isDocker       = file_exists('/.dockerenv') || getenv('DB_HOST') !== false;
 $envLabel       = $isDocker ? 'Docker Container (PHP ' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . ')' : 'Web Server (' . PHP_OS_FAMILY . ')';
 $dbVersion      = $pdo->query("SELECT VERSION()")->fetchColumn();
@@ -44,11 +44,25 @@ $extensions = [
 // Release History / Changelog Data
 $releases = [
     [
+        'version' => 'v2.9.0 LTS',
+        'date'    => '26 Nov 2026',
+        'title'   => 'Integrasi LDAP / AD, Restore & Migrasi Sistem, Tautan Publik & Cron Auto-Backup',
+        'badge'   => 'TERBARU',
+        'color'   => 'bg-[#6558f5] text-white',
+        'items'   => [
+            ['type' => 'Baru',      'text' => 'Menu Integrasi Server LDAP / Active Directory (/master/ldap) khusus Superadmin dengan autentikasi Hybrid, preset AD/OpenLDAP, Test Koneksi, Impor/Sync massal user, dan ekstensi PHP ext-ldap di container.'],
+            ['type' => 'Baru',      'text' => 'Fitur Restore & Migrasi Sistem (.sql / .zip) pada Pusat Backup khusus Superadmin lengkap dengan snapshot pengaman otomatis sebelum restore dan opsi pertahankan konfigurasi DB server.'],
+            ['type' => 'Baru',      'text' => 'Tautan Publik Baca-Saja (/laporan/share) bertoken HMAC pada pesan WhatsApp & halaman detail laporan agar penerima/manajemen dapat melihat laporan tanpa login.'],
+            ['type' => 'Baru',      'text' => 'Skrip Cron Backup Otomatis (cron/auto_backup.php) yang langsung mengirim arsip (multi-part 8 MB jika besar) ke Discord Webhook.'],
+            ['type' => 'Keamanan',  'text' => 'Pembatasan menu Pengaturan Sistem & Logo (/master/pengaturan) khusus Superadmin serta penyeragaman tema default ke Light Mode di semua halaman.'],
+        ]
+    ],
+    [
         'version' => 'v2.8.1 LTS',
         'date'    => '25 Nov 2026',
         'title'   => 'Tailwind CSS Lokal, Pengerasan Keamanan, QR Fleksibel & Nomor Tiket Otomatis',
-        'badge'   => 'TERBARU',
-        'color'   => 'bg-[#6558f5] text-white',
+        'badge'   => 'LTS',
+        'color'   => 'bg-indigo-100 text-[#6558f5] dark:bg-indigo-950/60 dark:text-indigo-300',
         'items'   => [
             ['type' => 'Performa',  'text' => 'Compile Tailwind CSS lokal (assets/css/tailwind.min.css) menggantikan CDN agar loading lebih cepat di LAN dan bebas warning console.'],
             ['type' => 'Keamanan',  'text' => 'Blokir akses HTTP ke direktori internal/backup (.htaccess), cookie sesi SameSite=Lax + session_regenerate_id, serta rate limit login 8x/10 menit.'],
