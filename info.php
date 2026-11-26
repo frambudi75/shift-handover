@@ -37,6 +37,7 @@ $extensions = [
     ['name' => 'cURL / HTTPS',  'ok' => extension_loaded('curl'),      'desc' => 'Integrasi WhatsApp Gateway & Webhook'],
     ['name' => 'ZipArchive',    'ok' => extension_loaded('zip'),       'desc' => 'Kompresi arsip & paket backup ZIP'],
     ['name' => 'FileInfo MIME', 'ok' => extension_loaded('fileinfo'),  'desc' => 'Validasi keamanan tipe berkas upload'],
+    ['name' => 'LDAP Directory','ok' => extension_loaded('ldap'),      'desc' => 'Integrasi autentikasi AD / OpenLDAP'],
     ['name' => 'Uploads Dir',   'ok' => $uploadWritable,               'desc' => 'Hak tulis direktori lampiran & logo'],
 ];
 

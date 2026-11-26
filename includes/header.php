@@ -167,6 +167,13 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
                 <i class="ph-fill ph-fingerprint text-lg"></i>
                 <span class="sidebar-tooltip">Audit Trail &amp; Log Aktivitas</span>
               </a>
+
+              <!-- 11. Integrasi LDAP (Superadmin Only) -->
+              <a href="<?= BASE_URL ?>master/ldap" 
+                 class="sidebar-btn group relative w-10 h-10 rounded-[14px] flex items-center justify-center transition-all duration-200 shrink-0 <?= $current_page === 'master_ldap' ? 'bg-white text-[#6558f5] shadow-md scale-105' : 'text-white/80 hover:text-white hover:bg-white/15 hover:scale-105' ?>">
+                <i class="ph-fill ph-tree-structure text-lg"></i>
+                <span class="sidebar-tooltip">Integrasi Server LDAP</span>
+              </a>
             <?php endif; ?>
           <?php endif; ?>
 

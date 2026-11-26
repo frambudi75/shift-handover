@@ -26,7 +26,8 @@ RUN install-php-extensions \
     gd \
     zip \
     opcache \
-    redis
+    redis \
+    ldap
 
 # Enable Apache Modules
 RUN a2enmod rewrite headers expires

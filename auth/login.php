@@ -36,11 +36,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (empty($username) || empty($password)) {
         $error = 'Username dan kata sandi wajib diisi!';
     } else {
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username AND status = 'aktif' LIMIT 1");
-        $stmt->execute(['username' => $username]);
-        $user = $stmt->fetch();
+        // 1. Coba autentikasi LDAP terlebih dahulu jika diaktifkan (Hybrid Fallback)
+        require_once __DIR__ . '/../includes/ldap_helper.php';
+        $authVia = 'local';
+        $user = ldap_authenticate_user($pdo, $username, $password);
+        if ($user) {
+            $authVia = 'ldap';
+        } else {
+            // 2. Fallback ke autentikasi database lokal
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username AND status = 'aktif' LIMIT 1");
+            $stmt->execute(['username' => $username]);
+            $candidate = $stmt->fetch();
+            if ($candidate && password_verify($password, $candidate['password'])) {
+                $user = $candidate;
+            }
+        }
 
-        if ($user && password_verify($password, $user['password'])) {
+        if ($user) {
             session_regenerate_id(true);
             $_SESSION['user_id']      = $user['id'];
             $_SESSION['nama_lengkap'] = $user['nama_lengkap'];
@@ -48,7 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['role']         = $user['role'];
             $_SESSION['jabatan']      = $user['jabatan'];
 
-            log_activity($pdo, 'LOGIN_SUCCESS', "Login berhasil ke sistem ({$user['role']}).", (int)$user['id'], $user['username']);
+            $viaLabel = $authVia === 'ldap' ? ' via LDAP' : '';
+            log_activity($pdo, 'LOGIN_SUCCESS', "Login berhasil ke sistem ({$user['role']}){$viaLabel}.", (int)$user['id'], $user['username']);
 
             flash_set('success', "Selamat datang kembali, {$user['nama_lengkap']}!");
             header('Location: ' . BASE_URL . 'dashboard');

@@ -92,6 +92,10 @@
                   <i class="ph-fill ph-fingerprint text-lg"></i>
                   <span>Audit Trail &amp; Log</span>
                 </a>
+                <a href="<?= BASE_URL ?>master/ldap" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'master_ldap' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
+                  <i class="ph-fill ph-tree-structure text-lg"></i>
+                  <span>Integrasi Server LDAP</span>
+                </a>
               <?php endif; ?>
             <?php endif; ?>
 
