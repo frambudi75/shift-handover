@@ -84,6 +84,41 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         } else {
             flash_set('error', $res['message']);
         }
+    } elseif ($action === 'restore_existing') {
+        if (!is_superadmin()) {
+            flash_set('error', 'Hanya Superadmin yang dapat melakukan Restore Sistem.');
+        } else {
+            $filename = basename($_POST['filename'] ?? '');
+            $filePath = get_backup_dir() . $filename;
+            $preserveConfig = !isset($_POST['overwrite_app_files']);
+            $res = restore_system_from_backup($pdo, $filePath, $preserveConfig);
+            require_once __DIR__ . '/../includes/audit_helper.php';
+            log_activity($pdo, 'SYSTEM_RESTORE', ($res['success'] ? 'Berhasil' : 'Gagal') . " restore dari arsip '{$filename}'.");
+            flash_set($res['success'] ? 'success' : 'error', $res['message']);
+        }
+    } elseif ($action === 'restore_upload') {
+        if (!is_superadmin()) {
+            flash_set('error', 'Hanya Superadmin yang dapat melakukan Restore / Migrasi Sistem.');
+        } elseif (empty($_FILES['restore_file']['tmp_name']) || $_FILES['restore_file']['error'] !== UPLOAD_ERR_OK) {
+            flash_set('error', 'Silakan pilih file backup (.sql atau .zip) yang valid untuk di-restore.');
+        } else {
+            $origName = basename($_FILES['restore_file']['name']);
+            $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
+            if (!in_array($ext, ['sql', 'zip'], true)) {
+                flash_set('error', 'Format file harus .sql atau .zip.');
+            } else {
+                $uploadedPath = get_backup_dir() . 'uploaded_restore_' . date('Ymd_His') . '.' . $ext;
+                if (move_uploaded_file($_FILES['restore_file']['tmp_name'], $uploadedPath)) {
+                    $preserveConfig = !empty($_POST['preserve_config']);
+                    $res = restore_system_from_backup($pdo, $uploadedPath, $preserveConfig);
+                    require_once __DIR__ . '/../includes/audit_helper.php';
+                    log_activity($pdo, 'SYSTEM_RESTORE', ($res['success'] ? 'Berhasil' : 'Gagal') . " restore/migrasi dari file upload '{$origName}'.");
+                    flash_set($res['success'] ? 'success' : 'error', $res['message']);
+                } else {
+                    flash_set('error', 'Gagal memindahkan file upload ke direktori penyimpanan.');
+                }
+            }
+        }
     } elseif ($action === 'save_discord_config') {
         $webhook = trim($_POST['discord_webhook_url'] ?? '');
         set_setting('discord_webhook_url', $webhook);
@@ -637,7 +672,7 @@ require_once __DIR__ . '/../includes/header.php';
                       <span>Email</span>
                     </button>
 
-                    <!-- Send to Discord Button -->
+                    <!-- Discord Button -->
                     <button type="button" 
                             onclick="openSendDiscordModal('<?= htmlspecialchars($b['filename'], ENT_QUOTES) ?>', '<?= $b['type'] ?>')"
                             title="Kirim Berkas ke Saluran Discord"
@@ -645,6 +680,19 @@ require_once __DIR__ . '/../includes/header.php';
                       <i class="ph-bold ph-discord-logo text-xs"></i>
                       <span>Discord</span>
                     </button>
+
+                    <?php if (is_superadmin()): ?>
+                      <form method="POST" action="" class="inline"
+                            onsubmit="return confirm('PERHATIAN: Restore dari <?= htmlspecialchars($b['filename'], ENT_QUOTES) ?> akan menimpa database saat ini (snapshot pengaman dibuat otomatis). Lanjutkan?')">
+                        <input type="hidden" name="action" value="restore_existing" />
+                        <input type="hidden" name="filename" value="<?= htmlspecialchars($b['filename'], ENT_QUOTES) ?>" />
+                        <button type="submit" title="Restore Sistem dari Arsip Ini (Superadmin)"
+                                class="px-2.5 py-1.5 rounded-xl text-[11px] font-extrabold bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/50 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 transition flex items-center gap-1 border border-amber-200/80 dark:border-amber-800 shadow-2xs cursor-pointer">
+                          <i class="ph-bold ph-arrow-counter-clockwise text-xs"></i>
+                          <span>Restore</span>
+                        </button>
+                      </form>
+                    <?php endif; ?>
 
                     <!-- Delete Button -->
                     <button type="button" 
@@ -664,6 +712,52 @@ require_once __DIR__ . '/../includes/header.php';
       </table>
     </div>
   </div>
+
+  <?php if (is_superadmin()): ?>
+    <!-- RESTORE & MIGRASI SISTEM CARD (Superadmin Only) -->
+    <div class="bg-white dark:bg-[#1b1e30] rounded-[26px] border border-amber-200/80 dark:border-amber-800/60 shadow-feature p-6 sm:p-8">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-5 border-b border-slate-100 dark:border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-2xl shrink-0">
+            <i class="ph-fill ph-arrow-counter-clockwise"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-extrabold text-[#181b2c] dark:text-white">Restore &amp; Migrasi Sistem (Upload File Backup)</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Unggah file <code>.sql</code> atau <code>.zip</code> hasil backup dari server lama untuk memulihkan database &amp; foto lampiran sekaligus (snapshot pengaman dibuat otomatis).
+            </p>
+          </div>
+        </div>
+        <span class="px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-300 text-[10px] font-extrabold uppercase self-start sm:self-auto">
+          Khusus Superadmin
+        </span>
+      </div>
+
+      <form method="POST" action="" enctype="multipart/form-data"
+            onsubmit="return confirm('PERINGATAN: Proses Restore akan menimpa database (dan folder uploads jika arsip Full System). Snapshot pengaman akan dibuat otomatis sebelum restore. Yakin lanjutkan?')"
+            class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+        <input type="hidden" name="action" value="restore_upload" />
+        <div class="md:col-span-5">
+          <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1.5">Pilih File Backup (.sql / .zip)</label>
+          <input type="file" name="restore_file" accept=".sql,.zip" required
+                 class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-[#6558f5] file:text-white file:font-bold file:cursor-pointer" />
+        </div>
+        <div class="md:col-span-4 flex items-center pb-2">
+          <label class="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer">
+            <input type="checkbox" name="preserve_config" value="1" checked class="rounded text-[#6558f5]" />
+            <span>Pertahankan konfigurasi DB server ini (Migrasi Aman)</span>
+          </label>
+        </div>
+        <div class="md:col-span-3">
+          <button type="submit"
+                  class="w-full py-2.5 px-5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+            <i class="ph-bold ph-upload-simple text-base"></i>
+            <span>Restore Sekarang</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  <?php endif; ?>
 
 </div>
 

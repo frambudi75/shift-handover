@@ -592,3 +592,239 @@ function delete_backup_file(string $filename): array {
 
     return ['success' => false, 'message' => "Gagal menghapus berkas '{$clean}'."];
 }
+
+/**
+ * Execute a .sql dump file safely via mysql CLI (preferred) or PDO fallback.
+ */
+function restore_sql_file(PDO $pdo, string $sqlPath): array {
+    if (!file_exists($sqlPath) || !is_readable($sqlPath)) {
+        return ['success' => false, 'message' => 'Berkas SQL tidak dapat dibaca.'];
+    }
+
+    // 1. Try mysql CLI if available (fast & handles large dumps reliably)
+    $mysqlBin = trim((string)@shell_exec('command -v mysql 2>/dev/null'));
+    if ($mysqlBin !== '' && function_exists('proc_open')) {
+        $host = escapeshellarg(DB_HOST);
+        $port = (int)DB_PORT;
+        $user = escapeshellarg(DB_USER);
+        $db   = escapeshellarg(DB_NAME);
+        $cmd  = "{$mysqlBin} --host={$host} --port={$port} --user={$user} --default-character-set=utf8mb4 {$db}";
+
+        $env = $_ENV;
+        $env['MYSQL_PWD'] = DB_PASS;
+
+        $descriptors = [
+            0 => ['file', $sqlPath, 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+        $proc = @proc_open($cmd, $descriptors, $pipes, null, $env);
+        if (is_resource($proc)) {
+            $stdout = stream_get_contents($pipes[1]);
+            $stderr = stream_get_contents($pipes[2]);
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+            $exitCode = proc_close($proc);
+            if ($exitCode === 0) {
+                return ['success' => true, 'message' => 'Database berhasil dipulihkan via mysql CLI.'];
+            }
+        }
+    }
+
+    // 2. PDO Fallback (statement-by-statement splitter)
+    try {
+        $handle = fopen($sqlPath, 'r');
+        if (!$handle) {
+            return ['success' => false, 'message' => 'Gagal membuka berkas SQL.'];
+        }
+
+        $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
+        $buffer = '';
+        $inString = false;
+        $stringChar = '';
+
+        while (($line = fgets($handle)) !== false) {
+            $trim = ltrim($line);
+            if (!$inString && ($trim === '' || str_starts_with($trim, '--') || str_starts_with($trim, '/*') || str_starts_with($trim, '#'))) {
+                continue;
+            }
+
+            $len = strlen($line);
+            for ($i = 0; $i < $len; $i++) {
+                $ch = $line[$i];
+                $prev = $i > 0 ? $line[$i - 1] : '';
+                if ($inString) {
+                    if ($ch === $stringChar && $prev !== '\\') {
+                        $inString = false;
+                    }
+                } else {
+                    if ($ch === "'" || $ch === '"') {
+                        $inString = true;
+                        $stringChar = $ch;
+                    } elseif ($ch === ';') {
+                        $buffer .= substr($line, 0, $i);
+                        $stmtSql = trim($buffer);
+                        if ($stmtSql !== '') {
+                            $pdo->exec($stmtSql);
+                        }
+                        $buffer = '';
+                        $line = substr($line, $i + 1);
+                        $len = strlen($line);
+                        $i = -1;
+                        continue;
+                    }
+                }
+            }
+            $buffer .= $line;
+        }
+        fclose($handle);
+
+        $tail = trim($buffer);
+        if ($tail !== '') {
+            $pdo->exec($tail);
+        }
+        $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
+
+        return ['success' => true, 'message' => 'Database berhasil dipulihkan via PDO.'];
+    } catch (Throwable $e) {
+        try { $pdo->exec('SET FOREIGN_KEY_CHECKS = 1'); } catch (Throwable $ignored) {}
+        return ['success' => false, 'message' => 'Gagal mengeksekusi SQL: ' . $e->getMessage()];
+    }
+}
+
+/**
+ * Recursively copy directory contents.
+ */
+function restore_copy_dir(string $src, string $dst): int {
+    if (!is_dir($src)) return 0;
+    if (!is_dir($dst)) @mkdir($dst, 0775, true);
+    $copied = 0;
+    $it = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($src, RecursiveDirectoryIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::SELF_FIRST
+    );
+    foreach ($it as $item) {
+        $rel = substr($item->getRealPath(), strlen(realpath($src)) + 1);
+        $target = rtrim($dst, '/\\') . DIRECTORY_SEPARATOR . $rel;
+        if ($item->isDir()) {
+            if (!is_dir($target)) @mkdir($target, 0775, true);
+        } else {
+            @copy($item->getRealPath(), $target);
+            $copied++;
+        }
+    }
+    return $copied;
+}
+
+/**
+ * Restore Database (and uploads/files for Full System ZIP) from a backup archive.
+ */
+function restore_system_from_backup(PDO $pdo, string $backupFilePath, bool $preserveServerConfig = true): array {
+    if (!file_exists($backupFilePath)) {
+        return ['success' => false, 'message' => 'File backup tidak ditemukan.'];
+    }
+
+    // 1. Pre-restore safety snapshot
+    $dir = get_backup_dir();
+    $safetyPath = $dir . 'pre_restore_db_' . date('Ymd_His') . '.sql';
+    @dump_mysql_database($pdo, $safetyPath);
+
+    $ext = strtolower(pathinfo($backupFilePath, PATHINFO_EXTENSION));
+
+    if ($ext === 'sql') {
+        $res = restore_sql_file($pdo, $backupFilePath);
+        if ($res['success'] && function_exists('cache_flush')) {
+            cache_flush();
+        }
+        return $res;
+    }
+
+    if ($ext !== 'zip') {
+        return ['success' => false, 'message' => 'Format file tidak didukung. Gunakan file .sql atau .zip hasil backup OMIT.'];
+    }
+
+    if (!class_exists('ZipArchive')) {
+        return ['success' => false, 'message' => 'Ekstensi PHP ZipArchive tidak tersedia untuk mengekstrak arsip .zip.'];
+    }
+
+    $tmpDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'omit_restore_' . bin2hex(random_bytes(5));
+    @mkdir($tmpDir, 0775, true);
+
+    try {
+        $zip = new ZipArchive();
+        if ($zip->open($backupFilePath) !== true) {
+            return ['success' => false, 'message' => 'Gagal membuka arsip ZIP (file mungkin korup).'];
+        }
+        $zip->extractTo($tmpDir);
+        $zip->close();
+
+        // Detect SQL file: Full System Backup (database/dump.sql) OR DB ZIP (*.sql at root)
+        $sqlCandidate = $tmpDir . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'dump.sql';
+        $isFullSystem = file_exists($sqlCandidate);
+
+        if (!$isFullSystem) {
+            $sqlFiles = glob($tmpDir . DIRECTORY_SEPARATOR . '*.sql') ?: [];
+            if (!empty($sqlFiles)) {
+                $sqlCandidate = $sqlFiles[0];
+            } else {
+                return ['success' => false, 'message' => 'Berkas SQL tidak ditemukan di dalam arsip ZIP.'];
+            }
+        }
+
+        $dbRes = restore_sql_file($pdo, $sqlCandidate);
+        if (!$dbRes['success']) {
+            return $dbRes;
+        }
+
+        $extraMsg = '';
+        if ($isFullSystem) {
+            $uploadsSrc = $tmpDir . DIRECTORY_SEPARATOR . 'uploads';
+            $copiedUploads = restore_copy_dir($uploadsSrc, UPLOAD_DIR);
+            $extraMsg = " & {$copiedUploads} berkas lampiran/foto dipulihkan.";
+
+            if (!$preserveServerConfig) {
+                $projectRoot = realpath(__DIR__ . '/..');
+                $skipList = ['config' . DIRECTORY_SEPARATOR . 'database.php', '.env', '.git', 'storage' . DIRECTORY_SEPARATOR . 'backups', 'database' . DIRECTORY_SEPARATOR . 'dump.sql'];
+                $it = new RecursiveIteratorIterator(
+                    new RecursiveDirectoryIterator($tmpDir, RecursiveDirectoryIterator::SKIP_DOTS),
+                    RecursiveIteratorIterator::SELF_FIRST
+                );
+                foreach ($it as $item) {
+                    $rel = substr($item->getRealPath(), strlen(realpath($tmpDir)) + 1);
+                    $skip = false;
+                    foreach ($skipList as $s) {
+                        if (str_starts_with($rel, $s)) { $skip = true; break; }
+                    }
+                    if ($skip) continue;
+                    $dest = $projectRoot . DIRECTORY_SEPARATOR . $rel;
+                    if ($item->isDir()) {
+                        if (!is_dir($dest)) @mkdir($dest, 0775, true);
+                    } else {
+                        @copy($item->getRealPath(), $dest);
+                    }
+                }
+            }
+        }
+
+        if (function_exists('cache_flush')) {
+            cache_flush();
+        }
+
+        return [
+            'success' => true,
+            'message' => 'Sistem berhasil dipulihkan dari arsip cadangan!' . $extraMsg . ' (Snapshot pengaman dibuat: ' . basename($safetyPath) . ')'
+        ];
+    } finally {
+        // Cleanup temporary extraction folder
+        if (is_dir($tmpDir)) {
+            $cleanIt = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($tmpDir, RecursiveDirectoryIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::CHILD_FIRST
+            );
+            foreach ($cleanIt as $ci) {
+                $ci->isDir() ? @rmdir($ci->getRealPath()) : @unlink($ci->getRealPath());
+            }
+            @rmdir($tmpDir);
+        }
+    }
+}
