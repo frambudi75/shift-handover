@@ -123,6 +123,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->prepare("UPDATE personal_kanban_tasks SET status = :s WHERE id = :id AND user_id = :uid")
                 ->execute(['s' => $st, 'id' => $tid, 'uid' => $userId]);
         }
+        if (($_POST['ajax'] ?? '') === '1') {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['ok' => true]);
+            exit;
+        }
     } elseif ($action === 'delete_task') {
         $tid = (int)($_POST['task_id'] ?? 0);
         if ($tid > 0) {
@@ -131,15 +136,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash_set('success', 'Tugas pribadi dihapus.');
         }
     } elseif ($action === 'save_schedule') {
-        $sid     = (int)($_POST['schedule_id'] ?? 0);
-        $judul   = trim($_POST['judul'] ?? '');
-        $tanggal = trim($_POST['tanggal'] ?? '');
-        $katVal  = $_POST['kategori'] ?? 'Shift Pagi';
-        $kat     = array_key_exists($katVal, $scheduleCategories) ? $katVal : 'Shift Pagi';
-        $jMulai  = !empty($_POST['jam_mulai']) && preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $_POST['jam_mulai']) ? $_POST['jam_mulai'] : null;
-        $jSelesai= !empty($_POST['jam_selesai']) && preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $_POST['jam_selesai']) ? $_POST['jam_selesai'] : null;
-        $lokasi  = trim($_POST['lokasi'] ?? '');
-        $catatan = trim($_POST['catatan'] ?? '');
+        $sid        = (int)($_POST['schedule_id'] ?? 0);
+        $judul      = trim($_POST['judul'] ?? '');
+        $tanggal    = trim($_POST['tanggal'] ?? '');
+        $katVal     = $_POST['kategori'] ?? 'Shift Pagi';
+        $kat        = array_key_exists($katVal, $scheduleCategories) ? $katVal : 'Shift Pagi';
+        $jMulai     = !empty($_POST['jam_mulai']) && preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $_POST['jam_mulai']) ? $_POST['jam_mulai'] : null;
+        $jSelesai   = !empty($_POST['jam_selesai']) && preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $_POST['jam_selesai']) ? $_POST['jam_selesai'] : null;
+        $lokasi     = trim($_POST['lokasi'] ?? '');
+        $catatan    = trim($_POST['catatan'] ?? '');
+        $repeatMode = in_array($_POST['repeat_mode'] ?? 'none', ['none', 'daily', 'weekdays', 'weekly'], true) ? $_POST['repeat_mode'] : 'none';
+        $repeatUntil= trim($_POST['repeat_until'] ?? '');
 
         if ($judul !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggal)) {
             $reqMonth = substr($tanggal, 0, 7);
@@ -159,10 +166,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ]);
                 flash_set('success', 'Jadwal kerja berhasil diperbarui.');
             } else {
-                $pdo->prepare("INSERT INTO personal_work_schedules (user_id, tanggal, judul, kategori, jam_mulai, jam_selesai, lokasi, catatan) VALUES (:uid, :tg, :j, :k, :jm, :js, :l, :c)")
-                    ->execute([
+                $datesToInsert = [$tanggal];
+                if ($repeatMode !== 'none' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $repeatUntil) && $repeatUntil > $tanggal) {
+                    $datesToInsert = [];
+                    $curTs = strtotime($tanggal);
+                    $endTs = min(strtotime($repeatUntil), strtotime('+90 days', $curTs));
+                    while ($curTs <= $endTs && count($datesToInsert) < 60) {
+                        $dow = (int)date('N', $curTs);
+                        if ($repeatMode === 'daily' || ($repeatMode === 'weekdays' && $dow <= 5) || $repeatMode === 'weekly') {
+                            $datesToInsert[] = date('Y-m-d', $curTs);
+                        }
+                        $curTs = strtotime($repeatMode === 'weekly' ? '+7 days' : '+1 day', $curTs);
+                    }
+                    if (empty($datesToInsert)) $datesToInsert = [$tanggal];
+                }
+                $stmtIns = $pdo->prepare("INSERT INTO personal_work_schedules (user_id, tanggal, judul, kategori, jam_mulai, jam_selesai, lokasi, catatan) VALUES (:uid, :tg, :j, :k, :jm, :js, :l, :c)");
+                foreach ($datesToInsert as $dIns) {
+                    $stmtIns->execute([
                         'uid' => $userId,
-                        'tg'  => $tanggal,
+                        'tg'  => $dIns,
                         'j'   => mb_substr($judul, 0, 160),
                         'k'   => $kat,
                         'jm'  => $jMulai,
@@ -170,7 +192,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'l'   => $lokasi !== '' ? mb_substr($lokasi, 0, 120) : null,
                         'c'   => $catatan !== '' ? $catatan : null,
                     ]);
-                flash_set('success', 'Jadwal kerja berhasil ditambahkan.');
+                }
+                $cntIns = count($datesToInsert);
+                flash_set('success', $cntIns > 1 ? "{$cntIns} jadwal kerja berulang berhasil ditambahkan." : 'Jadwal kerja berhasil ditambahkan.');
             }
         } else {
             flash_set('error', 'Judul jadwal dan tanggal wajib diisi.');
@@ -209,6 +233,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $redirUrl = BASE_URL . 'kanban/index?month=' . urlencode($reqMonth) . '&date=' . urlencode($reqDate);
     header('Location: ' . $redirUrl);
+    exit;
+}
+
+// Export .ICS (Google / Apple Calendar)
+if (($_GET['export'] ?? '') === 'ics') {
+    $stmtExp = $pdo->prepare("SELECT * FROM personal_work_schedules WHERE user_id = :uid ORDER BY tanggal ASC, COALESCE(jam_mulai, '00:00:00') ASC");
+    $stmtExp->execute(['uid' => $userId]);
+    $expRows = $stmtExp->fetchAll();
+
+    $icsEsc = static fn(string $s): string => str_replace(["\\", ";", ",", "\r\n", "\n"], ["\\\\", "\\;", "\\,", "\\n", "\\n"], $s);
+    header('Content-Type: text/calendar; charset=utf-8');
+    header('Content-Disposition: attachment; filename="jadwal-kerja-' . date('Ymd') . '.ics"');
+
+    echo "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//OMIT Shift Handover//Kanban Kalender//ID\r\nCALSCALE:GREGORIAN\r\nX-WR-CALNAME:Jadwal Kerja Pribadi\r\nX-WR-TIMEZONE:Asia/Jakarta\r\n";
+    foreach ($expRows as $r) {
+        $ymd = str_replace('-', '', $r['tanggal']);
+        echo "BEGIN:VEVENT\r\n";
+        echo "UID:pws-" . (int)$r['id'] . "-" . $userId . "@omit-shift\r\n";
+        echo "DTSTAMP:" . gmdate('Ymd\THis\Z') . "\r\n";
+        if (!empty($r['jam_mulai'])) {
+            $hmStart = str_replace(':', '', substr($r['jam_mulai'], 0, 5)) . '00';
+            $endDate = $r['tanggal'];
+            if (!empty($r['jam_selesai'])) {
+                if ($r['jam_selesai'] < $r['jam_mulai']) {
+                    $endDate = date('Y-m-d', strtotime($r['tanggal'] . ' +1 day'));
+                }
+                $hmEnd = str_replace(':', '', substr($r['jam_selesai'], 0, 5)) . '00';
+            } else {
+                $hmEnd = date('His', strtotime($r['jam_mulai'] . ' +1 hour'));
+            }
+            echo "DTSTART;TZID=Asia/Jakarta:{$ymd}T{$hmStart}\r\n";
+            echo "DTEND;TZID=Asia/Jakarta:" . str_replace('-', '', $endDate) . "T{$hmEnd}\r\n";
+        } else {
+            $nextYmd = date('Ymd', strtotime($r['tanggal'] . ' +1 day'));
+            echo "DTSTART;VALUE=DATE:{$ymd}\r\n";
+            echo "DTEND;VALUE=DATE:{$nextYmd}\r\n";
+        }
+        echo "SUMMARY:" . $icsEsc('[' . $r['kategori'] . '] ' . $r['judul']) . "\r\n";
+        if (!empty($r['lokasi']))  echo "LOCATION:" . $icsEsc($r['lokasi']) . "\r\n";
+        if (!empty($r['catatan'])) echo "DESCRIPTION:" . $icsEsc($r['catatan']) . "\r\n";
+        echo "END:VEVENT\r\n";
+    }
+    echo "END:VCALENDAR\r\n";
     exit;
 }
 
@@ -441,6 +508,12 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
 
         <div class="flex items-center gap-1.5">
+          <a href="<?= BASE_URL ?>kanban/index?export=ics"
+             class="px-3 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800/60 text-[11px] font-extrabold flex items-center justify-center gap-1.5 hover:bg-emerald-600 hover:text-white transition"
+             title="Export ke Google / Apple Calendar (.ics)">
+            <i class="ph-bold ph-calendar-arrow-down text-sm"></i>
+            <span class="hidden sm:inline">Export .ICS</span>
+          </a>
           <a href="<?= BASE_URL ?>kanban/index?month=<?= urlencode($prevMonthStr) ?>&date=<?= urlencode($prevMonthStr . '-01') ?>"
              class="w-9 h-9 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:border-[#6558f5] hover:text-[#6558f5] transition"
              title="Bulan Sebelumnya">
@@ -742,18 +815,18 @@ require_once __DIR__ . '/../includes/header.php';
       foreach ($columns as $colName => $colItems):
         $m = $colMeta[$colName];
     ?>
-      <div class="bg-white dark:bg-[#1b1e30] rounded-[24px] border border-slate-100 dark:border-slate-800/80 shadow-feature p-4 sm:p-5 flex flex-col gap-3">
+      <div class="kanban-col bg-white dark:bg-[#1b1e30] rounded-[24px] border border-slate-100 dark:border-slate-800/80 shadow-feature p-4 sm:p-5 flex flex-col gap-3 transition" data-col-status="<?= $colName ?>">
         <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-800">
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full <?= $m['dot'] ?>"></span>
             <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-200"><?= $colName ?></h3>
           </div>
-          <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold <?= $m['badge'] ?>"><?= count($colItems) ?></span>
+          <span class="kanban-col-count px-2 py-0.5 rounded-full text-[10px] font-extrabold <?= $m['badge'] ?>"><?= count($colItems) ?></span>
         </div>
 
-        <div class="space-y-3">
+        <div class="kanban-list space-y-3 min-h-[60px]">
           <?php if (empty($colItems)): ?>
-            <p class="py-6 text-center text-[11px] text-slate-400 italic">Belum ada tugas di kolom ini.</p>
+            <p class="kanban-empty py-6 text-center text-[11px] text-slate-400 italic">Belum ada tugas di kolom ini.</p>
           <?php else: ?>
             <?php foreach ($colItems as $item): ?>
               <?php
@@ -763,7 +836,7 @@ require_once __DIR__ . '/../includes/header.php';
                         ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300'
                         : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400');
               ?>
-              <div class="p-3.5 rounded-2xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-100 dark:border-slate-800 space-y-2">
+              <div class="kanban-card p-3.5 rounded-2xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-100 dark:border-slate-800 space-y-2 cursor-grab active:cursor-grabbing" draggable="true" data-task-id="<?= $item['id'] ?>">
                 <div class="flex items-start justify-between gap-2">
                   <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold <?= $prioCls ?>"><?= sanitize($item['prioritas']) ?></span>
                   <div class="flex items-center gap-1">
@@ -932,6 +1005,22 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
       </div>
 
+      <div id="sch_repeat_row" class="grid grid-cols-2 gap-3 p-3 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/70 dark:border-slate-800">
+        <div>
+          <label class="block font-bold mb-1">Ulangi Jadwal</label>
+          <select name="repeat_mode" id="sch_repeat_mode" onchange="toggleRepeatUntil()" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold">
+            <option value="none">Tidak Berulang</option>
+            <option value="daily">Setiap Hari</option>
+            <option value="weekdays">Hari Kerja (Sen–Jum)</option>
+            <option value="weekly">Mingguan</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold mb-1">Sampai Tanggal</label>
+          <input type="date" name="repeat_until" id="sch_repeat_until" disabled class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 disabled:opacity-50" />
+        </div>
+      </div>
+
       <div>
         <label class="block font-bold mb-1">Lokasi / Pos (Opsional)</label>
         <input type="text" name="lokasi" id="sch_lokasi" placeholder="Contoh: Ruang NOC / Site A" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700" />
@@ -1043,10 +1132,26 @@ require_once __DIR__ . '/../includes/header.php';
     document.getElementById('sch_jam_selesai').value = sc && sc.jam_selesai ? sc.jam_selesai.slice(0, 5) : '';
     document.getElementById('sch_lokasi').value = sc && sc.lokasi ? sc.lokasi : '';
     document.getElementById('sch_catatan').value = sc && sc.catatan ? sc.catatan : '';
+
+    var repeatRow = document.getElementById('sch_repeat_row');
+    if (repeatRow) {
+      repeatRow.classList.toggle('hidden', !!sc);
+      document.getElementById('sch_repeat_mode').value = 'none';
+      document.getElementById('sch_repeat_until').value = '';
+      toggleRepeatUntil();
+    }
+
     document.getElementById('scheduleModalTitle').innerHTML = sc
       ? '<i class="ph-fill ph-pencil-simple text-[#6558f5] text-lg"></i><span>Edit Jadwal Kerja</span>'
       : '<i class="ph-fill ph-calendar-plus text-[#6558f5] text-lg"></i><span>Tambah Jadwal Kerja</span>';
     document.getElementById('scheduleModal').classList.remove('hidden');
+  }
+
+  function toggleRepeatUntil() {
+    var mode = document.getElementById('sch_repeat_mode').value;
+    var untilEl = document.getElementById('sch_repeat_until');
+    untilEl.disabled = (mode === 'none');
+    untilEl.required = (mode !== 'none');
   }
 
   function applySchedulePreset(judul, kategori, mulai, selesai) {
@@ -1101,6 +1206,75 @@ require_once __DIR__ . '/../includes/header.php';
         setWorkspaceTab(saved);
       }
     } catch (e) {}
+
+    // Drag & Drop Kanban Cards
+    var draggedCard = null;
+    document.querySelectorAll('.kanban-card').forEach(function (card) {
+      card.addEventListener('dragstart', function (e) {
+        draggedCard = card;
+        card.style.opacity = '0.5';
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', card.getAttribute('data-task-id'));
+      });
+      card.addEventListener('dragend', function () {
+        if (draggedCard) draggedCard.style.opacity = '';
+        draggedCard = null;
+        document.querySelectorAll('.kanban-col').forEach(function (c) {
+          c.classList.remove('ring-2', 'ring-[#6558f5]');
+        });
+      });
+    });
+
+    function refreshKanbanColCounts() {
+      document.querySelectorAll('.kanban-col').forEach(function (col) {
+        var list  = col.querySelector('.kanban-list');
+        var cards = list ? list.querySelectorAll('.kanban-card') : [];
+        var cntEl = col.querySelector('.kanban-col-count');
+        if (cntEl) cntEl.textContent = cards.length;
+        var emptyEl = list ? list.querySelector('.kanban-empty') : null;
+        if (cards.length === 0 && !emptyEl && list) {
+          var p = document.createElement('p');
+          p.className = 'kanban-empty py-6 text-center text-[11px] text-slate-400 italic';
+          p.textContent = 'Belum ada tugas di kolom ini.';
+          list.appendChild(p);
+        } else if (cards.length > 0 && emptyEl) {
+          emptyEl.remove();
+        }
+      });
+    }
+
+    document.querySelectorAll('.kanban-col').forEach(function (col) {
+      col.addEventListener('dragover', function (e) {
+        if (!draggedCard) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        col.classList.add('ring-2', 'ring-[#6558f5]');
+      });
+      col.addEventListener('dragleave', function () {
+        col.classList.remove('ring-2', 'ring-[#6558f5]');
+      });
+      col.addEventListener('drop', function (e) {
+        e.preventDefault();
+        col.classList.remove('ring-2', 'ring-[#6558f5]');
+        if (!draggedCard) return;
+        var targetStatus = col.getAttribute('data-col-status');
+        var list = col.querySelector('.kanban-list');
+        var sourceCol = draggedCard.closest('.kanban-col');
+        if (!list || sourceCol === col) return;
+
+        list.appendChild(draggedCard);
+        var sel = draggedCard.querySelector('select[name="new_status"]');
+        if (sel) sel.value = targetStatus;
+        refreshKanbanColCounts();
+
+        var fd = new FormData();
+        fd.append('action', 'move_task');
+        fd.append('task_id', draggedCard.getAttribute('data-task-id'));
+        fd.append('new_status', targetStatus);
+        fd.append('ajax', '1');
+        fetch(window.location.href, { method: 'POST', body: fd });
+      });
+    });
   })();
 </script>
 

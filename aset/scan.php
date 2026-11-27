@@ -55,17 +55,31 @@ if ($isValidToken && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 ? mb_substr('[Scan QR] ' . $catatan, 0, 255)
                 : ($aksi === 'PINJAM' ? '[Scan QR] Dipinjam via barcode' : '[Scan QR] Dikembalikan via barcode');
 
-            if ($aksi === 'PINJAM') {
+            if ($aksi === 'PINJAM' && $chosen['status'] === 'Dipinjam') {
+                $errorMsg = "Gagal: '{$chosen['nama_aset']}' sedang dipinjam oleh {$chosen['pemegang_nama']}. Harap kembalikan terlebih dahulu sebelum dipinjam lagi.";
+            } elseif ($aksi === 'PINJAM') {
                 $pdo->prepare("UPDATE shift_assets SET status = 'Dipinjam', pemegang_id = 0, pemegang_nama = :unama, waktu_pinjam = NOW(), catatan_terakhir = :cat WHERE id = :id")
                     ->execute(['unama' => $displayBorrower, 'cat' => $noteText, 'id' => $selectedId]);
                 $pdo->prepare("INSERT INTO shift_asset_logs (asset_id, nama_aset, aksi, user_id, nama_user, catatan) VALUES (:aid, :na, 'PINJAM', 0, :unama, :cat)")
                     ->execute(['aid' => $selectedId, 'na' => $chosen['nama_aset'], 'unama' => $displayBorrower, 'cat' => $noteText]);
+                notify_aset_activity(
+                    $pdo,
+                    'Peminjaman Kunci via QR Tamu',
+                    "**{$chosen['nama_aset']}** ({$chosen['kode_aset']}) dipinjam oleh **{$displayBorrower}**." . ($catatan !== '' ? "\nCatatan: {$catatan}" : ''),
+                    0xf5a623
+                );
                 $successMsg = "Berhasil! '{$chosen['nama_aset']}' tercatat dipinjam oleh {$displayBorrower}.";
             } else {
                 $pdo->prepare("UPDATE shift_assets SET status = 'Tersedia', pemegang_id = NULL, pemegang_nama = NULL, waktu_pinjam = NULL, catatan_terakhir = :cat WHERE id = :id")
                     ->execute(['cat' => $noteText, 'id' => $selectedId]);
                 $pdo->prepare("INSERT INTO shift_asset_logs (asset_id, nama_aset, aksi, user_id, nama_user, catatan) VALUES (:aid, :na, 'KEMBALI', 0, :unama, :cat)")
                     ->execute(['aid' => $selectedId, 'na' => $chosen['nama_aset'], 'unama' => $displayBorrower, 'cat' => $noteText]);
+                notify_aset_activity(
+                    $pdo,
+                    'Pengembalian Kunci via QR',
+                    "**{$chosen['nama_aset']}** ({$chosen['kode_aset']}) telah dikembalikan oleh **{$displayBorrower}**." . ($catatan !== '' ? "\nCatatan: {$catatan}" : ''),
+                    0x10b981
+                );
                 $successMsg = "Terima kasih! '{$chosen['nama_aset']}' telah dicatat kembali oleh {$displayBorrower}.";
             }
 
@@ -177,31 +191,37 @@ $appFullName = get_app_full_name();
           <div>
             <label class="block font-extrabold text-slate-700 mb-2">Jenis Aktivitas</label>
             <div class="grid grid-cols-2 gap-2.5">
-              <?php $defaultAksi = ($targetAsset && $targetAsset['status'] === 'Dipinjam') ? 'KEMBALI' : 'PINJAM'; ?>
-              <label class="cursor-pointer">
-                <input type="radio" name="aksi" value="PINJAM" class="aksi-radio sr-only" <?= $defaultAksi === 'PINJAM' ? 'checked' : '' ?> />
+              <?php
+                $isTargetBorrowed = ($targetAsset && $targetAsset['status'] === 'Dipinjam');
+                $defaultAksi = $isTargetBorrowed ? 'KEMBALI' : 'PINJAM';
+              ?>
+              <label class="<?= $isTargetBorrowed ? 'opacity-45 cursor-not-allowed' : 'cursor-pointer' ?>" id="lblPinjam">
+                <input type="radio" name="aksi" id="radioPinjam" value="PINJAM" class="aksi-radio sr-only" <?= $defaultAksi === 'PINJAM' ? 'checked' : '' ?> <?= $isTargetBorrowed ? 'disabled' : '' ?> />
                 <div class="aksi-box-pinjam p-3 rounded-2xl border border-slate-200 text-center transition">
                   <i class="ph-bold ph-hand-grabbing text-base text-[#6558f5] block mb-0.5"></i>
                   <span class="font-extrabold text-slate-800">Pinjam Kunci</span>
                 </div>
               </label>
               <label class="cursor-pointer">
-                <input type="radio" name="aksi" value="KEMBALI" class="aksi-radio sr-only" <?= $defaultAksi === 'KEMBALI' ? 'checked' : '' ?> />
+                <input type="radio" name="aksi" id="radioKembali" value="KEMBALI" class="aksi-radio sr-only" <?= $defaultAksi === 'KEMBALI' ? 'checked' : '' ?> />
                 <div class="aksi-box-kembali p-3 rounded-2xl border border-slate-200 text-center transition">
                   <i class="ph-bold ph-arrow-u-down-left text-base text-emerald-600 block mb-0.5"></i>
                   <span class="font-extrabold text-slate-800">Kembalikan</span>
                 </div>
               </label>
             </div>
+            <p id="borrowLockHint" class="text-[11px] text-amber-700 font-bold mt-1.5 <?= $isTargetBorrowed ? '' : 'hidden' ?>">
+              <i class="ph-bold ph-lock"></i> Kunci ini sedang dipinjam — hanya bisa dicatat pengembaliannya terlebih dahulu.
+            </p>
           </div>
 
           <?php if (!$targetAsset): ?>
             <div>
               <label class="block font-extrabold text-slate-700 mb-1.5">Pilih Kunci / Aset</label>
-              <select name="asset_id" required class="w-full px-3.5 py-3 rounded-xl bg-slate-50 border border-slate-200 font-bold text-slate-800">
+              <select name="asset_id" id="scanAssetSelect" onchange="syncScanAssetStatus()" required class="w-full px-3.5 py-3 rounded-xl bg-slate-50 border border-slate-200 font-bold text-slate-800">
                 <option value="">-- Pilih Kunci atau Aset --</option>
                 <?php foreach ($allAssets as $al): ?>
-                  <option value="<?= $al['id'] ?>">
+                  <option value="<?= $al['id'] ?>" data-status="<?= sanitize($al['status']) ?>">
                     [<?= sanitize($al['kategori']) ?>] <?= sanitize($al['kode_aset']) ?> - <?= sanitize($al['nama_aset']) ?> (<?= $al['status'] ?>)
                   </option>
                 <?php endforeach; ?>
@@ -242,5 +262,29 @@ $appFullName = get_app_full_name();
       <?= sanitize($appFullName) ?> · Tercatat otomatis ke Log Kunci &amp; Aset Shift
     </p>
   </div>
+  <script>
+    function syncScanAssetStatus() {
+      var sel = document.getElementById('scanAssetSelect');
+      if (!sel) return;
+      var opt = sel.options[sel.selectedIndex];
+      var st = opt ? opt.getAttribute('data-status') : '';
+      var rPinjam  = document.getElementById('radioPinjam');
+      var rKembali = document.getElementById('radioKembali');
+      var lblPinjam = document.getElementById('lblPinjam');
+      var hint = document.getElementById('borrowLockHint');
+      if (st === 'Dipinjam') {
+        rPinjam.disabled = true;
+        rKembali.checked = true;
+        lblPinjam.classList.add('opacity-45', 'cursor-not-allowed');
+        lblPinjam.classList.remove('cursor-pointer');
+        hint.classList.remove('hidden');
+      } else {
+        rPinjam.disabled = false;
+        lblPinjam.classList.remove('opacity-45', 'cursor-not-allowed');
+        lblPinjam.classList.add('cursor-pointer');
+        hint.classList.add('hidden');
+      }
+    }
+  </script>
 </body>
 </html>

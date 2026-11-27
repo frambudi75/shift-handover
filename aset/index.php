@@ -100,6 +100,32 @@ if ($logDate !== '') {
 }
 
 $logWhereSql = !empty($logWhere) ? ('WHERE ' . implode(' AND ', $logWhere)) : '';
+
+// Export filtered asset logs to CSV
+if (($_GET['export'] ?? '') === 'csv') {
+    $stmtExp = $pdo->prepare("SELECT * FROM shift_asset_logs {$logWhereSql} ORDER BY id DESC");
+    $stmtExp->execute($logParams);
+    $expRows = $stmtExp->fetchAll();
+
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="riwayat-kunci-aset-' . date('Ymd-His') . '.csv"');
+    $out = fopen('php://output', 'w');
+    fwrite($out, "\xEF\xBB\xBF");
+    fputcsv($out, ['Waktu', 'Aksi', 'Sumber', 'Nama Kunci / Aset', 'Peminjam / Petugas', 'Catatan']);
+    foreach ($expRows as $r) {
+        fputcsv($out, [
+            date('d/m/Y H:i', strtotime($r['created_at'])),
+            $r['aksi'],
+            (int)$r['user_id'] === 0 ? 'QR Tamu' : 'Petugas',
+            $r['nama_aset'],
+            $r['nama_user'],
+            $r['catatan'] ?? '',
+        ]);
+    }
+    fclose($out);
+    exit;
+}
+
 $stmtLogCnt = $pdo->prepare("SELECT COUNT(*) FROM shift_asset_logs {$logWhereSql}");
 $stmtLogCnt->execute($logParams);
 $totalLogs     = (int)$stmtLogCnt->fetchColumn();
@@ -132,6 +158,7 @@ foreach ($assets as $a) {
 }
 
 $masterQrToken = get_aset_qr_token(0);
+$overdueAssets = get_overdue_borrowed_assets($pdo, 12);
 
 $catMeta = [
     'Kunci'        => ['icon' => 'ph-key',                 'bg' => 'bg-indigo-50 dark:bg-indigo-950/60',  'text' => 'text-[#6558f5] dark:text-indigo-300'],
@@ -192,6 +219,11 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 
     <div class="flex flex-wrap items-center gap-2">
+      <a href="<?= BASE_URL ?>aset/print_qr"
+         class="px-4 py-2.5 rounded-2xl bg-white dark:bg-[#1b1e30] border border-slate-200 dark:border-slate-700 hover:border-[#6558f5] text-[#181b2c] dark:text-white font-extrabold text-xs shadow-sm transition flex items-center gap-2">
+        <i class="ph-bold ph-printer text-base text-emerald-600"></i>
+        <span>Cetak Semua QR</span>
+      </a>
       <button type="button"
               onclick='openQrModal(0, "MEJA-RAK", "Portal Scan QR Tamu (Semua Kunci)", "Pilih kunci apa saja saat scan", <?= json_encode($masterQrToken, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)'
               class="px-4 py-2.5 rounded-2xl bg-white dark:bg-[#1b1e30] border border-slate-200 dark:border-slate-700 hover:border-[#6558f5] text-[#181b2c] dark:text-white font-extrabold text-xs shadow-sm transition flex items-center gap-2 cursor-pointer">
@@ -205,6 +237,20 @@ require_once __DIR__ . '/../includes/header.php';
       </button>
     </div>
   </div>
+
+  <?php if (!empty($overdueAssets)): ?>
+    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+      <div class="flex items-start gap-2.5 text-rose-800 dark:text-rose-200">
+        <i class="ph-fill ph-alarm text-lg text-rose-600 shrink-0 mt-0.5"></i>
+        <div>
+          <strong>Pengingat: <?= count($overdueAssets) ?> kunci/aset dipinjam lebih dari 12 jam belum kembali:</strong>
+          <span class="block text-[11px] mt-0.5">
+            <?= implode(', ', array_map(fn($ov) => sanitize($ov['nama_aset']) . ' (' . sanitize($ov['pemegang_nama']) . ')', $overdueAssets)) ?>
+          </span>
+        </div>
+      </div>
+    </div>
+  <?php endif; ?>
 
   <!-- Stats (4 Cards) -->
   <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -375,9 +421,17 @@ require_once __DIR__ . '/../includes/header.php';
         <i class="ph-bold ph-clock-counter-clockwise text-[#6558f5]"></i>
         <span>Riwayat Serah Terima Kunci &amp; Aset</span>
       </h3>
-      <span class="text-[11px] font-bold text-slate-400">
-        <?= $totalLogs > 0 ? ('Menampilkan ' . ($logOffset + 1) . '–' . min($logOffset + count($logs), $totalLogs) . ' dari ' . $totalLogs . ' riwayat') : '0 riwayat' ?>
-      </span>
+      <div class="flex items-center gap-2.5">
+        <span class="text-[11px] font-bold text-slate-400">
+          <?= $totalLogs > 0 ? ('Menampilkan ' . ($logOffset + 1) . '–' . min($logOffset + count($logs), $totalLogs) . ' dari ' . $totalLogs . ' riwayat') : '0 riwayat' ?>
+        </span>
+        <?php $csvUrl = BASE_URL . 'aset/index?' . http_build_query(array_merge($logBaseParams, ['export' => 'csv'])); ?>
+        <a href="<?= sanitize($csvUrl) ?>"
+           class="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800/60 text-[11px] font-extrabold hover:bg-emerald-600 hover:text-white transition inline-flex items-center gap-1.5">
+          <i class="ph-bold ph-file-csv text-sm"></i>
+          <span>Export CSV</span>
+        </a>
+      </div>
     </div>
 
     <!-- Filter Form -->
