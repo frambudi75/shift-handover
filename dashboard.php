@@ -48,6 +48,46 @@ $recentNotulen = $pdo->query("
     LIMIT 4
 ")->fetchAll();
 
+// Borrowed Keys & Assets (Public) + Personal Today Schedule & Kanban (Private)
+require_once __DIR__ . '/includes/aset_helper.php';
+require_once __DIR__ . '/includes/holiday_helper.php';
+ensure_aset_tables($pdo);
+
+$borrowedAssets = [];
+$totalBorrowedAssets = 0;
+try {
+    $totalBorrowedAssets = (int)$pdo->query("SELECT COUNT(*) FROM shift_assets WHERE status = 'Dipinjam'")->fetchColumn();
+    $borrowedAssets = $pdo->query("
+        SELECT id, kode_aset, nama_aset, kategori, pemegang_id, pemegang_nama, waktu_pinjam
+        FROM shift_assets
+        WHERE status = 'Dipinjam'
+        ORDER BY waktu_pinjam ASC
+        LIMIT 5
+    ")->fetchAll();
+} catch (Throwable $e) {
+}
+
+$todaySchedules = [];
+$myActiveKanbanCount = 0;
+$uidCur = (int)$user['id'];
+try {
+    $stmtTs = $pdo->prepare("
+        SELECT judul, kategori, jam_mulai, jam_selesai, lokasi
+        FROM personal_work_schedules
+        WHERE user_id = :uid AND tanggal = CURDATE()
+        ORDER BY COALESCE(jam_mulai, '23:59:59') ASC, id ASC
+        LIMIT 3
+    ");
+    $stmtTs->execute(['uid' => $uidCur]);
+    $todaySchedules = $stmtTs->fetchAll();
+
+    $stmtKc = $pdo->prepare("SELECT COUNT(*) FROM personal_kanban_tasks WHERE user_id = :uid AND status != 'Selesai'");
+    $stmtKc->execute(['uid' => $uidCur]);
+    $myActiveKanbanCount = (int)$stmtKc->fetchColumn();
+} catch (Throwable $e) {
+}
+$todayHoliday = get_indonesian_holidays((int)date('Y'))[date('Y-m-d')] ?? null;
+
 // Total pekerjaan aktif (berdasarkan status terbaru tiap nomor tiket / pekerjaan)
 $queryLatestAktif = "
     SELECT COUNT(*) 
@@ -625,6 +665,121 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
   <?php endif; ?>
 </div>
 
+<!-- RINGKASAN KUNCI DIPINJAM & JADWAL KERJA HARI INI -->
+<div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6 animate-stagger-3">
+  <!-- Widget 1: Kunci & Aset Sedang Dipinjam (Publik / TV Mode) -->
+  <div class="bg-white dark:bg-[#1b1e30] rounded-[26px] border border-slate-100 dark:border-slate-800/80 shadow-feature p-5 sm:p-6 widget-card flex flex-col justify-between gap-4">
+    <div>
+      <div class="flex items-center justify-between gap-2 mb-4">
+        <div>
+          <h3 class="text-base font-extrabold text-[#181b2c] dark:text-white flex items-center gap-2">
+            <i class="ph-fill ph-key text-amber-500 text-xl"></i>
+            <span>Kunci &amp; Aset Dipinjam</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold <?= $totalBorrowedAssets > 0 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700' ?>">
+              <?= $totalBorrowedAssets ?>
+            </span>
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5">Pemegang kunci &amp; peralatan aktif saat ini</p>
+        </div>
+        <a href="<?= BASE_URL ?>aset/index" class="text-xs font-extrabold text-[#6558f5] hover:underline flex items-center gap-1 shrink-0">
+          <span>Kelola Kunci</span>
+          <i class="ph-bold ph-arrow-right"></i>
+        </a>
+      </div>
+
+      <?php if (empty($borrowedAssets)): ?>
+        <div class="p-5 rounded-2xl bg-[#f7f7fb] dark:bg-[#151828] text-center text-xs text-slate-400">
+          <i class="ph-fill ph-check-circle text-emerald-500 text-xl block mx-auto mb-1"></i>
+          Semua kunci dan aset operasional tersedia di rak.
+        </div>
+      <?php else: ?>
+        <div class="space-y-2.5">
+          <?php foreach ($borrowedAssets as $ba): ?>
+            <?php
+              $isGuest = ((int)$ba['pemegang_id'] === 0);
+              $isOverdue = !empty($ba['waktu_pinjam']) && (time() - strtotime($ba['waktu_pinjam'])) >= 43200;
+            ?>
+            <div class="p-3 rounded-2xl bg-[#f7f7fb] dark:bg-[#151828] border <?= $isOverdue ? 'border-rose-200 dark:border-rose-900/60' : 'border-slate-100 dark:border-slate-800' ?> flex items-center justify-between gap-3">
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-[10px] font-mono font-bold text-[#6558f5]"><?= sanitize($ba['kode_aset']) ?></span>
+                  <?php if ($isGuest): ?>
+                    <span class="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 text-[9px] font-extrabold">TAMU / QR</span>
+                  <?php endif; ?>
+                  <?php if ($isOverdue): ?>
+                    <span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[9px] font-extrabold">&gt; 12 JAM</span>
+                  <?php endif; ?>
+                </div>
+                <div class="text-xs font-extrabold text-[#181b2c] dark:text-white truncate mt-0.5"><?= sanitize($ba['nama_aset']) ?></div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate">Pemegang: <strong><?= sanitize($ba['pemegang_nama']) ?></strong></div>
+              </div>
+              <span class="text-[10.5px] font-mono text-slate-400 shrink-0">
+                <?= !empty($ba['waktu_pinjam']) ? date('d/m H:i', strtotime($ba['waktu_pinjam'])) : '-' ?>
+              </span>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
+    </div>
+  </div>
+
+  <!-- Widget 2: Jadwal Kerja & Tugas Kanban Pribadi Hari Ini (Privat, Auto-Hide di TV Mode) -->
+  <div id="dashboardPrivateCard" class="bg-white dark:bg-[#1b1e30] rounded-[26px] border border-slate-100 dark:border-slate-800/80 shadow-feature p-5 sm:p-6 widget-card flex flex-col justify-between gap-4">
+    <div>
+      <div class="flex items-center justify-between gap-2 mb-4">
+        <div>
+          <h3 class="text-base font-extrabold text-[#181b2c] dark:text-white flex items-center gap-2">
+            <i class="ph-fill ph-calendar-check text-[#6558f5] text-xl"></i>
+            <span>Jadwal &amp; Tugas Saya Hari Ini</span>
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5">Privat untuk akun <strong><?= sanitize($user['nama_lengkap']) ?></strong> · <?= $myActiveKanbanCount ?> tugas Kanban aktif</p>
+        </div>
+        <a href="<?= BASE_URL ?>kanban/index" class="text-xs font-extrabold text-[#6558f5] hover:underline flex items-center gap-1 shrink-0">
+          <span>Buka Kanban</span>
+          <i class="ph-bold ph-arrow-right"></i>
+        </a>
+      </div>
+
+      <?php if ($todayHoliday !== null): ?>
+        <?php $hIsCuti = !empty($todayHoliday['is_cuti_bersama']); ?>
+        <div class="mb-3 p-3 rounded-2xl <?= $hIsCuti ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200' : 'bg-rose-50 dark:bg-rose-950/30 border-rose-200' ?> border flex items-center gap-2.5 text-xs">
+          <i class="ph-fill <?= $hIsCuti ? 'ph-calendar-heart text-amber-500' : 'ph-confetti text-rose-500' ?> text-base shrink-0"></i>
+          <span class="font-extrabold <?= $hIsCuti ? 'text-amber-900 dark:text-amber-200' : 'text-rose-800 dark:text-rose-200' ?>">
+            <?= $hIsCuti ? 'Cuti Bersama:' : 'Libur Nasional:' ?> <?= sanitize($todayHoliday['name']) ?>
+          </span>
+        </div>
+      <?php endif; ?>
+
+      <?php if (empty($todaySchedules)): ?>
+        <div class="p-5 rounded-2xl bg-[#f7f7fb] dark:bg-[#151828] text-center text-xs text-slate-400">
+          Belum ada jadwal kerja pribadi yang dicatat untuk hari ini.
+        </div>
+      <?php else: ?>
+        <div class="space-y-2.5">
+          <?php foreach ($todaySchedules as $ts): ?>
+            <div class="p-3 rounded-2xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+              <div class="min-w-0">
+                <span class="px-2 py-0.5 rounded-md bg-[#efeffb] dark:bg-indigo-950/60 text-[#6558f5] dark:text-indigo-300 text-[10px] font-extrabold">
+                  <?= sanitize($ts['kategori']) ?>
+                </span>
+                <div class="text-xs font-extrabold text-[#181b2c] dark:text-white truncate mt-1"><?= sanitize($ts['judul']) ?></div>
+                <?php if (!empty($ts['lokasi'])): ?>
+                  <div class="text-[11px] text-slate-400 truncate"><?= sanitize($ts['lokasi']) ?></div>
+                <?php endif; ?>
+              </div>
+              <?php if (!empty($ts['jam_mulai'])): ?>
+                <span class="text-[11px] font-mono font-bold text-slate-500 dark:text-slate-300 shrink-0">
+                  <?= substr($ts['jam_mulai'], 0, 5) ?><?= !empty($ts['jam_selesai']) ? '-' . substr($ts['jam_selesai'], 0, 5) : '' ?>
+                </span>
+              <?php endif; ?>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
+    </div>
+  </div>
+</div>
+
 <!-- Floating TV Monitor Kiosk Exit Bar -->
 <div id="tvKioskExitBar" class="hidden fixed bottom-5 right-5 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-[#181b2c]/90 text-white text-xs font-extrabold shadow-2xl backdrop-blur-md border border-white/15">
   <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -645,10 +800,12 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
       const header  = document.querySelector('#app-shell > header');
       const exitBar = document.getElementById('tvKioskExitBar');
       const mainEl  = document.querySelector('main');
+      const privEl  = document.getElementById('dashboardPrivateCard');
 
       if (on) {
         if (sidebar) sidebar.style.setProperty('display', 'none', 'important');
         if (header) header.classList.add('hidden');
+        if (privEl) privEl.classList.add('hidden');
         if (shell) { shell.classList.remove('max-w-[1580px]', 'rounded-3xl', 'lg:rounded-[34px]'); shell.classList.add('max-w-full', 'rounded-none'); }
         if (mainEl) mainEl.classList.remove('md:pl-24');
         if (exitBar) exitBar.classList.remove('hidden');
@@ -665,6 +822,7 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
       } else {
         if (sidebar) sidebar.style.removeProperty('display');
         if (header) header.classList.remove('hidden');
+        if (privEl) privEl.classList.remove('hidden');
         if (shell) { shell.classList.add('max-w-[1580px]', 'rounded-3xl', 'lg:rounded-[34px]'); shell.classList.remove('max-w-full', 'rounded-none'); }
         if (mainEl) mainEl.classList.add('md:pl-24');
         if (exitBar) exitBar.classList.add('hidden');
