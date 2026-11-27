@@ -262,7 +262,7 @@ require_once __DIR__ . '/../includes/header.php';
 
               <div class="flex items-center gap-1.5 shrink-0">
                 <button type="button"
-                        onclick='openQrModal(<?= (int)$a["id"] ?>, <?= json_encode($a["kode_aset"]) ?>, <?= json_encode($a["nama_aset"]) ?>, <?= json_encode($a["kategori"]) ?>, <?= json_encode($itemToken) ?>)'
+                        onclick='openQrModal(<?= (int)$a["id"] ?>, <?= json_encode($a["kode_aset"], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>, <?= json_encode($a["nama_aset"], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>, <?= json_encode($a["kategori"], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>, <?= json_encode($itemToken, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)'
                         class="w-7 h-7 rounded-lg bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-[#6558f5] hover:text-[#6558f5] flex items-center justify-center transition cursor-pointer"
                         title="Lihat &amp; Cetak QR Barcode Kunci Ini">
                   <i class="ph-bold ph-qr-code text-sm"></i>
@@ -371,13 +371,14 @@ require_once __DIR__ . '/../includes/header.php';
       <h4 class="text-base font-extrabold text-[#181b2c] dark:text-white leading-tight" id="qrModalTitle">Nama Kunci</h4>
       <div class="text-xs font-mono font-bold text-slate-500" id="qrModalCode">KNC-01</div>
 
-      <div class="inline-flex p-3 rounded-2xl bg-white shadow-sm border border-slate-100 mx-auto">
-        <div id="qrCodeCanvas"></div>
+      <div class="inline-flex items-center justify-center p-3 rounded-2xl bg-white shadow-sm border border-slate-100 mx-auto">
+        <div id="qrCodeCanvas" style="width: 184px; height: 184px;"></div>
       </div>
 
       <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
         Scan QR ini dengan kamera HP untuk mencatat peminjaman atau pengembalian kunci (bisa untuk tamu tanpa login).
       </p>
+      <a id="qrModalUrlPreview" href="#" target="_blank" class="block text-[10px] font-mono text-[#6558f5] break-all underline"></a>
     </div>
 
     <div class="grid grid-cols-2 gap-2.5">
@@ -442,19 +443,46 @@ require_once __DIR__ . '/../includes/header.php';
     document.getElementById('qrModalCat').textContent = kategori;
     document.getElementById('qrModalTitle').textContent = nama;
     document.getElementById('qrModalCode').textContent = kode;
+    var urlEl = document.getElementById('qrModalUrlPreview');
+    if (urlEl) {
+      urlEl.href = currentQrUrl;
+      urlEl.textContent = currentQrUrl;
+    }
+
+    document.getElementById('qrModal').classList.remove('hidden');
 
     var container = document.getElementById('qrCodeCanvas');
     container.innerHTML = '';
-    new QRCode(container, {
-      text: currentQrUrl,
-      width: 184,
-      height: 184,
-      colorDark: '#181b2c',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
 
-    document.getElementById('qrModal').classList.remove('hidden');
+    function renderQr() {
+      if (typeof QRCode === 'undefined') {
+        container.innerHTML = '<div class="text-xs text-rose-500 p-4">Gagal memuat library QR.</div>';
+        return;
+      }
+      new QRCode(container, {
+        text: currentQrUrl,
+        width: 184,
+        height: 184,
+        colorDark: '#181b2c',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+      var cvs = container.querySelector('canvas');
+      if (cvs) {
+        cvs.style.display = 'block';
+        cvs.style.width = '184px';
+        cvs.style.height = '184px';
+      }
+    }
+
+    if (typeof QRCode === 'undefined') {
+      var s = document.createElement('script');
+      s.src = <?= json_encode(BASE_URL . 'assets/js/qrcode.min.js') ?>;
+      s.onload = renderQr;
+      document.head.appendChild(s);
+    } else {
+      renderQr();
+    }
   }
 
   function copyQrLink() {
