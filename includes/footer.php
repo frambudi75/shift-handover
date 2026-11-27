@@ -66,6 +66,14 @@
               <i class="ph-fill ph-notepad text-lg"></i>
               <span>Notulen Meeting &amp; Briefing</span>
             </a>
+            <a href="<?= BASE_URL ?>aset/index" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'aset' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
+              <i class="ph-fill ph-key text-lg"></i>
+              <span>Log Kunci &amp; Aset Shift</span>
+            </a>
+            <a href="<?= BASE_URL ?>kanban/index" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition <?= $current_page === 'kanban' ? 'bg-white text-[#6558f5] shadow-md' : 'text-white/85 hover:bg-white/15' ?>">
+              <i class="ph-fill ph-kanban text-lg"></i>
+              <span>Kanban &amp; Catatan Pribadi</span>
+            </a>
 
             <?php if (is_admin()): ?>
               <div class="pt-3 pb-1 border-t border-white/20 mt-3">

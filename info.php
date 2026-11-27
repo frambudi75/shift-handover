@@ -50,6 +50,7 @@ $releases = [
         'badge'   => 'TERBARU',
         'color'   => 'bg-[#6558f5] text-white',
         'items'   => [
+            ['type' => 'Baru',      'text' => 'Kanban Tugas & Catatan Pribadi (/kanban) yang 100% privat per akun, serta Log Kunci, Alat & Aset Shift (/aset) bersama untuk seluruh petugas.'],
             ['type' => 'Baru',      'text' => 'Tautan Publik Baca-Saja (/notulen/share) bertoken HMAC untuk Notulen Meeting & Briefing agar dapat dibagikan via WhatsApp tanpa login.'],
             ['type' => 'Baru',      'text' => 'Catatan & Diskusi Tindak Lanjut pada detail laporan serah terima (/laporan/detail) tanpa mengubah isi berita acara resmi yang sudah bertanda tangan.'],
             ['type' => 'Baru',      'text' => 'Mode Monitor TV / Kiosk di Dashboard dengan tampilan layar penuh & auto-refresh 60 detik, serta chip filter cepat "Perlu Validasi Saya" & "Laporan Saya".'],

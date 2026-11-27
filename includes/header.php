@@ -128,6 +128,20 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
             <span class="sidebar-tooltip">Notulen Meeting &amp; Briefing</span>
           </a>
 
+          <!-- 4c. Log Kunci & Aset Shift (Publik) -->
+          <a href="<?= BASE_URL ?>aset/index" 
+             class="sidebar-btn group relative w-10 h-10 rounded-[14px] flex items-center justify-center transition-all duration-200 shrink-0 <?= $current_page === 'aset' ? 'bg-white text-[#6558f5] shadow-md scale-105' : 'text-white/80 hover:text-white hover:bg-white/15 hover:scale-105' ?>">
+            <i class="ph-fill ph-key text-lg"></i>
+            <span class="sidebar-tooltip">Log Kunci &amp; Aset Shift (Publik)</span>
+          </a>
+
+          <!-- 4d. Kanban & Catatan Pribadi (Privat) -->
+          <a href="<?= BASE_URL ?>kanban/index" 
+             class="sidebar-btn group relative w-10 h-10 rounded-[14px] flex items-center justify-center transition-all duration-200 shrink-0 <?= $current_page === 'kanban' ? 'bg-white text-[#6558f5] shadow-md scale-105' : 'text-white/80 hover:text-white hover:bg-white/15 hover:scale-105' ?>">
+            <i class="ph-fill ph-kanban text-lg"></i>
+            <span class="sidebar-tooltip">Kanban &amp; Catatan Pribadi</span>
+          </a>
+
           <?php if (is_admin()): ?>
             <div class="w-6 h-[1px] bg-white/20 my-1 shrink-0"></div>
 

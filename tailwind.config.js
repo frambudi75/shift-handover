@@ -9,6 +9,8 @@ module.exports = {
     './master/**/*.php',
     './notulen/**/*.php',
     './rekap/**/*.php',
+    './kanban/**/*.php',
+    './aset/**/*.php',
     './assets/js/**/*.js',
   ],
   theme: {

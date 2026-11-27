@@ -6,6 +6,9 @@ Semua perubahan dan peningkatan fungsionalitas sistem dicatat secara berkala pad
 ---
 
 ### Versi 2.11.0 LTS (2026-11-27) - *Current Release*
+- **Kanban & Catatan Pribadi (`/kanban`) + Log Kunci & Aset Shift (`/aset`)**:
+  - **Kanban & Catatan Pribadi (`/kanban`)**: Papan tugas 3 kolom (`Belum Mulai`, `Berjalan`, `Selesai`) dan *sticky notes* yang **100% privat** per akun login (`personal_kanban_tasks`, `personal_notes`).
+  - **Log Kunci, Alat & Aset Shift (`/aset`)**: Pencatatan bersama/publik untuk peminjaman & pengembalian kunci ruang server, HT, kartu akses, dan alat piket (`shift_assets`, `shift_asset_logs`).
 - **Kolaborasi, Tautan Publik & Monitor Ruang Kontrol**:
   - **Tautan Publik Notulen (`/notulen/share`)**: Halaman baca-saja bertoken HMAC untuk Notulen berstatus `FINAL`, terintegrasi di tombol Salin Link & teks WhatsApp.
   - **Catatan Tindak Lanjut Laporan (`laporan_comments`)**: Kolom diskusi/update perkembangan di bawah `laporan/detail` tanpa mengubah isi berita acara bertanda tangan.
