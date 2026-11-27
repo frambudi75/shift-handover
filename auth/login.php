@@ -61,10 +61,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['jabatan']      = $user['jabatan'];
 
             $viaLabel = $authVia === 'ldap' ? ' via LDAP' : '';
-            log_activity($pdo, 'LOGIN_SUCCESS', "Login berhasil ke sistem ({$user['role']}){$viaLabel}.", (int)$user['id'], $user['username']);
-
             flash_set('success', "Selamat datang kembali, {$user['nama_lengkap']}!");
+            session_write_close();
+
             header('Location: ' . BASE_URL . 'dashboard');
+            header('Connection: close');
+            header('Content-Length: 0');
+            while (ob_get_level() > 0) {
+                @ob_end_flush();
+            }
+            @flush();
+
+            log_activity($pdo, 'LOGIN_SUCCESS', "Login berhasil ke sistem ({$user['role']}){$viaLabel}.", (int)$user['id'], $user['username']);
             exit;
         } else {
             log_activity($pdo, 'LOGIN_FAILED', "Percobaan login gagal untuk username '{$username}'.", null, $username);
