@@ -335,5 +335,6 @@ $appFullName = get_app_full_name();
       }
     });
   </script>
+  <script src="<?= BASE_URL ?>assets/js/sakuga-vfx.js?v=<?= @filemtime(__DIR__ . '/../assets/js/sakuga-vfx.js') ?: '290' ?>" defer></script>
 </body>
 </html>

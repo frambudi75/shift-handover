@@ -316,3 +316,28 @@ button:hover .theme-spin-icon {
 .animate-float-orb-2 {
   animation: floatSlow2 15s ease-in-out infinite;
 }
+
+/* Sakuga-Inspired Squash & Spring Micro-Interactions */
+@keyframes sakugaSpring {
+  0%   { transform: scale(1, 1); }
+  25%  { transform: scale(0.93, 1.07); }
+  55%  { transform: scale(1.06, 0.95); }
+  80%  { transform: scale(0.99, 1.01); }
+  100% { transform: scale(1, 1); }
+}
+.sakuga-spring {
+  animation: sakugaSpring 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes sakugaToastPop {
+  0%   { opacity: 0; transform: translateY(-14px) scale(0.9, 1.08); }
+  60%  { opacity: 1; transform: translateY(3px) scale(1.03, 0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1, 1); }
+}
+.sakuga-toast-pop {
+  animation: sakugaToastPop 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sakuga-spring, .sakuga-toast-pop { animation: none !important; }
+}
