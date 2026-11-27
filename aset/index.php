@@ -439,7 +439,7 @@ require_once __DIR__ . '/../includes/header.php';
       <div class="lg:col-span-4 relative">
         <i class="ph-bold ph-magnifying-glass text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
         <input type="text" name="log_q" value="<?= sanitize($logQ) ?>" placeholder="Cari kunci, nama peminjam, catatan..."
-               class="w-full pl-8 pr-3 py-2 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700" />
+               class="w-full pl-9 pr-3 py-2 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700" />
       </div>
       <div class="lg:col-span-2">
         <select name="log_aksi" class="w-full px-3 py-2 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700 font-bold cursor-pointer">
