@@ -511,13 +511,23 @@ require_once __DIR__ . '/../includes/header.php';
           </div>
         </div>
 
-        <div class="flex items-center gap-1.5">
-          <a href="<?= BASE_URL ?>kanban/index?export=ics"
-             class="px-3 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800/60 text-[11px] font-extrabold flex items-center justify-center gap-1.5 hover:bg-emerald-600 hover:text-white transition"
-             title="Export ke Google / Apple Calendar (.ics)">
-            <i class="ph-bold ph-calendar-arrow-down text-sm"></i>
-            <span class="hidden sm:inline">Export .ICS</span>
-          </a>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <?php
+            $curY = (int)substr($reqMonth, 0, 4);
+            $curM = substr($reqMonth, 5, 2);
+          ?>
+          <select id="calJumpMonth" onchange="jumpCalendarMonth()" aria-label="Pilih Bulan"
+                  class="h-9 px-2.5 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700 text-xs font-extrabold text-[#181b2c] dark:text-white cursor-pointer">
+            <?php foreach ($indoMonths as $mNum => $mName): ?>
+              <option value="<?= $mNum ?>" <?= $curM === $mNum ? 'selected' : '' ?>><?= $mName ?></option>
+            <?php endforeach; ?>
+          </select>
+          <select id="calJumpYear" onchange="jumpCalendarMonth()" aria-label="Pilih Tahun"
+                  class="h-9 px-2.5 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700 text-xs font-extrabold text-[#181b2c] dark:text-white cursor-pointer">
+            <?php for ($yOpt = 2024; $yOpt <= 2029; $yOpt++): ?>
+              <option value="<?= $yOpt ?>" <?= $curY === $yOpt ? 'selected' : '' ?>><?= $yOpt ?></option>
+            <?php endfor; ?>
+          </select>
           <a href="<?= BASE_URL ?>kanban/index?month=<?= urlencode($prevMonthStr) ?>&date=<?= urlencode($prevMonthStr . '-01') ?>"
              class="w-9 h-9 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:border-[#6558f5] hover:text-[#6558f5] transition"
              title="Bulan Sebelumnya">
@@ -531,6 +541,12 @@ require_once __DIR__ . '/../includes/header.php';
              class="w-9 h-9 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:border-[#6558f5] hover:text-[#6558f5] transition"
              title="Bulan Berikutnya">
             <i class="ph-bold ph-caret-right"></i>
+          </a>
+          <a href="<?= BASE_URL ?>kanban/index?export=ics"
+             class="px-3 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-[11px] font-extrabold inline-flex items-center justify-center gap-1.5 hover:bg-emerald-600 hover:text-white transition"
+             title="Export ke Google / Apple Calendar (.ics)">
+            <i class="ph-bold ph-download-simple text-sm"></i>
+            <span>Export .ICS</span>
           </a>
         </div>
       </div>
@@ -1216,6 +1232,13 @@ require_once __DIR__ . '/../includes/header.php';
     document.getElementById('note_warna').value = nt ? nt.warna : 'indigo';
     document.getElementById('noteModalTitle').textContent = nt ? 'Edit Catatan Pribadi' : 'Tambah Catatan Pribadi';
     document.getElementById('noteModal').classList.remove('hidden');
+  }
+
+  function jumpCalendarMonth() {
+    var m = document.getElementById('calJumpMonth').value;
+    var y = document.getElementById('calJumpYear').value;
+    var ym = y + '-' + m;
+    window.location.href = <?= json_encode(BASE_URL . 'kanban/index?month=') ?> + encodeURIComponent(ym) + '&date=' + encodeURIComponent(ym + '-01');
   }
 
   function setWorkspaceTab(tab) {
