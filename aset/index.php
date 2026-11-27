@@ -631,13 +631,13 @@ require_once __DIR__ . '/../includes/header.php';
     var qrSrc = document.querySelector('#qrCodeCanvas canvas') || document.querySelector('#qrCodeCanvas img');
     if (!qrSrc) return;
 
-    var title = document.getElementById('qrModalTitle').textContent || 'QR Kunci';
-    var code  = document.getElementById('qrModalCode').textContent || 'QR';
-    var cat   = document.getElementById('qrModalCat').textContent || 'KUNCI';
+    var title = (document.getElementById('qrModalTitle').textContent || 'QR Kunci').trim();
+    var code  = (document.getElementById('qrModalCode').textContent || 'QR').trim();
+    var cat   = (document.getElementById('qrModalCat').textContent || 'KUNCI').trim();
 
     var out = document.createElement('canvas');
-    out.width = 440;
-    out.height = 540;
+    out.width = 460;
+    out.height = 560;
     var ctx = out.getContext('2d');
 
     ctx.fillStyle = '#ffffff';
@@ -649,24 +649,52 @@ require_once __DIR__ . '/../includes/header.php';
 
     ctx.textAlign = 'center';
     ctx.fillStyle = '#6558f5';
-    ctx.font = 'bold 16px sans-serif';
-    ctx.fillText(cat.toUpperCase(), out.width / 2, 58);
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText(cat.toUpperCase(), out.width / 2, 54);
 
+    // Wrap title cleanly within maxWidth (max 2 lines)
+    var maxW = out.width - 72;
     ctx.fillStyle = '#181b2c';
-    ctx.font = 'bold 22px sans-serif';
-    var displayTitle = title.length > 30 ? title.slice(0, 29) + '...' : title;
-    ctx.fillText(displayTitle, out.width / 2, 92);
+    ctx.font = 'bold 18px sans-serif';
+    var words = title.split(/\s+/);
+    var lines = [];
+    var cur = '';
+    for (var i = 0; i < words.length; i++) {
+      var test = cur ? (cur + ' ' + words[i]) : words[i];
+      if (ctx.measureText(test).width > maxW && cur) {
+        lines.push(cur);
+        cur = words[i];
+        if (lines.length === 2) break;
+      } else {
+        cur = test;
+      }
+    }
+    if (cur && lines.length < 2) lines.push(cur);
+    if (lines.length === 2 && ctx.measureText(lines[1]).width > maxW) {
+      while (lines[1].length > 3 && ctx.measureText(lines[1] + '...').width > maxW) {
+        lines[1] = lines[1].slice(0, -1);
+      }
+      lines[1] += '...';
+    }
 
+    var titleY = 86;
+    for (var l = 0; l < lines.length; l++) {
+      ctx.fillText(lines[l], out.width / 2, titleY + l * 24);
+    }
+
+    var codeY = titleY + (lines.length * 24) + 6;
     ctx.fillStyle = '#64748b';
-    ctx.font = 'bold 16px monospace';
-    ctx.fillText(code, out.width / 2, 122);
+    ctx.font = 'bold 15px monospace';
+    ctx.fillText(code, out.width / 2, codeY);
 
+    var qrSize = 290;
+    var qrY = codeY + 24;
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(qrSrc, (out.width - 300) / 2, 148, 300, 300);
+    ctx.drawImage(qrSrc, (out.width - qrSize) / 2, qrY, qrSize, qrSize);
 
     ctx.fillStyle = '#475569';
-    ctx.font = '14px sans-serif';
-    ctx.fillText('Scan QR ini untuk catat pinjam / kembali kunci', out.width / 2, 488);
+    ctx.font = '13px sans-serif';
+    ctx.fillText('Scan QR ini untuk catat pinjam / kembali kunci', out.width / 2, qrY + qrSize + 36);
 
     var a = document.createElement('a');
     a.download = 'QR-' + code.replace(/[^a-zA-Z0-9_-]/g, '_') + '.png';
