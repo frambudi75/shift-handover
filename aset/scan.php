@@ -5,6 +5,9 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/aset_helper.php';
 
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+}
 ensure_aset_tables($pdo);
 
 $assetId  = max(0, (int)($_GET['id'] ?? $_POST['qr_id'] ?? 0));
@@ -46,7 +49,8 @@ if ($isValidToken) {
     }
 }
 
-$successMsg = '';
+$successMsg = $_SESSION['scan_flash_ok'] ?? '';
+unset($_SESSION['scan_flash_ok']);
 $errorMsg   = '';
 
 if ($isValidToken && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -77,6 +81,8 @@ if ($isValidToken && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($aksi === 'PINJAM' && $chosen['status'] === 'Dipinjam') {
                 $errorMsg = "Gagal: '{$chosen['nama_aset']}' sedang dipinjam oleh {$chosen['pemegang_nama']}. Harap kembalikan terlebih dahulu sebelum dipinjam lagi.";
+            } elseif ($aksi === 'KEMBALI' && $chosen['status'] !== 'Dipinjam') {
+                $errorMsg = "Gagal: '{$chosen['nama_aset']}' saat ini sudah berstatus Tersedia (tidak sedang dipinjam).";
             } elseif ($aksi === 'PINJAM') {
                 $pdo->prepare("UPDATE shift_assets SET status = 'Dipinjam', pemegang_id = 0, pemegang_nama = :unama, waktu_pinjam = NOW(), catatan_terakhir = :cat WHERE id = :id")
                     ->execute(['unama' => $displayBorrower, 'cat' => $noteText, 'id' => $selectedId]);
@@ -88,7 +94,10 @@ if ($isValidToken && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     "**{$chosen['nama_aset']}** ({$chosen['kode_aset']}) dipinjam oleh **{$displayBorrower}**." . ($catatan !== '' ? "\nCatatan: {$catatan}" : ''),
                     0xf5a623
                 );
-                $successMsg = "Berhasil! '{$chosen['nama_aset']}' tercatat dipinjam oleh {$displayBorrower}.";
+                $_SESSION['scan_flash_ok'] = "Berhasil! '{$chosen['nama_aset']}' tercatat dipinjam oleh {$displayBorrower}.";
+                $qParams = $assetId > 0 ? ['id' => $assetId, 't' => $token] : ($folderId > 0 ? ['folder' => $folderId, 't' => $token] : ['t' => $token]);
+                header('Location: ' . BASE_URL . 'aset/scan?' . http_build_query($qParams));
+                exit;
             } else {
                 $pdo->prepare("UPDATE shift_assets SET status = 'Tersedia', pemegang_id = NULL, pemegang_nama = NULL, waktu_pinjam = NULL, catatan_terakhir = :cat WHERE id = :id")
                     ->execute(['cat' => $noteText, 'id' => $selectedId]);
@@ -100,7 +109,10 @@ if ($isValidToken && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     "**{$chosen['nama_aset']}** ({$chosen['kode_aset']}) telah dikembalikan oleh **{$displayBorrower}**." . ($catatan !== '' ? "\nCatatan: {$catatan}" : ''),
                     0x10b981
                 );
-                $successMsg = "Terima kasih! '{$chosen['nama_aset']}' telah dicatat kembali oleh {$displayBorrower}.";
+                $_SESSION['scan_flash_ok'] = "Terima kasih! '{$chosen['nama_aset']}' telah dicatat kembali oleh {$displayBorrower}.";
+                $qParams = $assetId > 0 ? ['id' => $assetId, 't' => $token] : ($folderId > 0 ? ['folder' => $folderId, 't' => $token] : ['t' => $token]);
+                header('Location: ' . BASE_URL . 'aset/scan?' . http_build_query($qParams));
+                exit;
             }
 
             // Refresh state after update
@@ -215,7 +227,8 @@ $appFullName = get_app_full_name();
             <label class="block font-extrabold text-slate-700 mb-2">Jenis Aktivitas</label>
             <div class="grid grid-cols-2 gap-2.5">
               <?php
-                $isTargetBorrowed = ($targetAsset && $targetAsset['status'] === 'Dipinjam');
+                $isTargetBorrowed  = ($targetAsset && $targetAsset['status'] === 'Dipinjam');
+                $isTargetAvailable = ($targetAsset && $targetAsset['status'] !== 'Dipinjam');
                 $defaultAksi = $isTargetBorrowed ? 'KEMBALI' : 'PINJAM';
               ?>
               <label class="<?= $isTargetBorrowed ? 'opacity-45 cursor-not-allowed' : 'cursor-pointer' ?>" id="lblPinjam">
@@ -225,8 +238,8 @@ $appFullName = get_app_full_name();
                   <span class="font-extrabold text-slate-800">Pinjam</span>
                 </div>
               </label>
-              <label class="cursor-pointer">
-                <input type="radio" name="aksi" id="radioKembali" value="KEMBALI" class="aksi-radio sr-only" <?= $defaultAksi === 'KEMBALI' ? 'checked' : '' ?> />
+              <label class="<?= $isTargetAvailable ? 'opacity-45 cursor-not-allowed' : 'cursor-pointer' ?>" id="lblKembali">
+                <input type="radio" name="aksi" id="radioKembali" value="KEMBALI" class="aksi-radio sr-only" <?= $defaultAksi === 'KEMBALI' ? 'checked' : '' ?> <?= $isTargetAvailable ? 'disabled' : '' ?> />
                 <div class="aksi-box-kembali p-3 rounded-2xl border border-slate-200 text-center transition">
                   <i class="ph-bold ph-arrow-u-down-left text-base text-emerald-600 block mb-0.5"></i>
                   <span class="font-extrabold text-slate-800">Kembalikan</span>
@@ -291,20 +304,36 @@ $appFullName = get_app_full_name();
       if (!sel) return;
       var opt = sel.options[sel.selectedIndex];
       var st = opt ? opt.getAttribute('data-status') : '';
-      var rPinjam  = document.getElementById('radioPinjam');
-      var rKembali = document.getElementById('radioKembali');
+      var rPinjam   = document.getElementById('radioPinjam');
+      var rKembali  = document.getElementById('radioKembali');
       var lblPinjam = document.getElementById('lblPinjam');
+      var lblKembali= document.getElementById('lblKembali');
       var hint = document.getElementById('borrowLockHint');
       if (st === 'Dipinjam') {
         rPinjam.disabled = true;
+        rKembali.disabled = false;
         rKembali.checked = true;
         lblPinjam.classList.add('opacity-45', 'cursor-not-allowed');
         lblPinjam.classList.remove('cursor-pointer');
+        lblKembali.classList.remove('opacity-45', 'cursor-not-allowed');
+        lblKembali.classList.add('cursor-pointer');
         hint.classList.remove('hidden');
-      } else {
+      } else if (st === 'Tersedia') {
         rPinjam.disabled = false;
+        rPinjam.checked = true;
+        rKembali.disabled = true;
         lblPinjam.classList.remove('opacity-45', 'cursor-not-allowed');
         lblPinjam.classList.add('cursor-pointer');
+        lblKembali.classList.add('opacity-45', 'cursor-not-allowed');
+        lblKembali.classList.remove('cursor-pointer');
+        hint.classList.add('hidden');
+      } else {
+        rPinjam.disabled = false;
+        rKembali.disabled = false;
+        lblPinjam.classList.remove('opacity-45', 'cursor-not-allowed');
+        lblPinjam.classList.add('cursor-pointer');
+        lblKembali.classList.remove('opacity-45', 'cursor-not-allowed');
+        lblKembali.classList.add('cursor-pointer');
         hint.classList.add('hidden');
       }
     }
