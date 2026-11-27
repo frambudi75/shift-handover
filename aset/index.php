@@ -180,18 +180,26 @@ $logWhereSql = !empty($logWhere) ? ('WHERE ' . implode(' AND ', $logWhere)) : ''
 
 // Export filtered asset logs to CSV
 if (($_GET['export'] ?? '') === 'csv') {
-    $stmtExp = $pdo->prepare("SELECT l.* FROM shift_asset_logs l {$logWhereSql} ORDER BY l.id DESC");
+    $stmtExp = $pdo->prepare("
+        SELECT l.*, COALESCE(f.nama_folder, a.kategori, '-') AS folder_nama
+        FROM shift_asset_logs l
+        LEFT JOIN shift_assets a ON a.id = l.asset_id
+        LEFT JOIN shift_asset_folders f ON f.id = a.folder_id
+        {$logWhereSql}
+        ORDER BY l.id DESC
+    ");
     $stmtExp->execute($logParams);
     $expRows = $stmtExp->fetchAll();
 
     header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename="riwayat-kunci-aset-' . date('Ymd-His') . '.csv"');
+    header('Content-Disposition: attachment; filename="riwayat-aset-' . date('Ymd-His') . '.csv"');
     $out = fopen('php://output', 'w');
     fwrite($out, "\xEF\xBB\xBF");
-    fputcsv($out, ['Waktu', 'Aksi', 'Sumber', 'Nama Kunci / Aset', 'Peminjam / Petugas', 'Catatan']);
+    fputcsv($out, ['Waktu', 'Folder', 'Aksi', 'Sumber', 'Nama Item', 'Peminjam / Petugas', 'Catatan']);
     foreach ($expRows as $r) {
         fputcsv($out, [
             date('d/m/Y H:i', strtotime($r['created_at'])),
+            $r['folder_nama'],
             $r['aksi'],
             (int)$r['user_id'] === 0 ? 'QR Tamu' : 'Petugas',
             $r['nama_aset'],
@@ -210,7 +218,15 @@ $totalLogPages = max(1, (int)ceil($totalLogs / $logPerPage));
 if ($logPage > $totalLogPages) $logPage = $totalLogPages;
 $logOffset = ($logPage - 1) * $logPerPage;
 
-$stmtLogs = $pdo->prepare("SELECT l.* FROM shift_asset_logs l {$logWhereSql} ORDER BY l.id DESC LIMIT {$logPerPage} OFFSET {$logOffset}");
+$stmtLogs = $pdo->prepare("
+    SELECT l.*, COALESCE(f.nama_folder, a.kategori, '') AS folder_nama
+    FROM shift_asset_logs l
+    LEFT JOIN shift_assets a ON a.id = l.asset_id
+    LEFT JOIN shift_asset_folders f ON f.id = a.folder_id
+    {$logWhereSql}
+    ORDER BY l.id DESC
+    LIMIT {$logPerPage} OFFSET {$logOffset}
+");
 $stmtLogs->execute($logParams);
 $logs = $stmtLogs->fetchAll();
 
@@ -567,13 +583,18 @@ require_once __DIR__ . '/../includes/header.php';
 
     <!-- Filter Form -->
     <form method="GET" action="<?= BASE_URL ?>aset/index#riwayat-aset" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2 text-xs">
-      <?php if ($folderId > 0): ?>
-        <input type="hidden" name="folder" value="<?= $folderId ?>" />
-      <?php endif; ?>
-      <div class="lg:col-span-4 relative">
+      <div class="lg:col-span-3 relative">
         <i class="ph-bold ph-magnifying-glass text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-        <input type="text" name="log_q" value="<?= sanitize($logQ) ?>" placeholder="Cari kunci, nama peminjam, catatan..."
+        <input type="text" name="log_q" value="<?= sanitize($logQ) ?>" placeholder="Cari item, peminjam, catatan..."
                class="w-full pl-9 pr-3 py-2 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700" />
+      </div>
+      <div class="lg:col-span-2">
+        <select name="folder" class="w-full px-3 py-2 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700 font-bold cursor-pointer">
+          <option value="0" <?= $folderId === 0 ? 'selected' : '' ?>>Semua Folder</option>
+          <?php foreach ($folders as $f): ?>
+            <option value="<?= (int)$f['id'] ?>" <?= $folderId === (int)$f['id'] ? 'selected' : '' ?>><?= sanitize($f['nama_folder']) ?></option>
+          <?php endforeach; ?>
+        </select>
       </div>
       <div class="lg:col-span-2">
         <select name="log_aksi" class="w-full px-3 py-2 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700 font-bold cursor-pointer">
@@ -593,13 +614,13 @@ require_once __DIR__ . '/../includes/header.php';
         <input type="date" name="log_date" value="<?= sanitize($logDate) ?>"
                class="w-full px-3 py-2 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700" />
       </div>
-      <div class="lg:col-span-2 flex items-center gap-1.5">
-        <button type="submit" class="flex-1 px-3 py-2 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] text-white font-extrabold cursor-pointer transition">
+      <div class="lg:col-span-1 flex items-center gap-1.5">
+        <button type="submit" class="w-full px-3 py-2 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] text-white font-extrabold cursor-pointer transition">
           Filter
         </button>
         <?php if ($hasLogFilter): ?>
-          <a href="<?= BASE_URL ?>aset/index<?= $folderId > 0 ? '?folder=' . $folderId : '' ?>#riwayat-aset" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-200 transition">
-            Reset
+          <a href="<?= BASE_URL ?>aset/index<?= $folderId > 0 ? '?folder=' . $folderId : '' ?>#riwayat-aset" class="px-2.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-200 transition" title="Reset Filter">
+            <i class="ph-bold ph-arrow-counter-clockwise"></i>
           </a>
         <?php endif; ?>
       </div>
@@ -617,6 +638,11 @@ require_once __DIR__ . '/../includes/header.php';
               <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold <?= $lg['aksi'] === 'PINJAM' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700' ?>">
                 <?= $lg['aksi'] ?>
               </span>
+              <?php if (!empty($lg['folder_nama'])): ?>
+                <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[9.5px] font-bold">
+                  <?= sanitize($lg['folder_nama']) ?>
+                </span>
+              <?php endif; ?>
               <?php if ((int)$lg['user_id'] === 0): ?>
                 <span class="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 text-[9.5px] font-extrabold">QR TAMU</span>
               <?php endif; ?>
