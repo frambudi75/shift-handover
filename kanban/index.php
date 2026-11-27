@@ -6,6 +6,7 @@ require_once __DIR__ . '/../config/app.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/holiday_helper.php';
 
 require_login();
 $user   = current_user();
@@ -305,6 +306,9 @@ $monthEndStr    = $reqMonth . '-' . str_pad((string)$daysInMonth, 2, '0', STR_PA
 $prevMonthStr   = date('Y-m', strtotime('-1 month', $monthStartTs));
 $nextMonthStr   = date('Y-m', strtotime('+1 month', $monthStartTs));
 
+$holidays        = get_indonesian_holidays((int)substr($reqMonth, 0, 4));
+$selectedHoliday = $holidays[$reqDate] ?? (get_indonesian_holidays((int)substr($reqDate, 0, 4))[$reqDate] ?? null);
+
 $indoMonths = [
     '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
     '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
@@ -554,6 +558,8 @@ require_once __DIR__ . '/../includes/header.php';
             $cellDate    = $reqMonth . '-' . str_pad((string)$day, 2, '0', STR_PAD_LEFT);
             $weekdayNum  = (int)date('N', strtotime($cellDate));
             $isWeekend   = $weekdayNum >= 6;
+            $dayHoliday  = $holidays[$cellDate] ?? null;
+            $isRedDate   = $isWeekend || ($dayHoliday !== null);
             $isToday     = ($cellDate === $todayStr);
             $isSelected  = ($cellDate === $reqDate);
             $dayEvents   = $schedulesByDate[$cellDate] ?? [];
@@ -565,6 +571,8 @@ require_once __DIR__ . '/../includes/header.php';
                 $cellClasses .= 'bg-[#efeffb]/75 dark:bg-indigo-950/40 border-[#6558f5] ring-2 ring-[#6558f5]/20 ';
             } elseif ($isToday) {
                 $cellClasses .= 'bg-white dark:bg-[#1b1e30] border-[#6558f5]/60 ';
+            } elseif ($dayHoliday !== null) {
+                $cellClasses .= 'bg-rose-50/45 dark:bg-rose-950/20 border-rose-200/70 dark:border-rose-900/50 ';
             } elseif ($isWeekend) {
                 $cellClasses .= 'bg-slate-50/90 dark:bg-[#151828]/80 border-slate-100 dark:border-slate-800/80 ';
             } else {
@@ -574,7 +582,7 @@ require_once __DIR__ . '/../includes/header.php';
           <div class="<?= $cellClasses ?>"
                onclick="window.location.href='<?= BASE_URL ?>kanban/index?month=<?= urlencode($reqMonth) ?>&date=<?= urlencode($cellDate) ?>'">
             <div class="flex items-center justify-between gap-1">
-              <span class="inline-flex items-center justify-center w-6 h-6 rounded-lg text-xs font-extrabold <?= $isToday ? 'bg-[#6558f5] text-white shadow-sm' : ($isSelected ? 'text-[#6558f5] dark:text-indigo-300' : ($isWeekend ? 'text-rose-500 dark:text-rose-400' : 'text-slate-700 dark:text-slate-200')) ?>">
+              <span class="inline-flex items-center justify-center w-6 h-6 rounded-lg text-xs font-extrabold <?= $isToday ? 'bg-[#6558f5] text-white shadow-sm' : ($isSelected ? 'text-[#6558f5] dark:text-indigo-300' : ($isRedDate ? 'text-rose-500 dark:text-rose-400' : 'text-slate-700 dark:text-slate-200')) ?>">
                 <?= $day ?>
               </span>
 
@@ -596,10 +604,19 @@ require_once __DIR__ . '/../includes/header.php';
 
             <!-- Desktop: Chips | Mobile: Compact Dots -->
             <div class="mt-1.5 space-y-1">
+              <?php if ($dayHoliday !== null): ?>
+                <div class="hidden sm:flex cal-event-chip"
+                     style="background-color: #fff1f2; color: #be123c; border-color: #fecdd3;"
+                     title="Libur Nasional: <?= sanitize($dayHoliday['name']) ?>">
+                  <i class="ph-fill ph-confetti text-[10px] shrink-0 text-rose-500"></i>
+                  <span class="truncate"><?= sanitize($dayHoliday['name']) ?></span>
+                </div>
+              <?php endif; ?>
               <?php
                 $shown = 0;
+                $maxChips = $dayHoliday !== null ? 1 : 2;
                 foreach ($dayEvents as $ev):
-                  if ($shown >= 2) break;
+                  if ($shown >= $maxChips) break;
                   $shown++;
                   $meta = $scheduleCategories[$ev['kategori']] ?? $scheduleCategories['Lainnya'];
                   $timeShort = !empty($ev['jam_mulai']) ? substr($ev['jam_mulai'], 0, 5) . ' ' : '';
@@ -612,9 +629,9 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
               <?php endforeach; ?>
 
-              <?php if ($shown < 2 && !empty($dayTasks)): ?>
+              <?php if ($shown < $maxChips && !empty($dayTasks)): ?>
                 <?php foreach ($dayTasks as $dt): ?>
-                  <?php if ($shown >= 2) break; $shown++; ?>
+                  <?php if ($shown >= $maxChips) break; $shown++; ?>
                   <div class="hidden sm:flex cal-event-chip"
                        style="background-color: #f8fafc; color: #334155; border-color: #cbd5e1;"
                        title="Target Tugas: <?= sanitize($dt['judul']) ?>">
@@ -624,15 +641,18 @@ require_once __DIR__ . '/../includes/header.php';
                 <?php endforeach; ?>
               <?php endif; ?>
 
-              <?php if ($totalItems > 2): ?>
+              <?php if ($totalItems > $maxChips): ?>
                 <div class="hidden sm:block text-[9.5px] font-extrabold text-[#6558f5] dark:text-indigo-300 pl-1">
-                  +<?= $totalItems - 2 ?> lainnya
+                  +<?= $totalItems - $maxChips ?> lainnya
                 </div>
               <?php endif; ?>
 
               <!-- Mobile Dots -->
-              <?php if ($totalItems > 0): ?>
+              <?php if ($totalItems > 0 || $dayHoliday !== null): ?>
                 <div class="flex sm:hidden flex-wrap items-center gap-1 pt-0.5">
+                  <?php if ($dayHoliday !== null): ?>
+                    <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                  <?php endif; ?>
                   <?php foreach (array_slice($dayEvents, 0, 3) as $ev): $meta = $scheduleCategories[$ev['kategori']] ?? $scheduleCategories['Lainnya']; ?>
                     <span class="w-2 h-2 rounded-full" style="background-color: <?= $meta['dot'] ?>;"></span>
                   <?php endforeach; ?>
@@ -656,6 +676,11 @@ require_once __DIR__ . '/../includes/header.php';
             <span><?= sanitize($catName) ?></span>
           </span>
         <?php endforeach; ?>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold border"
+              style="background-color: #fff1f2; color: #be123c; border-color: #fecdd3;">
+          <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+          <span>Libur Nasional</span>
+        </span>
       </div>
     </div>
 
@@ -673,6 +698,18 @@ require_once __DIR__ . '/../includes/header.php';
             <span>Jadwal</span>
           </button>
         </div>
+
+        <?php if ($selectedHoliday !== null): ?>
+          <div class="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/60 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0">
+              <i class="ph-fill ph-confetti text-lg"></i>
+            </div>
+            <div>
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-rose-600 dark:text-rose-300">Hari Libur Nasional</span>
+              <div class="text-xs font-extrabold text-rose-900 dark:text-rose-100"><?= sanitize($selectedHoliday['name']) ?></div>
+            </div>
+          </div>
+        <?php endif; ?>
 
         <?php if (empty($selectedSchedules) && empty($selectedTasks)): ?>
           <div class="p-6 rounded-2xl bg-[#f7f7fb] dark:bg-[#151828] border border-dashed border-slate-200 dark:border-slate-800 text-center space-y-2">
