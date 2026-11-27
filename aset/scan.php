@@ -126,7 +126,9 @@ $appFullName = get_app_full_name();
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <link rel="stylesheet" href="<?= BASE_URL ?>assets/vendor/phosphor/regular/style.css" />
+  <link rel="stylesheet" href="<?= BASE_URL ?>assets/vendor/phosphor/bold/style.css" />
+  <link rel="stylesheet" href="<?= BASE_URL ?>assets/vendor/phosphor/fill/style.css" />
   <style>
     body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
     .aksi-radio:checked + .aksi-box-pinjam {
