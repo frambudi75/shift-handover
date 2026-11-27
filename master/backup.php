@@ -10,7 +10,7 @@ require_once __DIR__ . '/../includes/backup_helper.php';
 require_once __DIR__ . '/../includes/optimizer_helper.php';
 require_once __DIR__ . '/../includes/notifications.php';
 
-require_admin();
+require_superadmin();
 $user = current_user();
 
 // Handle Direct Download Action (Must be handled before header output)
