@@ -796,6 +796,65 @@
   </div>
   <?php endif; ?>
 
+  <!-- Floating Back-to-Top Button -->
+  <button type="button" id="btnBackToTop" onclick="scrollMainToTop()" title="Kembali ke Atas"
+          class="hidden fixed bottom-20 md:bottom-6 right-5 z-40 w-10 h-10 rounded-2xl bg-[#6558f5] hover:bg-[#5244e8] text-white shadow-lg shadow-indigo-500/30 flex items-center justify-center transition-all duration-200 cursor-pointer active:scale-95">
+    <i class="ph-bold ph-arrow-up text-lg"></i>
+  </button>
+
+  <script>
+    (function() {
+      // 1. Back-to-Top on <main> scroll
+      const mainEl = document.querySelector('main');
+      const topBtn = document.getElementById('btnBackToTop');
+      if (mainEl && topBtn) {
+        mainEl.addEventListener('scroll', function() {
+          topBtn.classList.toggle('hidden', mainEl.scrollTop < 320);
+        }, { passive: true });
+        window.scrollMainToTop = function() {
+          mainEl.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+      }
+
+      // 2. Anti-Double-Submit + Loading Spinner for POST forms
+      document.addEventListener('submit', function(e) {
+        const form = e.target;
+        if (!form || (form.method || '').toUpperCase() !== 'POST' || form.target === '_blank') return;
+        const btn = e.submitter || form.querySelector('button[type="submit"]');
+        if (!btn || btn.dataset.noLock === '1') return;
+
+        // Defer disable by 1 tick so clicked button name/value is always included in POST payload
+        setTimeout(function() {
+          btn.disabled = true;
+          btn.classList.add('opacity-80', 'cursor-wait');
+          if (!btn.dataset.origHtml) btn.dataset.origHtml = btn.innerHTML;
+          btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-base"></i> <span>Memproses...</span>';
+        }, 0);
+      });
+
+      // 3. Control Room Keyboard Shortcuts ('/' for Quick Search, 'Esc' to close modals/popovers)
+      document.addEventListener('keydown', function(e) {
+        const tag = (document.activeElement && document.activeElement.tagName) || '';
+        const isTyping = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (document.activeElement && document.activeElement.isContentEditable);
+
+        if (e.key === '/' && !isTyping && !e.ctrlKey && !e.metaKey && !e.altKey) {
+          const searchInput = document.querySelector('input[oninput*="handleQuickSearch"]');
+          if (searchInput) {
+            e.preventDefault();
+            searchInput.focus();
+            searchInput.select();
+          }
+        } else if (e.key === 'Escape') {
+          document.querySelectorAll('[id$="Modal"]:not(.hidden)').forEach(m => m.classList.add('hidden'));
+          const bell = document.getElementById('bellPopover');
+          if (bell && !bell.classList.contains('hidden')) bell.classList.add('hidden');
+          const qs = document.getElementById('quickSearchResults');
+          if (qs && !qs.classList.contains('hidden')) qs.classList.add('hidden');
+        }
+      });
+    })();
+  </script>
+
   <script src="<?= BASE_URL ?>assets/js/sakuga-vfx.js?v=<?= @filemtime(__DIR__ . '/../assets/js/sakuga-vfx.js') ?: '290' ?>" defer></script>
 </body>
 </html>
