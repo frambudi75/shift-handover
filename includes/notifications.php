@@ -71,8 +71,23 @@ function build_handover_whatsapp_message(array $report, array $tasks): string {
     $petugasMenyerahkan = $report['nama_menyerahkan'] ?? 'Petugas';
     $petugasMenerima    = $report['nama_menerima'] ?? 'Menunggu Persetujuan';
     $nomorLaporan       = $report['nomor_laporan'] ?? '-';
-    $namaShift          = $report['nama_shift'] ?? '-';
     $namaLokasi         = $report['nama_lokasi'] ?? '-';
+
+    // Ambil jam shift jika tersedia
+    if (empty($report['jam_mulai']) && !empty($report['shift_id']) && function_exists('get_master_shift')) {
+        $allShifts = get_master_shift(false);
+        foreach ($allShifts as $sh) {
+            if ($sh['id'] == $report['shift_id']) {
+                $report['jam_mulai'] = $sh['jam_mulai'];
+                $report['jam_selesai'] = $sh['jam_selesai'];
+                break;
+            }
+        }
+    }
+
+    $jamShift = (!empty($report['jam_mulai']) && !empty($report['jam_selesai']))
+        ? (format_jam($report['jam_mulai']) . ' - ' . format_jam($report['jam_selesai']) . ' WIB')
+        : ($report['nama_shift'] ?? '-');
 
     $divider = "─────────────────────────────";
 
@@ -81,7 +96,7 @@ function build_handover_whatsapp_message(array $report, array $tasks): string {
          . "{$divider}\n"
          . "*No. Dokumen* : {$nomorLaporan}\n"
          . "*Waktu*       : {$tglFmt} ({$jamFmt} WIB)\n"
-         . "*Shift*       : {$namaShift}\n"
+         . "*Shift*       : {$jamShift}\n"
          . "*Lokasi/Unit* : {$namaLokasi}\n"
          . "*Kondisi*     : {$kondisi}\n";
 
@@ -111,12 +126,9 @@ function build_handover_whatsapp_message(array $report, array $tasks): string {
         $i = 1;
         foreach ($tasks as $t) {
             $ticketStr = !empty($t['no_tiket']) ? "[{$t['no_tiket']}] " : "";
-            
-            // Format prioritas teks bersih tanpa emoji warna-warni
-            $prioText = ($t['prioritas'] === 'Tinggi / Kritis') ? '[Kritis]' : (($t['prioritas'] === 'Sedang') ? '[Sedang]' : '[Rendah]');
 
             $msg .= "{$i}. {$ticketStr}{$t['pekerjaan_masalah']}\n"
-                  . "   • Prioritas : {$prioText} | Status: {$t['status']}\n"
+                  . "   • Status : {$t['status']}\n"
                   . "   • PIC : {$t['pic']}" . (!empty($t['target_selesai']) ? " (Target: {$t['target_selesai']})" : "") . "\n";
             if (!empty($t['kondisi_tindak_lanjut'])) {
                 $msg .= "   • Tindak Lanjut: {$t['kondisi_tindak_lanjut']}\n";
@@ -136,22 +148,12 @@ function build_handover_whatsapp_message(array $report, array $tasks): string {
         $msg .= "Seluruh pekerjaan pada shift ini telah selesai (Nol Outstanding).\n";
     } else {
         $totalOut = count($outstanding);
-        $kritisCount = 0;
-        foreach ($outstanding as $ot) {
-            if ($ot['prioritas'] === 'Tinggi / Kritis') $kritisCount++;
-        }
-
-        if ($kritisCount > 0) {
-            $msg .= "Perhatian: Terdapat {$totalOut} pekerjaan belum selesai ({$kritisCount} berkategori Kritis):\n";
-        } else {
-            $msg .= "Terdapat {$totalOut} pekerjaan belum selesai yang dilanjutkan shift berikutnya:\n";
-        }
+        $msg .= "Terdapat {$totalOut} pekerjaan belum selesai yang dilanjutkan shift berikutnya:\n";
 
         $j = 1;
         foreach ($outstanding as $ot) {
             $tNo = !empty($ot['no_tiket']) ? "[{$ot['no_tiket']}] " : "";
-            $pTag = ($ot['prioritas'] === 'Tinggi / Kritis') ? 'Prioritas Kritis' : (($ot['prioritas'] === 'Sedang') ? 'Prioritas Sedang' : 'Prioritas Rendah');
-            $msg .= "  {$j}. {$tNo}{$ot['pekerjaan_masalah']} ({$pTag} • PIC: {$ot['pic']})\n";
+            $msg .= "  {$j}. {$tNo}{$ot['pekerjaan_masalah']} (PIC: {$ot['pic']})\n";
             $j++;
         }
     }
@@ -381,7 +383,7 @@ function send_smtp_email(?string $toEmail, ?string $toName = null, string $subje
  */
 function notify_handover_created(int $laporanId, PDO $pdo): array {
     $stmt = $pdo->prepare("
-        SELECT l.*, s.nama_shift, m.nama_lokasi,
+        SELECT l.*, s.nama_shift, s.jam_mulai, s.jam_selesai, m.nama_lokasi,
                u1.nama_lengkap AS nama_menyerahkan, u1.email AS email_menyerahkan, u1.no_wa AS wa_menyerahkan,
                u2.nama_lengkap AS nama_menerima, u2.email AS email_menerima, u2.no_wa AS wa_menerima
         FROM laporan_serah_terima l
@@ -501,7 +503,7 @@ function notify_handover_created(int $laporanId, PDO $pdo): array {
  */
 function notify_handover_approved(int $laporanId, PDO $pdo): array {
     $stmt = $pdo->prepare("
-        SELECT l.*, s.nama_shift, m.nama_lokasi,
+        SELECT l.*, s.nama_shift, s.jam_mulai, s.jam_selesai, m.nama_lokasi,
                u1.nama_lengkap AS nama_menyerahkan, u1.email AS email_menyerahkan, u1.no_wa AS wa_menyerahkan,
                u2.nama_lengkap AS nama_menerima, u2.email AS email_menerima, u2.no_wa AS wa_menerima
         FROM laporan_serah_terima l
