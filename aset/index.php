@@ -381,16 +381,21 @@ require_once __DIR__ . '/../includes/header.php';
       <a id="qrModalUrlPreview" href="#" target="_blank" class="block text-[10px] font-mono text-[#6558f5] break-all underline"></a>
     </div>
 
-    <div class="grid grid-cols-2 gap-2.5">
+    <div class="grid grid-cols-3 gap-2">
       <button type="button" onclick="copyQrLink()" id="copyQrBtn"
-              class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer">
+              class="px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-white font-extrabold text-[11px] flex items-center justify-center gap-1.5 cursor-pointer">
         <i class="ph-bold ph-link"></i>
         <span>Salin Link</span>
       </button>
+      <button type="button" onclick="downloadQrImage()"
+              class="px-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] flex items-center justify-center gap-1.5 cursor-pointer">
+        <i class="ph-bold ph-download-simple"></i>
+        <span>Simpan PNG</span>
+      </button>
       <button type="button" onclick="window.print()"
-              class="px-4 py-2.5 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer">
+              class="px-3 py-2.5 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] text-white font-extrabold text-[11px] flex items-center justify-center gap-1.5 cursor-pointer">
         <i class="ph-bold ph-printer"></i>
-        <span>Cetak Label</span>
+        <span>Cetak</span>
       </button>
     </div>
   </div>
@@ -494,6 +499,53 @@ require_once __DIR__ . '/../includes/header.php';
         btn.innerHTML = '<i class="ph-bold ph-link"></i><span>Salin Link</span>';
       }, 1800);
     });
+  }
+
+  function downloadQrImage() {
+    var qrSrc = document.querySelector('#qrCodeCanvas canvas') || document.querySelector('#qrCodeCanvas img');
+    if (!qrSrc) return;
+
+    var title = document.getElementById('qrModalTitle').textContent || 'QR Kunci';
+    var code  = document.getElementById('qrModalCode').textContent || 'QR';
+    var cat   = document.getElementById('qrModalCat').textContent || 'KUNCI';
+
+    var out = document.createElement('canvas');
+    out.width = 440;
+    out.height = 540;
+    var ctx = out.getContext('2d');
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, out.width, out.height);
+
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(14, 14, out.width - 28, out.height - 28);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#6558f5';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText(cat.toUpperCase(), out.width / 2, 58);
+
+    ctx.fillStyle = '#181b2c';
+    ctx.font = 'bold 22px sans-serif';
+    var displayTitle = title.length > 30 ? title.slice(0, 29) + '...' : title;
+    ctx.fillText(displayTitle, out.width / 2, 92);
+
+    ctx.fillStyle = '#64748b';
+    ctx.font = 'bold 16px monospace';
+    ctx.fillText(code, out.width / 2, 122);
+
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(qrSrc, (out.width - 300) / 2, 148, 300, 300);
+
+    ctx.fillStyle = '#475569';
+    ctx.font = '14px sans-serif';
+    ctx.fillText('Scan QR ini untuk catat pinjam / kembali kunci', out.width / 2, 488);
+
+    var a = document.createElement('a');
+    a.download = 'QR-' + code.replace(/[^a-zA-Z0-9_-]/g, '_') + '.png';
+    a.href = out.toDataURL('image/png');
+    a.click();
   }
 
   function filterAssets() {
