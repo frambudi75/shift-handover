@@ -65,7 +65,7 @@ graph TD
   - **Audit Trail (`/audit`)**: Rekam jejak aktivitas dan IP Address (`includes/audit_helper.php`).
   - **Control Room Idle Auto-Logout**: Peringatan hitung mundur 60 detik setelah 45 menit tanpa aktivitas.
   - **System Info (`/info`)**: Telemetri versi aplikasi, PHP, MariaDB/MySQL, dan Redis cache.
-  - **Modul Mandiri & Disaster Recovery**: Notulen Meeting (`/notulen`), Tautan Publik HMAC (`/laporan/share`), Restore & Migrasi Sistem (`master/backup.php`), dan Cron Auto-Backup (`cron/auto_backup.php`).
+  - **Modul Mandiri, Kalender & Disaster Recovery**: Notulen Meeting (`/notulen`), Tautan Publik HMAC (`/laporan/share`, `/notulen/share`), Kalender Kerja &amp; Kanban Pribadi (`/kanban` + `includes/holiday_helper.php`), Log Kunci &amp; Portal Scan QR Tamu (`/aset`, `/aset/scan`, `/aset/print_qr` + `includes/aset_helper.php`), Restore &amp; Migrasi Sistem (`master/backup.php`), dan Cron Auto-Backup (`cron/auto_backup.php`).
 
 #### C. Caching Layer (Redis 7 In-Memory with Safe Fallback)
 - **Komponen**: `includes/cache.php` (`OmitCache`).

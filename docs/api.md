@@ -99,7 +99,21 @@ Menampilkan detail 1 laporan serah terima atau 1 notulen meeting (`FINAL`) tanpa
 
 ---
 
-### 5. Endpoint Backup Terjadwal (`cron/auto_backup`)
+### 5. Endpoint Publik Scan QR Kunci &amp; Ekspor Data
+
+- **Portal Scan QR Kunci Tamu (Tanpa Login, Token HMAC)**:
+  - `GET /aset/scan?t={master_token}` — Menampilkan form pilih kunci/aset yang tersedia atau sedang dipinjam.
+  - `GET /aset/scan?id={asset_id}&t={item_token}` — Memilih kunci spesifik secara otomatis dan mengunci aksi *Pinjam* apabila status kunci masih `Dipinjam`.
+  - `POST /aset/scan` — Mencatat transaksi `PINJAM` / `KEMBALI` oleh tamu/petugas dan memicu notifikasi Lonceng &amp; Discord Webhook.
+- **Cetak Massal Stiker QR A4**:
+  - `GET /aset/print_qr` *(Login)* — Menampilkan seluruh QR kunci + QR meja tamu dalam grid siap cetak.
+- **Ekspor Riwayat Kunci &amp; Kalender**:
+  - `GET /aset/index?export=csv&log_q=...&log_aksi=...&log_sumber=...&log_date=...` *(Login)* — Mengunduh riwayat serah terima kunci dalam format CSV UTF-8 BOM sesuai filter aktif.
+  - `GET /kanban/index?export=ics` *(Login)* — Mengunduh jadwal kerja pribadi dalam format iCalendar (`.ics`).
+
+---
+
+### 6. Endpoint Backup Terjadwal (`cron/auto_backup`)
 
 Memicu backup database/full sistem otomatis dan mengirimkannya ke Discord Webhook (mendukung pemecahan multi-part 8 MB).
 

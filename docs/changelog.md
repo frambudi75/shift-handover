@@ -5,7 +5,20 @@ Semua perubahan dan peningkatan fungsionalitas sistem dicatat secara berkala pad
 
 ---
 
-### Versi 2.11.0 LTS (2026-11-27) - *Current Release*
+### Versi 2.12.0 LTS (2026-11-27) - *Current Release*
+- **Kalender Jadwal Kerja, Libur Nasional & Kanban Interaktif (`/kanban`)**:
+  - **Kalender Kerja Pribadi (`personal_work_schedules`)**: Grid bulanan `Sen`–`Min` lengkap dengan dropdown pilih **Bulan & Tahun**, badge jumlah pekerjaan per tanggal, panel **Agenda Tanggal**, daftar **Jadwal 7 Hari Ke Depan**, serta preset shift cepat (*Shift Pagi/Siang/Malam, Maintenance, Lembur*).
+  - **Hari Libur Nasional & Cuti Bersama (`includes/holiday_helper.php`)**: Integrasi otomatis hari libur nasional dan **Cuti Bersama SKB 3 Menteri** (cache API 7 hari + fallback bawaan 2025–2027) dengan penanda warna berbeda di kalender dan panel agenda.
+  - **Jadwal Berulang, Export `.ICS` & Drag-and-Drop**: Dukungan buat jadwal berulang (*Setiap Hari, Sen–Jum, Mingguan*), ekspor jadwal ke file `.ics` untuk Google/Apple Calendar, serta **Drag & Drop** kartu Kanban antar kolom via AJAX.
+- **QR Barcode Kunci Tamu & Peningkatan Log Aset (`/aset`)**:
+  - **Portal Scan QR Publik (`/aset/scan`)**: Halaman mobile-first tanpa login bertoken HMAC-SHA256 agar tamu maupun petugas dapat memindai QR Code rak meja atau QR khusus per kunci untuk mencatat pinjam/kembali.
+  - **Anti-Duplikat Pinjam & Notifikasi Real-Time**: Penguncian otomatis opsi *Pinjam* jika kunci masih berstatus `Dipinjam`, pengiriman notifikasi instan ke **Lonceng Petugas** & **Discord Webhook** saat transaksi QR, serta banner pengingat apabila kunci dipinjam lebih dari **12 jam**.
+  - **Label QR, Simpan PNG & Cetak Massal (`/aset/print_qr`)**: Modal QR dilengkapi tombol **Salin Link**, **Simpan PNG** (dengan *auto-wrap* judul), **Cetak Label**, serta halaman **Cetak Semua QR** dalam grid stiker A4.
+  - **Filter, Pagination & Export CSV Riwayat**: Pencarian kata kunci, filter aksi (`PINJAM`/`KEMBALI`), sumber (`QR Tamu`/`Petugas`), tanggal, pagination 10 item per halaman, dan ekspor CSV UTF-8 BOM.
+
+---
+
+### Versi 2.11.0 LTS (2026-11-27)
 - **Kanban & Catatan Pribadi (`/kanban`) + Log Kunci & Aset Shift (`/aset`)**:
   - **Kanban & Catatan Pribadi (`/kanban`)**: Papan tugas 3 kolom (`Belum Mulai`, `Berjalan`, `Selesai`) dan *sticky notes* yang **100% privat** per akun login (`personal_kanban_tasks`, `personal_notes`).
   - **Log Kunci, Alat & Aset Shift (`/aset`)**: Pencatatan bersama/publik untuk peminjaman & pengembalian kunci ruang server, HT, kartu akses, dan alat piket (`shift_assets`, `shift_asset_logs`).
