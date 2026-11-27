@@ -10,10 +10,11 @@ Semua perubahan dan peningkatan fungsionalitas sistem dicatat secara berkala pad
   - **Tautan Publik Notulen (`/notulen/share`)**: Halaman baca-saja bertoken HMAC untuk Notulen berstatus `FINAL`, terintegrasi di tombol Salin Link & teks WhatsApp.
   - **Catatan Tindak Lanjut Laporan (`laporan_comments`)**: Kolom diskusi/update perkembangan di bawah `laporan/detail` tanpa mengubah isi berita acara bertanda tangan.
   - **Mode Monitor TV / Kiosk**: Tombol layar penuh di Dashboard dengan *auto-refresh* setiap 60 detik, serta filter cepat **Perlu Validasi Saya** & **Laporan Saya** di Riwayat Laporan.
-- **Keamanan, Audit & Poles UI**:
+- **Keamanan, Audit & Poles UI/UX**:
   - Pembatasan menu **Pusat Backup & Pemulihan (`/master/backup`)** khusus Superadmin.
   - Tombol **Ekspor CSV** pada halaman **Audit Trail (`/audit`)** sesuai filter aktif.
   - Perapihan kurva konektor SVG atas & bawah sidebar desktop agar menyatu mulus.
+  - Perlindungan *anti-double-submit* (spinner `Memproses...`), shortcut keyboard (`/` untuk Quick Search, `Esc` untuk tutup modal/popover), dan tombol *Back to Top*.
 
 ---
 

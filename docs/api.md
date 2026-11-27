@@ -89,12 +89,13 @@ Mengambil daftar notifikasi serah terima pengguna dan pengumuman resmi Superadmi
 
 ---
 
-### 4. Tautan Publik Baca-Saja (`/laporan/share`)
+### 4. Tautan Publik Baca-Saja (`/laporan/share` & `/notulen/share`)
 
-Menampilkan detail 1 laporan serah terima tanpa login menggunakan token HMAC SHA-256.
+Menampilkan detail 1 laporan serah terima atau 1 notulen meeting (`FINAL`) tanpa login menggunakan token HMAC SHA-256.
 
-- **URL**: `GET /laporan/share?id={id}&token={hmac_24chars}` (`laporan/share.php`)
-- **Validasi**: `hash_equals(get_report_share_token($id, $nomor_laporan), $token)` — mengembalikan tampilan akses ditolak apabila token tidak cocok atau laporan berstatus `DRAFT`.
+- **Laporan Serah Terima**: `GET /laporan/share?id={id}&token={hmac_24chars}` (`laporan/share.php`)
+- **Notulen Meeting/Briefing**: `GET /notulen/share?id={id}&token={hmac_24chars}` (`notulen/share.php`)
+- **Validasi**: `hash_equals(...)` — mengembalikan tampilan akses ditolak apabila token tidak cocok atau dokumen masih berstatus `DRAFT`.
 
 ---
 
