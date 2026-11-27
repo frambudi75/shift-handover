@@ -102,9 +102,37 @@ require_once __DIR__ . '/includes/header.php';
     </form>
   </div>
 
-  <!-- Table -->
+  <!-- Table & Mobile Cards -->
   <div class="bg-white dark:bg-[#1b1e30] rounded-[26px] border border-slate-100 dark:border-slate-800/80 shadow-feature overflow-hidden">
-    <div class="overflow-x-auto">
+    <!-- Mobile Card View (< 640px) -->
+    <div class="sm:hidden divide-y divide-slate-100 dark:divide-slate-800/80">
+      <?php if (empty($logs)): ?>
+        <div class="py-10 text-center text-slate-400 text-xs">Belum ada catatan aktivitas yang cocok.</div>
+      <?php else: ?>
+        <?php foreach ($logs as $row): ?>
+          <?php
+            $badgeCls = str_contains($row['action'], 'FAIL') || str_contains($row['action'], 'DELETE')
+                ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
+                : (str_contains($row['action'], 'LOGIN')
+                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                    : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300');
+          ?>
+          <div class="p-4 space-y-1.5 text-xs">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-extrabold text-[#181b2c] dark:text-white">@<?= sanitize($row['username']) ?></span>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold <?= $badgeCls ?>"><?= sanitize($row['action']) ?></span>
+            </div>
+            <p class="text-slate-700 dark:text-slate-200 leading-relaxed"><?= sanitize($row['description']) ?></p>
+            <div class="flex items-center justify-between text-[10.5px] font-mono text-slate-400 pt-0.5">
+              <span><?= date('d/m/Y H:i:s', strtotime($row['created_at'])) ?> WIB</span>
+              <span><?= sanitize($row['ip_address'] ?: '-') ?></span>
+            </div>
+          </div>
+        <?php endforeach; ?>
+      <?php endif; ?>
+    </div>
+
+    <div class="hidden sm:block overflow-x-auto">
       <table class="w-full text-left text-xs">
         <thead class="bg-[#f7f7fb] dark:bg-[#151828] text-slate-500 uppercase font-extrabold text-[10px] tracking-wider border-b border-slate-100 dark:border-slate-800">
           <tr>

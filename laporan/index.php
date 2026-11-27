@@ -213,7 +213,62 @@ require_once __DIR__ . '/../includes/header.php';
       </div>
     </div>
 
-    <div class="overflow-x-auto">
+    <!-- Mobile Card View (< 640px) -->
+    <div class="sm:hidden divide-y divide-slate-100 dark:divide-slate-800/80">
+      <?php if (empty($reports)): ?>
+        <div class="py-10 text-center text-slate-400 text-xs">
+          <i class="ph ph-folder-open text-4xl mb-2 block"></i>
+          Tidak ada laporan yang sesuai dengan kriteria filter.
+        </div>
+      <?php else: ?>
+        <?php foreach ($reports as $r): ?>
+          <div class="p-4 space-y-2.5">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <a href="<?= BASE_URL ?>laporan/detail?id=<?= $r['id'] ?>" class="font-mono font-extrabold text-xs text-[#6558f5] hover:underline">
+                  <?= sanitize($r['nomor_laporan']) ?>
+                </a>
+                <div class="text-[11px] text-slate-500 mt-0.5">
+                  <?= format_tanggal($r['tanggal']) ?> • Shift <?= sanitize($r['nama_shift']) ?> • <?= sanitize($r['nama_lokasi']) ?>
+                </div>
+              </div>
+              <?= badge_status_validasi($r['status_validasi']) ?>
+            </div>
+
+            <div class="flex items-center justify-between gap-2 text-[11px]">
+              <?= badge_kondisi_operasional($r['kondisi_operasional']) ?>
+              <div class="flex items-center gap-1.5">
+                <span class="px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700 font-bold"><?= $r['total_aktif'] ?> Aktif</span>
+                <?php if ($r['total_kritis'] > 0): ?>
+                  <span class="px-2 py-0.5 rounded-lg bg-rose-100 text-rose-700 font-extrabold"><?= $r['total_kritis'] ?> Kritis</span>
+                <?php endif; ?>
+              </div>
+            </div>
+
+            <div class="text-[11px] text-slate-500 dark:text-slate-400 flex flex-wrap gap-x-3 gap-y-0.5">
+              <span>Lama: <strong class="text-slate-700 dark:text-slate-200"><?= sanitize($r['nama_menyerahkan']) ?></strong></span>
+              <span>Baru: <strong class="text-slate-700 dark:text-slate-200"><?= sanitize($r['nama_menerima'] ?? 'Menunggu') ?></strong></span>
+            </div>
+
+            <div class="flex items-center justify-end gap-1.5 pt-1">
+              <?php if ($r['status_validasi'] === 'DRAFT' && ($r['created_by'] == $user['id'] || is_admin())): ?>
+                <a href="<?= BASE_URL ?>laporan/create?edit=<?= $r['id'] ?>" class="px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-900/40 text-amber-600 dark:text-amber-300 text-[11px] font-bold flex items-center gap-1">
+                  <i class="ph-bold ph-pencil-simple"></i> Edit Draft
+                </a>
+              <?php endif; ?>
+              <a href="<?= BASE_URL ?>laporan/detail?id=<?= $r['id'] ?>" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[11px] font-bold flex items-center gap-1">
+                <i class="ph-bold ph-eye"></i> Detail
+              </a>
+              <a href="<?= BASE_URL ?>laporan/print?id=<?= $r['id'] ?>" target="_blank" class="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-900/40 text-[#6558f5] text-[11px] font-bold flex items-center gap-1">
+                <i class="ph-bold ph-printer"></i> PDF
+              </a>
+            </div>
+          </div>
+        <?php endforeach; ?>
+      <?php endif; ?>
+    </div>
+
+    <div class="hidden sm:block overflow-x-auto">
       <table class="w-full text-left text-xs">
         <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 uppercase tracking-wider">
           <tr>

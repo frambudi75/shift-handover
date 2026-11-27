@@ -12,7 +12,7 @@ require_once __DIR__ . '/includes/header.php';
 
 // Live System Telemetry
 $appVersion     = APP_VERSION;
-$releaseDate    = '26 November 2026';
+$releaseDate    = '27 November 2026';
 $isDocker       = file_exists('/.dockerenv') || getenv('DB_HOST') !== false;
 $envLabel       = $isDocker ? 'Docker Container (PHP ' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . ')' : 'Web Server (' . PHP_OS_FAMILY . ')';
 $dbVersion      = $pdo->query("SELECT VERSION()")->fetchColumn();
@@ -44,11 +44,24 @@ $extensions = [
 // Release History / Changelog Data
 $releases = [
     [
+        'version' => 'v2.10.0 LTS',
+        'date'    => '27 Nov 2026',
+        'title'   => 'Analitik Rekap, Notif Keamanan Discord, Sakuga Micro-VFX & Mobile Card View',
+        'badge'   => 'TERBARU',
+        'color'   => 'bg-[#6558f5] text-white',
+        'items'   => [
+            ['type' => 'Baru',      'text' => 'Analitik & Grafik Tren Bulanan pada Rekap Logbook (/rekap) lengkap dengan KPI validasi, penyelesaian tiket, grafik harian lokal, serta ekspor Excel (.xls).'],
+            ['type' => 'Keamanan',  'text' => 'Notifikasi Keamanan & Audit Log ke Discord Webhook (khusus Superadmin) dengan filter event Login Gagal/Sukses, Laporan/Notulen, dan Aksi Kritis Sistem.'],
+            ['type' => 'Baru',      'text' => 'Pengingat Otomatis Sebelum Ganti Shift: banner countdown 30 menit menjelang jam serah terima bila laporan shift berjalan belum dikirim.'],
+            ['type' => 'Tampilan',  'text' => 'Efek mikro Sakuga VFX (Canvas 2D & animasi spring bertema NoteFlow OMIT) serta tampilan Card View khusus mobile di halaman Riwayat Laporan, Notulen, dan Audit Trail.'],
+        ]
+    ],
+    [
         'version' => 'v2.9.0 LTS',
         'date'    => '26 Nov 2026',
         'title'   => 'Integrasi LDAP / AD, Restore & Migrasi Sistem, Tautan Publik & Cron Auto-Backup',
-        'badge'   => 'TERBARU',
-        'color'   => 'bg-[#6558f5] text-white',
+        'badge'   => 'LTS',
+        'color'   => 'bg-indigo-100 text-[#6558f5] dark:bg-indigo-950/60 dark:text-indigo-300',
         'items'   => [
             ['type' => 'Baru',      'text' => 'Menu Integrasi Server LDAP / Active Directory (/master/ldap) khusus Superadmin dengan autentikasi Hybrid, preset AD/OpenLDAP, Test Koneksi, Impor/Sync massal user, dan ekstensi PHP ext-ldap di container.'],
             ['type' => 'Baru',      'text' => 'Fitur Restore & Migrasi Sistem (.sql / .zip) pada Pusat Backup khusus Superadmin lengkap dengan snapshot pengaman otomatis sebelum restore dan opsi pertahankan konfigurasi DB server.'],

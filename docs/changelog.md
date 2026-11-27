@@ -5,7 +5,19 @@ Semua perubahan dan peningkatan fungsionalitas sistem dicatat secara berkala pad
 
 ---
 
-### Versi 2.9.0 LTS (2026-11-26) - *Current Release*
+### Versi 2.10.0 LTS (2026-11-27) - *Current Release*
+- **Analitik & Grafik Tren Operasional (`/rekap`)**:
+  - Kartu KPI evaluasi periode (Total Laporan & % Tervalidasi, Rasio Tiket Selesai, Shift Non-Normal, Total Notulen), grafik batang tren harian lokal tanpa CDN, rasio status pekerjaan, serta tombol ekspor Excel (`.xls`).
+- **Notifikasi Keamanan Discord & Pengingat Shift**:
+  - Peringatan *real-time* event keamanan & audit ke Discord Webhook (khusus Superadmin di `/master/pengaturan`) dengan pilihan event granular.
+  - Banner *countdown* otomatis 30 menit sebelum jam serah terima apabila laporan shift berjalan belum dibuat.
+- **Peningkatan UI/UX & Mobile**:
+  - Efek mikro **Sakuga VFX** (`assets/js/sakuga-vfx.js` Canvas 2D + animasi *spring* bertema OMIT) pada tombol aksi, toggle tema, checkbox, dan toast notifikasi.
+  - Tampilan **Mobile Card View** (`< 640px`) pada halaman Riwayat Laporan, Notulen Meeting, dan Audit Trail agar nyaman dibaca di HP tanpa *horizontal scroll*.
+
+---
+
+### Versi 2.9.0 LTS (2026-11-26)
 - **Integrasi LDAP / Active Directory (`/master/ldap`)**:
   - Menu khusus **Superadmin** untuk konfigurasi server AD / OpenLDAP / FreeIPA, Test Koneksi, dan **Impor / Sync massal user** ke database lokal.
   - Autentikasi **Hybrid** di halaman login (LDAP terlebih dahulu dengan fallback akun lokal) serta pemasangan ekstensi `ext-ldap` di `Dockerfile` & container produksi.

@@ -141,9 +141,62 @@ require_once __DIR__ . '/../includes/header.php';
     </form>
   </div>
 
-  <!-- Table -->
+  <!-- Table & Mobile Cards -->
   <div class="bg-white dark:bg-[#1b1e30] rounded-[26px] border border-slate-100 dark:border-slate-800/80 shadow-feature overflow-hidden">
-    <div class="overflow-x-auto">
+    <!-- Mobile Card View (< 640px) -->
+    <div class="sm:hidden divide-y divide-slate-100 dark:divide-slate-800/80">
+      <?php if (empty($rows)): ?>
+        <div class="py-10 text-center text-slate-400 text-xs">
+          <i class="ph ph-notepad text-4xl block mx-auto mb-2 opacity-40"></i>
+          Belum ada catatan notulen meeting atau briefing.
+        </div>
+      <?php else: ?>
+        <?php foreach ($rows as $r): ?>
+          <?php
+            $pIds = json_decode($r['peserta_ids'] ?? '[]', true);
+            $pCount = is_array($pIds) ? count($pIds) : 0;
+            $totalIt = (int)$r['total_items'];
+            $doneIt  = (int)$r['done_items'];
+          ?>
+          <div class="p-4 space-y-2.5">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <a href="<?= BASE_URL ?>notulen/detail?id=<?= $r['id'] ?>" class="font-mono font-extrabold text-xs text-[#6558f5] hover:underline">
+                  <?= sanitize($r['nomor_notulen']) ?>
+                </a>
+                <span class="ml-1.5 px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-[#6558f5] dark:text-indigo-300 text-[10px] font-extrabold">
+                  <?= sanitize($r['jenis']) ?>
+                </span>
+              </div>
+              <?= badge_status_notulen($r['status']) ?>
+            </div>
+            <div class="font-extrabold text-xs text-[#181b2c] dark:text-white"><?= sanitize($r['judul']) ?></div>
+            <div class="text-[11px] text-slate-500">
+              <?= format_tanggal($r['tanggal']) ?> • <?= substr($r['jam_mulai'], 0, 5) ?> WIB • <?= sanitize($r['lokasi']) ?>
+            </div>
+            <div class="flex items-center justify-between text-[11px] text-slate-500">
+              <span>Pimpinan: <strong class="text-slate-700 dark:text-slate-200"><?= sanitize($r['pimpinan_rapat']) ?></strong> (<?= $pCount ?>)</span>
+              <?php if ($totalIt > 0): ?>
+                <span class="px-2 py-0.5 rounded-lg bg-amber-50 text-amber-700 font-bold"><?= $doneIt ?>/<?= $totalIt ?> Selesai</span>
+              <?php endif; ?>
+            </div>
+            <div class="flex items-center justify-end gap-1.5 pt-1">
+              <a href="<?= BASE_URL ?>notulen/detail?id=<?= $r['id'] ?>" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[11px] font-bold flex items-center gap-1">
+                <i class="ph-bold ph-eye"></i> Detail
+              </a>
+              <a href="<?= BASE_URL ?>notulen/create?edit=<?= $r['id'] ?>" class="px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-900/40 text-amber-600 dark:text-amber-300 text-[11px] font-bold flex items-center gap-1">
+                <i class="ph-bold ph-pencil-simple"></i> Edit
+              </a>
+              <a href="<?= BASE_URL ?>notulen/print?id=<?= $r['id'] ?>" target="_blank" class="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-900/40 text-[#6558f5] text-[11px] font-bold flex items-center gap-1">
+                <i class="ph-bold ph-printer"></i> PDF
+              </a>
+            </div>
+          </div>
+        <?php endforeach; ?>
+      <?php endif; ?>
+    </div>
+
+    <div class="hidden sm:block overflow-x-auto">
       <table class="w-full text-left text-xs min-w-[780px]">
         <thead class="bg-[#f7f7fb] dark:bg-[#151828] text-slate-500 uppercase font-extrabold text-[10px] tracking-wider border-b border-slate-100 dark:border-slate-800">
           <tr>
