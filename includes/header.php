@@ -412,3 +412,97 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
           <?php endforeach; ?>
         </div>
       <?php endif; ?>
+
+      <?php
+        // Pengingat Otomatis Sebelum Ganti Shift (30 menit sebelum jam serah terima hingga 5 menit setelahnya)
+        $shiftReminder = null;
+        if (($current_page ?? '') !== 'laporan_create' && function_exists('get_master_shift')) {
+            $nowTs = time();
+            foreach (get_master_shift(true) as $sh) {
+                $hTime = !empty($sh['jam_serah_terima']) ? $sh['jam_serah_terima'] : ($sh['jam_selesai'] ?? '');
+                if ($hTime === '') continue;
+                $targetTs = strtotime(date('Y-m-d') . ' ' . $hTime);
+                if ($targetTs === false) continue;
+
+                $diffSec = $targetTs - $nowTs;
+                if ($diffSec <= 1800 && $diffSec >= -300) {
+                    $stmtRem = $pdo->prepare("
+                        SELECT 1 FROM laporan_serah_terima
+                        WHERE shift_id = :sid
+                          AND status_validasi != 'DRAFT'
+                          AND tanggal >= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+                          AND created_at >= DATE_SUB(NOW(), INTERVAL 10 HOUR)
+                        LIMIT 1
+                    ");
+                    $stmtRem->execute(['sid' => (int)$sh['id']]);
+                    if (!$stmtRem->fetchColumn()) {
+                        $shiftReminder = [
+                            'id'        => (int)$sh['id'],
+                            'name'      => $sh['nama_shift'],
+                            'target_ts' => $targetTs,
+                            'key'       => 'omit_rem_' . date('Ymd') . '_' . (int)$sh['id'],
+                        ];
+                    }
+                    break;
+                }
+            }
+        }
+      ?>
+      <?php if ($shiftReminder): ?>
+        <div id="shiftHandoverReminder"
+             data-key="<?= htmlspecialchars($shiftReminder['key']) ?>"
+             data-target="<?= (int)$shiftReminder['target_ts'] ?>"
+             class="mb-4 p-3.5 sm:px-5 rounded-2xl bg-amber-50/95 dark:bg-amber-950/40 border border-amber-300/80 dark:border-amber-700/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 animate-pulse">
+              <i class="ph-bold ph-bell-ringing text-lg"></i>
+            </div>
+            <div class="text-xs">
+              <p class="font-extrabold text-amber-900 dark:text-amber-200">
+                Pengingat Ganti Shift <?= sanitize($shiftReminder['name']) ?>
+                <span id="shiftCountdownText" class="ml-1.5 px-2 py-0.5 rounded-md bg-amber-200/80 dark:bg-amber-900/70 font-mono text-[11px]"></span>
+              </p>
+              <p class="text-[11px] text-amber-700 dark:text-amber-300/90 mt-0.5">
+                Belum ada laporan serah terima resmi yang dikirim untuk shift ini.
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 self-end sm:self-auto">
+            <a href="<?= BASE_URL ?>laporan/create"
+               class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-extrabold shadow-sm transition flex items-center gap-1.5">
+              <i class="ph-bold ph-file-plus"></i>
+              <span>Buat Serah Terima</span>
+            </a>
+            <button type="button" onclick="dismissShiftReminder()" title="Tutup sementara"
+                    class="p-1.5 rounded-lg text-amber-700 dark:text-amber-300 hover:bg-amber-200/60 cursor-pointer">
+              <i class="ph-bold ph-x text-sm"></i>
+            </button>
+          </div>
+        </div>
+        <script>
+          (function() {
+            const box = document.getElementById('shiftHandoverReminder');
+            if (!box) return;
+            const key = box.getAttribute('data-key');
+            if (sessionStorage.getItem(key) === '1') { box.remove(); return; }
+            const target = parseInt(box.getAttribute('data-target'), 10) * 1000;
+            const lbl = document.getElementById('shiftCountdownText');
+            function tick() {
+              const diff = Math.floor((target - Date.now()) / 1000);
+              if (diff >= 0) {
+                const m = String(Math.floor(diff / 60)).padStart(2, '0');
+                const s = String(diff % 60).padStart(2, '0');
+                lbl.textContent = 'dalam ' + m + ':' + s;
+              } else {
+                lbl.textContent = 'waktunya serah terima!';
+              }
+            }
+            tick();
+            setInterval(tick, 1000);
+            window.dismissShiftReminder = function() {
+              sessionStorage.setItem(key, '1');
+              box.remove();
+            };
+          })();
+        </script>
+      <?php endif; ?>
