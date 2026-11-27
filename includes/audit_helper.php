@@ -130,13 +130,19 @@ function send_audit_discord_alert(string $action, string $description, string $u
     ];
 
     try {
+        $json = json_encode($payload);
+        if (DIRECTORY_SEPARATOR === '/' && function_exists('exec')) {
+            $cmd = 'curl -s -m 4 -H "Content-Type: application/json" -d ' . escapeshellarg($json) . ' ' . escapeshellarg($webhook) . ' > /dev/null 2>&1 &';
+            @exec($cmd);
+            return;
+        }
         $ch = curl_init($webhook);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 2);
         @curl_exec($ch);
         @curl_close($ch);
     } catch (Throwable $e) {
