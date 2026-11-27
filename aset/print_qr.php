@@ -48,7 +48,6 @@ $masterToken = get_aset_qr_token(0);
     .qr-box canvas, .qr-box img {
       width: 132px !important;
       height: 132px !important;
-      display: block !important;
     }
     @media (max-width: 768px) {
       .qr-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -117,8 +116,6 @@ $masterToken = get_aset_qr_token(0);
         colorLight: '#ffffff',
         correctLevel: QRCode.CorrectLevel.M
       });
-      var cvs = el.querySelector('canvas');
-      if (cvs) cvs.style.display = 'block';
     });
   </script>
 </body>
