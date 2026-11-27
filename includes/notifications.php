@@ -83,8 +83,13 @@ function build_handover_whatsapp_message(array $report, array $tasks): string {
          . "*Waktu*       : {$tglFmt} ({$jamFmt} WIB)\n"
          . "*Shift*       : {$namaShift}\n"
          . "*Lokasi/Unit* : {$namaLokasi}\n"
-         . "*Kondisi*     : {$kondisi}\n"
-         . "*Status*      : {$status}\n\n"
+         . "*Kondisi*     : {$kondisi}\n";
+
+    if (!empty($status) && !in_array(strtoupper(trim((string)$status)), ['TERVALIDASI', 'TERVALIDASI (LENGKAP)'])) {
+        $msg .= "*Status*      : {$status}\n";
+    }
+
+    $msg .= "\n"
          . "*Personil:*\n"
          . "• Menyerahkan : {$petugasMenyerahkan}\n"
          . "• Menerima    : {$petugasMenerima}\n"
@@ -524,7 +529,6 @@ function notify_handover_approved(int $laporanId, PDO $pdo): array {
             . "{$divider}\n"
             . "Yth. *{$rep['nama_menyerahkan']}*,\n\n"
             . "Laporan Serah Terima Shift *{$rep['nomor_laporan']}* ({$rep['nama_lokasi']}) telah *DISETUJUI & DISAHKAN* oleh *{$rep['nama_menerima']}*.\n\n"
-            . "Status dokumen saat ini: *TERVALIDASI (LENGKAP)* dan siap untuk dicetak atau diarsipkan.\n\n"
             . "*Tautan Dokumen Resmi:*\n"
             . "{$docUrl}\n"
             . "{$divider}\n"
