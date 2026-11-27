@@ -16,6 +16,42 @@ if ($id <= 0) {
     exit;
 }
 
+// Auto-migrating table for follow-up comments
+try {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS `laporan_comments` (
+          `id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+          `laporan_id` INT(11) NOT NULL,
+          `user_id` INT(11) NOT NULL,
+          `nama_user` VARCHAR(100) NOT NULL,
+          `role_user` VARCHAR(30) NOT NULL DEFAULT 'user',
+          `komentar` TEXT NOT NULL,
+          `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          INDEX `idx_comment_laporan` (`laporan_id`, `created_at`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ");
+} catch (Throwable $e) {
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_comment') {
+    $komentar = trim($_POST['komentar'] ?? '');
+    if ($komentar !== '') {
+        $pdo->prepare("INSERT INTO laporan_comments (laporan_id, user_id, nama_user, role_user, komentar) VALUES (:lid, :uid, :nama, :role, :kom)")
+            ->execute([
+                'lid'  => $id,
+                'uid'  => (int)$user['id'],
+                'nama' => $user['nama_lengkap'],
+                'role' => $user['role'] ?? 'user',
+                'kom'  => $komentar,
+            ]);
+        require_once __DIR__ . '/../includes/audit_helper.php';
+        log_activity($pdo, 'HANDOVER_COMMENT', "Menambahkan catatan tindak lanjut pada laporan #{$id}.");
+        flash_set('success', 'Catatan tindak lanjut berhasil ditambahkan.');
+    }
+    header('Location: ' . BASE_URL . 'laporan/detail?id=' . $id . '#comments');
+    exit;
+}
+
 // Fetch Report
 $stmt = $pdo->prepare("
     SELECT l.*, s.nama_shift, s.jam_mulai, s.jam_selesai, m.nama_lokasi,
@@ -42,6 +78,15 @@ if (!$report) {
 $stmtTasks = $pdo->prepare("SELECT * FROM laporan_pekerjaan WHERE laporan_id = :id ORDER BY urutan ASC, id ASC");
 $stmtTasks->execute(['id' => $id]);
 $tasks = $stmtTasks->fetchAll();
+
+// Fetch Follow-up Comments
+$comments = [];
+try {
+    $stmtCom = $pdo->prepare("SELECT * FROM laporan_comments WHERE laporan_id = :id ORDER BY created_at ASC, id ASC");
+    $stmtCom->execute(['id' => $id]);
+    $comments = $stmtCom->fetchAll();
+} catch (Throwable $e) {
+}
 
 $totalAktif = 0;
 $totalKritis = 0;
@@ -607,6 +652,49 @@ require_once __DIR__ . '/../includes/header.php';
       </div>
     <?php endif; ?>
 
+  </div>
+
+  <!-- ========================================================
+       CATATAN / DISKUSI TINDAK LANJUT (TANPA UBAH BERITA ACARA)
+       ======================================================== -->
+  <div id="comments" class="bg-white dark:bg-[#131b2e] rounded-3xl border border-slate-200 dark:border-slate-800 shadow-card p-6 sm:p-8 space-y-5">
+    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+      <div>
+        <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <i class="ph-fill ph-chat-teardrop-text text-[#6558f5] text-lg"></i>
+          <span>Catatan Tindak Lanjut &amp; Diskusi (<?= count($comments) ?>)</span>
+        </h3>
+        <p class="text-[11px] text-slate-400 mt-0.5">Tambahkan update perkembangan tanpa mengubah isi berita acara resmi yang sudah bertanda tangan.</p>
+      </div>
+    </div>
+
+    <?php if (!empty($comments)): ?>
+      <div class="space-y-3">
+        <?php foreach ($comments as $cm): ?>
+          <div class="p-3.5 rounded-2xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-100 dark:border-slate-800 text-xs">
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <div class="flex items-center gap-2">
+                <strong class="text-slate-800 dark:text-white"><?= sanitize($cm['nama_user']) ?></strong>
+                <span class="px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-[#6558f5] dark:text-indigo-300 text-[9.5px] font-extrabold uppercase"><?= sanitize($cm['role_user']) ?></span>
+              </div>
+              <span class="text-[10.5px] font-mono text-slate-400"><?= date('d/m/Y H:i', strtotime($cm['created_at'])) ?> WIB</span>
+            </div>
+            <p class="text-slate-700 dark:text-slate-200 whitespace-pre-line leading-relaxed"><?= sanitize($cm['komentar']) ?></p>
+          </div>
+        <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
+
+    <form method="POST" action="#comments" class="flex flex-col sm:flex-row gap-2.5">
+      <input type="hidden" name="action" value="add_comment" />
+      <input type="text" name="komentar" required placeholder="Tulis catatan perkembangan / tindak lanjut baru..."
+             class="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs focus:ring-2 focus:ring-[#6558f5]/40 focus:outline-none" />
+      <button type="submit"
+              class="px-5 py-2.5 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] text-white font-extrabold text-xs shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer">
+        <i class="ph-bold ph-paper-plane-right"></i>
+        <span>Kirim Catatan</span>
+      </button>
+    </form>
   </div>
 
 </div>

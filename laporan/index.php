@@ -23,8 +23,21 @@ $shifts  = $pdo->query("SELECT * FROM master_shift ORDER BY id ASC")->fetchAll()
 $lokasis = $pdo->query("SELECT * FROM master_lokasi ORDER BY nama_lokasi ASC")->fetchAll();
 
 // Build query
+$filterMine    = !empty($_GET['mine']);
+$filterNeedVal = !empty($_GET['need_my_val']);
+
 $where = ["1=1"];
 $params = [];
+
+if ($filterMine) {
+    $where[] = "(l.petugas_menyerahkan_id = :mine_uid OR l.created_by = :mine_uid2)";
+    $params['mine_uid']  = (int)$user['id'];
+    $params['mine_uid2'] = (int)$user['id'];
+}
+if ($filterNeedVal) {
+    $where[] = "l.status_validasi = 'MENUNGGU VALIDASI' AND (l.petugas_menerima_id = :val_uid OR l.petugas_menerima_id IS NULL)";
+    $params['val_uid'] = (int)$user['id'];
+}
 
 if ($search !== '') {
     $where[] = "(l.nomor_laporan LIKE :s1 OR u1.nama_lengkap LIKE :s2 OR u2.nama_lengkap LIKE :s3 OR l.catatan_penting LIKE :s4)";
@@ -148,6 +161,16 @@ require_once __DIR__ . '/../includes/header.php';
        class="px-3.5 py-1.5 rounded-full text-xs font-extrabold transition flex items-center gap-1.5 <?= $filterKondisi === 'Ada Gangguan' ? 'bg-rose-500 text-white shadow-sm' : 'bg-white dark:bg-[#1b1e30] text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80 hover:border-rose-400/50' ?>">
       <i class="ph-bold ph-warning-circle"></i>
       <span>Ada Gangguan</span>
+    </a>
+    <a href="<?= BASE_URL ?>laporan/index?need_my_val=1"
+       class="px-3.5 py-1.5 rounded-full text-xs font-extrabold transition flex items-center gap-1.5 <?= $filterNeedVal ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white dark:bg-[#1b1e30] text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80 hover:border-indigo-400/50' ?>">
+      <i class="ph-bold ph-signature"></i>
+      <span>Perlu Validasi Saya</span>
+    </a>
+    <a href="<?= BASE_URL ?>laporan/index?mine=1"
+       class="px-3.5 py-1.5 rounded-full text-xs font-extrabold transition flex items-center gap-1.5 <?= $filterMine ? 'bg-[#6558f5] text-white shadow-sm' : 'bg-white dark:bg-[#1b1e30] text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80 hover:border-[#6558f5]/40' ?>">
+      <i class="ph-bold ph-user"></i>
+      <span>Laporan Saya</span>
     </a>
   </div>
 

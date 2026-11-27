@@ -216,6 +216,13 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
     <p class="text-[12px] text-slate-500 dark:text-slate-400 mt-2.5 leading-relaxed max-w-[340px] font-medium">
       Kelola serah terima tugas operasional secara transparan, pantau tindak lanjut lapangan, dan unduh dokumen standar OMIT.
     </p>
+    <div class="mt-3 hidden sm:flex items-center gap-2">
+      <button type="button" id="btnToggleTvMode" onclick="toggleTvKioskMode()"
+              class="px-3.5 py-1.5 rounded-xl bg-[#efeffb] dark:bg-indigo-950/60 hover:bg-[#e0dffc] text-[#6558f5] dark:text-indigo-300 text-[11px] font-extrabold transition flex items-center gap-1.5 cursor-pointer">
+        <i class="ph-bold ph-television-simple text-sm"></i>
+        <span>Mode Monitor TV</span>
+      </button>
+    </div>
   </div>
 
   <!-- Quick Add Dashed Box + 4 Feature Cards (8 cols) -->
@@ -617,5 +624,64 @@ $criticalTasks = $pdo->query($queryCriticalTasks)->fetchAll();
     </div>
   <?php endif; ?>
 </div>
+
+<!-- Floating TV Monitor Kiosk Exit Bar -->
+<div id="tvKioskExitBar" class="hidden fixed bottom-5 right-5 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-[#181b2c]/90 text-white text-xs font-extrabold shadow-2xl backdrop-blur-md border border-white/15">
+  <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+  <span>Mode Monitor TV • Refresh <span id="tvRefreshCountdown">60</span>s</span>
+  <button type="button" onclick="toggleTvKioskMode()" class="ml-2 px-2.5 py-1 rounded-lg bg-white/15 hover:bg-white/25 text-white cursor-pointer">
+    Keluar
+  </button>
+</div>
+
+<script>
+  (function() {
+    let tvTimer = null;
+    let secLeft = 60;
+
+    function applyTvMode(on) {
+      const shell   = document.getElementById('app-shell');
+      const sidebar = document.querySelector('.curved-sidebar-wrapper');
+      const header  = document.querySelector('#app-shell > header');
+      const exitBar = document.getElementById('tvKioskExitBar');
+      const mainEl  = document.querySelector('main');
+
+      if (on) {
+        if (sidebar) sidebar.style.setProperty('display', 'none', 'important');
+        if (header) header.classList.add('hidden');
+        if (shell) { shell.classList.remove('max-w-[1580px]', 'rounded-3xl', 'lg:rounded-[34px]'); shell.classList.add('max-w-full', 'rounded-none'); }
+        if (mainEl) mainEl.classList.remove('md:pl-24');
+        if (exitBar) exitBar.classList.remove('hidden');
+
+        secLeft = 60;
+        const cdEl = document.getElementById('tvRefreshCountdown');
+        if (cdEl) cdEl.textContent = secLeft;
+        clearInterval(tvTimer);
+        tvTimer = setInterval(() => {
+          secLeft--;
+          if (cdEl) cdEl.textContent = Math.max(0, secLeft);
+          if (secLeft <= 0) { window.location.reload(); }
+        }, 1000);
+      } else {
+        if (sidebar) sidebar.style.removeProperty('display');
+        if (header) header.classList.remove('hidden');
+        if (shell) { shell.classList.add('max-w-[1580px]', 'rounded-3xl', 'lg:rounded-[34px]'); shell.classList.remove('max-w-full', 'rounded-none'); }
+        if (mainEl) mainEl.classList.add('md:pl-24');
+        if (exitBar) exitBar.classList.add('hidden');
+        clearInterval(tvTimer);
+      }
+    }
+
+    window.toggleTvKioskMode = function() {
+      const next = sessionStorage.getItem('omit_tv_mode') !== '1';
+      sessionStorage.setItem('omit_tv_mode', next ? '1' : '0');
+      applyTvMode(next);
+    };
+
+    if (sessionStorage.getItem('omit_tv_mode') === '1') {
+      applyTvMode(true);
+    }
+  })();
+</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

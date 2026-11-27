@@ -101,3 +101,11 @@ function notify_notulen_participants(PDO $pdo, int $notulenId, array $participan
         }
     }
 }
+
+/**
+ * Generate unguessable HMAC share token for public read-only Notulen link.
+ */
+function get_notulen_share_token(int $notulenId, string $nomorNotulen): string {
+    $secret = get_setting('cron_secret_key', 'omit-handover-share-secret-v1');
+    return substr(hash_hmac('sha256', "notulen_share:{$notulenId}:{$nomorNotulen}", $secret), 0, 24);
+}

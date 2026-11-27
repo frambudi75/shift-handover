@@ -82,6 +82,11 @@ if (!empty($items)) {
         $waLines[] = ($idx + 1) . ". {$it['uraian_tugas']} (PIC: " . ($it['pic'] ?: '-') . " | Status: {$it['status']})";
     }
 }
+require_once __DIR__ . '/../includes/notifications.php';
+$notulenShareUrl = get_full_web_url("notulen/share?id={$notulen['id']}&token=" . get_notulen_share_token((int)$notulen['id'], $notulen['nomor_notulen']));
+if ($notulen['status'] === 'FINAL') {
+    $waLines[] = "\n*Tautan Dokumen (Tanpa Login):*\n{$notulenShareUrl}";
+}
 $waText = implode("\n", $waLines);
 
 require_once __DIR__ . '/../includes/header.php';
@@ -124,6 +129,13 @@ require_once __DIR__ . '/../includes/header.php';
         <i class="ph-bold ph-whatsapp-logo text-base"></i>
         <span>Salin WA</span>
       </button>
+      <?php if ($notulen['status'] === 'FINAL'): ?>
+        <button type="button" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($notulenShareUrl, ENT_QUOTES) ?>').then(() => alert('Link notulen tanpa login berhasil disalin!'))"
+                class="px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 font-extrabold text-xs transition flex items-center gap-1.5 cursor-pointer">
+          <i class="ph-bold ph-link text-base"></i>
+          <span>Salin Link Publik</span>
+        </button>
+      <?php endif; ?>
       <a href="<?= BASE_URL ?>notulen/print?id=<?= $notulen['id'] ?>" target="_blank"
          class="px-4 py-2.5 rounded-2xl bg-[#6558f5] hover:bg-[#5244e8] text-white font-extrabold text-xs shadow-md transition flex items-center gap-1.5">
         <i class="ph-bold ph-printer text-base"></i>
