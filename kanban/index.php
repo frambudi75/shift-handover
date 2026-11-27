@@ -485,6 +485,7 @@ require_once __DIR__ . '/../includes/header.php';
             $isSelected  = ($cellDate === $reqDate);
             $dayEvents   = $schedulesByDate[$cellDate] ?? [];
             $dayTasks    = $tasksByDate[$cellDate] ?? [];
+            $totalItems  = count($dayEvents) + count($dayTasks);
 
             $cellClasses = 'cal-day-cell relative rounded-2xl border p-2 flex flex-col justify-between cursor-pointer ';
             if ($isSelected) {
@@ -504,12 +505,20 @@ require_once __DIR__ . '/../includes/header.php';
                 <?= $day ?>
               </span>
 
-              <button type="button"
-                      onclick="event.stopPropagation(); openScheduleModal(null, '<?= $cellDate ?>')"
-                      class="cal-quick-add w-5 h-5 rounded-md bg-[#6558f5] text-white flex items-center justify-center text-[11px] hover:bg-[#5244e8] cursor-pointer"
-                      title="Tambah jadwal pada <?= $cellDate ?>">
-                <i class="ph-bold ph-plus"></i>
-              </button>
+              <div class="flex items-center gap-1">
+                <?php if ($totalItems > 0): ?>
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[#efeffb] dark:bg-indigo-950/70 text-[#6558f5] dark:text-indigo-300 text-[9.5px] font-extrabold leading-none">
+                    <span class="hidden sm:inline"><?= $totalItems ?> pekerjaan</span>
+                    <span class="sm:hidden"><?= $totalItems ?></span>
+                  </span>
+                <?php endif; ?>
+                <button type="button"
+                        onclick="event.stopPropagation(); openScheduleModal(null, '<?= $cellDate ?>')"
+                        class="cal-quick-add w-5 h-5 rounded-md bg-[#6558f5] text-white flex items-center justify-center text-[11px] hover:bg-[#5244e8] cursor-pointer"
+                        title="Tambah jadwal pada <?= $cellDate ?>">
+                  <i class="ph-bold ph-plus"></i>
+                </button>
+              </div>
             </div>
 
             <!-- Desktop: Chips | Mobile: Compact Dots -->
@@ -542,7 +551,6 @@ require_once __DIR__ . '/../includes/header.php';
                 <?php endforeach; ?>
               <?php endif; ?>
 
-              <?php $totalItems = count($dayEvents) + count($dayTasks); ?>
               <?php if ($totalItems > 2): ?>
                 <div class="hidden sm:block text-[9.5px] font-extrabold text-[#6558f5] dark:text-indigo-300 pl-1">
                   +<?= $totalItems - 2 ?> lainnya
@@ -665,12 +673,20 @@ require_once __DIR__ . '/../includes/header.php';
                         <div class="text-xs font-extrabold text-[#181b2c] dark:text-white truncate"><?= sanitize($st['judul']) ?></div>
                         <div class="text-[10px] text-slate-500 dark:text-slate-400">Status: <strong><?= sanitize($st['status']) ?></strong> · Prioritas <?= sanitize($st['prioritas']) ?></div>
                       </div>
-                      <span class="px-2 py-0.5 rounded-md bg-white dark:bg-[#1b1e30] text-[10px] font-extrabold text-[#6558f5] shrink-0">Tugas</span>
+                      <button type="button" onclick='openTaskModal(<?= json_encode($st, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)' class="px-2 py-0.5 rounded-md bg-white dark:bg-[#1b1e30] text-[10px] font-extrabold text-[#6558f5] shrink-0 cursor-pointer">Edit</button>
                     </div>
                   <?php endforeach; ?>
                 </div>
               </div>
             <?php endif; ?>
+          </div>
+        <?php endif; ?>
+        <?php
+          $unscheduledTasks = array_values(array_filter($allTasks, fn($t) => empty($t['target_tanggal']) && $t['status'] !== 'Selesai'));
+          if (!empty($unscheduledTasks)):
+        ?>
+          <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+            <span><i class="ph-bold ph-info text-[#6558f5]"></i> <?= count($unscheduledTasks) ?> tugas Kanban belum punya tanggal target.</span>
           </div>
         <?php endif; ?>
       </div>
