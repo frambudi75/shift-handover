@@ -46,15 +46,15 @@ $releases = [
     [
         'version' => 'v2.12.0 LTS',
         'date'    => '27 Nov 2026',
-        'title'   => 'Kalender Jadwal Kerja, Libur Nasional & Cuti Bersama, Drag-Drop Kanban & Portal Scan QR Kunci Tamu',
+        'title'   => 'Kalender Kerja, Libur Nasional, Folder & QR Kunci Tamu, Widget Dashboard & Optimasi Kecepatan',
         'badge'   => 'TERBARU',
         'color'   => 'bg-[#6558f5] text-white',
         'items'   => [
-            ['type' => 'Baru',      'text' => 'Kalender Jadwal Kerja Pribadi di /kanban dengan dropdown Bulan & Tahun, jadwal berulang (harian/Sen-Jum/mingguan), jadwal 7 hari ke depan, dan Export .ICS ke Google/Apple Calendar.'],
+            ['type' => 'Baru',      'text' => 'Kalender Jadwal Kerja Pribadi di /kanban dengan dropdown Bulan & Tahun, jadwal berulang (harian/Sen-Jum/mingguan), jadwal 7 hari ke depan, Export .ICS, serta Drag & Drop + Edit Tugas Kanban.'],
             ['type' => 'Baru',      'text' => 'Integrasi otomatis Hari Libur Nasional & Cuti Bersama SKB 3 Menteri (2025-2027) lengkap dengan penanda warna berbeda di kalender dan panel agenda.'],
-            ['type' => 'Baru',      'text' => 'Drag & Drop kartu Kanban antar kolom via AJAX serta fitur Edit Tugas Pribadi langsung dari papan Kanban.'],
-            ['type' => 'Baru',      'text' => 'Portal Scan QR Kunci Tamu (/aset/scan) bertoken HMAC tanpa login, modal Label QR dengan Simpan PNG & Cetak Label, serta Cetak Semua QR grid A4 (/aset/print_qr).'],
-            ['type' => 'Keamanan',  'text' => 'Validasi anti-duplikat pinjam pada scan QR, notifikasi Lonceng & Discord saat transaksi QR tamu, pengingat kunci dipinjam > 12 jam, serta Filter, Pagination & Export CSV riwayat aset.'],
+            ['type' => 'Baru',      'text' => 'Sistem Folder & Kategori Kustom di /aset (Kunci, Alat / Tools, Aset & Perangkat, plus tambah folder bebas) dengan QR Barcode terpisah per folder, Simpan PNG, dan Cetak Massal A4 (/aset/print_qr).'],
+            ['type' => 'Keamanan',  'text' => 'Portal Scan QR Tamu (/aset/scan) bertoken HMAC dengan pola PRG anti-dobel refresh, validasi status Pinjam/Kembalikan, notifikasi Lonceng & Discord, pengingat pinjaman > 12 jam, serta Filter Folder, Pagination & Export CSV riwayat.'],
+            ['type' => 'Performa',  'text' => 'Widget Kunci Dipinjam & Jadwal Pribadi Hari Ini di Dashboard (auto-hide di Mode TV), Phosphor Icons lokal (bebas lag CDN), dan pengiriman Discord audit webhook di background.'],
         ]
     ],
     [

@@ -10,11 +10,15 @@ Semua perubahan dan peningkatan fungsionalitas sistem dicatat secara berkala pad
   - **Kalender Kerja Pribadi (`personal_work_schedules`)**: Grid bulanan `Sen`–`Min` lengkap dengan dropdown pilih **Bulan & Tahun**, badge jumlah pekerjaan per tanggal, panel **Agenda Tanggal**, daftar **Jadwal 7 Hari Ke Depan**, serta preset shift cepat (*Shift Pagi/Siang/Malam, Maintenance, Lembur*).
   - **Hari Libur Nasional & Cuti Bersama (`includes/holiday_helper.php`)**: Integrasi otomatis hari libur nasional dan **Cuti Bersama SKB 3 Menteri** (cache API 7 hari + fallback bawaan 2025–2027) dengan penanda warna berbeda di kalender dan panel agenda.
   - **Jadwal Berulang, Export `.ICS` & Drag-and-Drop**: Dukungan buat jadwal berulang (*Setiap Hari, Sen–Jum, Mingguan*), ekspor jadwal ke file `.ics` untuk Google/Apple Calendar, serta **Drag & Drop** kartu Kanban antar kolom via AJAX.
-- **QR Barcode Kunci Tamu & Peningkatan Log Aset (`/aset`)**:
-  - **Portal Scan QR Publik (`/aset/scan`)**: Halaman mobile-first tanpa login bertoken HMAC-SHA256 agar tamu maupun petugas dapat memindai QR Code rak meja atau QR khusus per kunci untuk mencatat pinjam/kembali.
-  - **Anti-Duplikat Pinjam & Notifikasi Real-Time**: Penguncian otomatis opsi *Pinjam* jika kunci masih berstatus `Dipinjam`, pengiriman notifikasi instan ke **Lonceng Petugas** & **Discord Webhook** saat transaksi QR, serta banner pengingat apabila kunci dipinjam lebih dari **12 jam**.
-  - **Label QR, Simpan PNG & Cetak Massal (`/aset/print_qr`)**: Modal QR dilengkapi tombol **Salin Link**, **Simpan PNG** (dengan *auto-wrap* judul), **Cetak Label**, serta halaman **Cetak Semua QR** dalam grid stiker A4.
-  - **Filter, Pagination & Export CSV Riwayat**: Pencarian kata kunci, filter aksi (`PINJAM`/`KEMBALI`), sumber (`QR Tamu`/`Petugas`), tanggal, pagination 10 item per halaman, dan ekspor CSV UTF-8 BOM.
+- **Folder Kategori, QR Barcode Tamu & Peningkatan Log Aset (`/aset`)**:
+  - **Folder & Kategori Kustom (`shift_asset_folders`)**: Pemisahan item ke dalam folder *Kunci*, *Alat / Tools*, *Aset & Perangkat*, serta dukungan tambah folder kustom lengkap dengan QR Code terpisah per folder.
+  - **Portal Scan QR Publik (`/aset/scan`)**: Halaman mobile-first tanpa login bertoken HMAC-SHA256 agar tamu maupun petugas dapat memindai QR Code rak meja, QR folder, atau QR khusus per item, dilengkapi pola **PRG (*Post-Redirect-Get*)** anti-dobel saat refresh.
+  - **Anti-Duplikat Status & Notifikasi Real-Time**: Penguncian otomatis opsi *Pinjam* saat status `Dipinjam` dan *Kembalikan* saat `Tersedia`, pengiriman notifikasi instan ke **Lonceng Petugas** & **Discord Webhook**, serta banner pengingat apabila item dipinjam lebih dari **12 jam**.
+  - **Label QR, Simpan PNG & Cetak Massal (`/aset/print_qr`)**: Modal QR dilengkapi tombol **Salin Link**, **Simpan PNG** (dengan *auto-wrap* judul), **Cetak Label**, serta halaman **Cetak Semua QR** per folder atau semua dalam grid stiker A4.
+  - **Filter Folder, Pagination & Export CSV Riwayat**: Pencarian kata kunci, filter folder, aksi (`PINJAM`/`KEMBALI`), sumber (`QR Tamu`/`Petugas`), tanggal, pagination 10 item per halaman, dan ekspor CSV UTF-8 BOM.
+- **Dashboard & Performa**:
+  - **Widget Baru di Dashboard (`/dashboard`)**: Ringkasan *Kunci & Aset Dipinjam* (tetap tampil di Mode Monitor TV) serta kartu privat *Jadwal & Tugas Saya Hari Ini* (otomatis tersembunyi di Mode TV).
+  - **Aset Lokal & Webhook Background**: Phosphor Icons disajikan lokal (`assets/vendor/phosphor/`) menggantikan CDN `unpkg.com`, serta pengiriman Discord audit webhook dijalankan di background pada Linux/Docker.
 
 ---
 
