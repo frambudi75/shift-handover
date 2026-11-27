@@ -575,7 +575,8 @@ require_once __DIR__ . '/../includes/header.php';
             $weekdayNum  = (int)date('N', strtotime($cellDate));
             $isWeekend   = $weekdayNum >= 6;
             $dayHoliday  = $holidays[$cellDate] ?? null;
-            $isRedDate   = $isWeekend || ($dayHoliday !== null);
+            $isCuti      = ($dayHoliday !== null && !empty($dayHoliday['is_cuti_bersama']));
+            $isRedDate   = $isWeekend || ($dayHoliday !== null && !$isCuti);
             $isToday     = ($cellDate === $todayStr);
             $isSelected  = ($cellDate === $reqDate);
             $dayEvents   = $schedulesByDate[$cellDate] ?? [];
@@ -622,9 +623,9 @@ require_once __DIR__ . '/../includes/header.php';
             <div class="mt-1.5 space-y-1">
               <?php if ($dayHoliday !== null): ?>
                 <div class="hidden sm:flex cal-event-chip"
-                     style="background-color: #fff1f2; color: #be123c; border-color: #fecdd3;"
-                     title="Libur Nasional: <?= sanitize($dayHoliday['name']) ?>">
-                  <i class="ph-fill ph-confetti text-[10px] shrink-0 text-rose-500"></i>
+                     style="<?= $isCuti ? 'background-color: #fff7ed; color: #c2410c; border-color: #fed7aa;' : 'background-color: #fff1f2; color: #be123c; border-color: #fecdd3;' ?>"
+                     title="<?= sanitize(($isCuti ? 'Cuti Bersama: ' : 'Libur Nasional: ') . $dayHoliday['name']) ?>">
+                  <i class="ph-fill <?= $isCuti ? 'ph-calendar-heart text-amber-500' : 'ph-confetti text-rose-500' ?> text-[10px] shrink-0"></i>
                   <span class="truncate"><?= sanitize($dayHoliday['name']) ?></span>
                 </div>
               <?php endif; ?>
@@ -697,6 +698,11 @@ require_once __DIR__ . '/../includes/header.php';
           <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
           <span>Libur Nasional</span>
         </span>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold border"
+              style="background-color: #fff7ed; color: #c2410c; border-color: #fed7aa;">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+          <span>Cuti Bersama</span>
+        </span>
       </div>
     </div>
 
@@ -716,13 +722,16 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
 
         <?php if ($selectedHoliday !== null): ?>
-          <div class="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/60 flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0">
-              <i class="ph-fill ph-confetti text-lg"></i>
+          <?php $selIsCuti = !empty($selectedHoliday['is_cuti_bersama']); ?>
+          <div class="p-3.5 rounded-2xl <?= $selIsCuti ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/60' : 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800/60' ?> border flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl <?= $selIsCuti ? 'bg-amber-500' : 'bg-rose-500' ?> text-white flex items-center justify-center shrink-0">
+              <i class="ph-fill <?= $selIsCuti ? 'ph-calendar-heart' : 'ph-confetti' ?> text-lg"></i>
             </div>
             <div>
-              <span class="text-[10px] font-extrabold uppercase tracking-wider text-rose-600 dark:text-rose-300">Hari Libur Nasional</span>
-              <div class="text-xs font-extrabold text-rose-900 dark:text-rose-100"><?= sanitize($selectedHoliday['name']) ?></div>
+              <span class="text-[10px] font-extrabold uppercase tracking-wider <?= $selIsCuti ? 'text-amber-700 dark:text-amber-300' : 'text-rose-600 dark:text-rose-300' ?>">
+                <?= $selIsCuti ? 'Cuti Bersama' : 'Hari Libur Nasional' ?>
+              </span>
+              <div class="text-xs font-extrabold <?= $selIsCuti ? 'text-amber-950 dark:text-amber-100' : 'text-rose-900 dark:text-rose-100' ?>"><?= sanitize($selectedHoliday['name']) ?></div>
             </div>
           </div>
         <?php endif; ?>
