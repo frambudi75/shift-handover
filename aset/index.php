@@ -144,7 +144,7 @@ require_once __DIR__ . '/../includes/header.php';
 
     <div class="flex flex-wrap items-center gap-2">
       <button type="button"
-              onclick="openQrModal(0, 'MEJA-RAK', 'Portal Scan QR Tamu (Semua Kunci)', 'Pilih kunci apa saja saat scan', <?= json_encode($masterQrToken) ?>)"
+              onclick='openQrModal(0, "MEJA-RAK", "Portal Scan QR Tamu (Semua Kunci)", "Pilih kunci apa saja saat scan", <?= json_encode($masterQrToken, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)'
               class="px-4 py-2.5 rounded-2xl bg-white dark:bg-[#1b1e30] border border-slate-200 dark:border-slate-700 hover:border-[#6558f5] text-[#181b2c] dark:text-white font-extrabold text-xs shadow-sm transition flex items-center gap-2 cursor-pointer">
         <i class="ph-bold ph-qr-code text-base text-[#6558f5]"></i>
         <span>QR Meja / Tamu</span>
