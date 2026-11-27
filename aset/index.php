@@ -582,44 +582,38 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 
     <!-- Filter Form -->
-    <form method="GET" action="<?= BASE_URL ?>aset/index#riwayat-aset" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2 text-xs">
-      <div class="lg:col-span-3 relative">
+    <form method="GET" action="<?= BASE_URL ?>aset/index#riwayat-aset" class="flex flex-col lg:flex-row lg:items-center gap-2 text-xs">
+      <div class="flex-1 min-w-0 relative">
         <i class="ph-bold ph-magnifying-glass text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
         <input type="text" name="log_q" value="<?= sanitize($logQ) ?>" placeholder="Cari item, peminjam, catatan..."
                class="w-full pl-9 pr-3 py-2 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700" />
       </div>
-      <div class="lg:col-span-2">
-        <select name="folder" class="w-full px-3 py-2 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700 font-bold cursor-pointer">
+      <div class="grid grid-cols-2 sm:grid-cols-4 lg:flex items-center gap-2 shrink-0">
+        <select name="folder" class="px-3 py-2 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700 font-bold cursor-pointer">
           <option value="0" <?= $folderId === 0 ? 'selected' : '' ?>>Semua Folder</option>
           <?php foreach ($folders as $f): ?>
             <option value="<?= (int)$f['id'] ?>" <?= $folderId === (int)$f['id'] ? 'selected' : '' ?>><?= sanitize($f['nama_folder']) ?></option>
           <?php endforeach; ?>
         </select>
-      </div>
-      <div class="lg:col-span-2">
-        <select name="log_aksi" class="w-full px-3 py-2 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700 font-bold cursor-pointer">
+        <select name="log_aksi" class="px-3 py-2 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700 font-bold cursor-pointer">
           <option value="all" <?= $logAksi === 'all' ? 'selected' : '' ?>>Semua Aksi</option>
           <option value="PINJAM" <?= $logAksi === 'PINJAM' ? 'selected' : '' ?>>PINJAM</option>
           <option value="KEMBALI" <?= $logAksi === 'KEMBALI' ? 'selected' : '' ?>>KEMBALI</option>
         </select>
-      </div>
-      <div class="lg:col-span-2">
-        <select name="log_sumber" class="w-full px-3 py-2 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700 font-bold cursor-pointer">
+        <select name="log_sumber" class="px-3 py-2 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700 font-bold cursor-pointer">
           <option value="all" <?= $logSumber === 'all' ? 'selected' : '' ?>>Semua Sumber</option>
           <option value="tamu" <?= $logSumber === 'tamu' ? 'selected' : '' ?>>QR Tamu</option>
           <option value="petugas" <?= $logSumber === 'petugas' ? 'selected' : '' ?>>Petugas</option>
         </select>
-      </div>
-      <div class="lg:col-span-2">
         <input type="date" name="log_date" value="<?= sanitize($logDate) ?>"
-               class="w-full px-3 py-2 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700" />
+               class="px-3 py-2 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700" />
       </div>
-      <div class="lg:col-span-1 flex items-center gap-1.5">
-        <button type="submit" class="w-full px-3 py-2 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] text-white font-extrabold cursor-pointer transition">
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button type="submit" class="flex-1 lg:flex-none px-4 py-2 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] text-white font-extrabold cursor-pointer transition">
           Filter
         </button>
         <?php if ($hasLogFilter): ?>
-          <a href="<?= BASE_URL ?>aset/index<?= $folderId > 0 ? '?folder=' . $folderId : '' ?>#riwayat-aset" class="px-2.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-200 transition" title="Reset Filter">
+          <a href="<?= BASE_URL ?>aset/index<?= $folderId > 0 ? '?folder=' . $folderId : '' ?>#riwayat-aset" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-200 transition" title="Reset Filter">
             <i class="ph-bold ph-arrow-counter-clockwise"></i>
           </a>
         <?php endif; ?>

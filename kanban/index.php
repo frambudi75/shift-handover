@@ -775,7 +775,7 @@ require_once __DIR__ . '/../includes/header.php';
 
                 <h4 class="text-xs font-extrabold text-[#181b2c] dark:text-white"><?= sanitize($sc['judul']) ?></h4>
 
-                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400">
+                <div class="flex flex-wrap items-center gap-x-3 gap-1 text-[11px] text-slate-500 dark:text-slate-400">
                   <?php if (!empty($sc['jam_mulai'])): ?>
                     <span class="inline-flex items-center gap-1 font-mono font-semibold">
                       <i class="ph-bold ph-clock text-[#6558f5]"></i>
@@ -803,7 +803,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-2">Target Tugas Kanban</div>
                 <div class="space-y-2">
                   <?php foreach ($selectedTasks as $st): ?>
-                    <div class="p-3 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200/70 dark:border-indigo-800/50 flex items-center justify-between gap-2">
+                    <div class="p-3 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/50 flex items-center justify-between gap-2">
                       <div class="min-w-0">
                         <div class="text-xs font-extrabold text-[#181b2c] dark:text-white truncate"><?= sanitize($st['judul']) ?></div>
                         <div class="text-[10px] text-slate-500 dark:text-slate-400">Status: <strong><?= sanitize($st['status']) ?></strong> · Prioritas <?= sanitize($st['prioritas']) ?></div>
