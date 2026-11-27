@@ -47,13 +47,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add_task') {
         $judul = trim($_POST['judul'] ?? '');
         if ($judul !== '') {
+            $prioVal = $_POST['prioritas'] ?? 'Sedang';
+            $statVal = $_POST['status'] ?? 'Belum Mulai';
             $pdo->prepare("INSERT INTO personal_kanban_tasks (user_id, judul, deskripsi, prioritas, status, target_tanggal) VALUES (:uid, :j, :d, :p, :s, :t)")
                 ->execute([
                     'uid' => $userId,
                     'j'   => mb_substr($judul, 0, 200),
                     'd'   => trim($_POST['deskripsi'] ?? ''),
-                    'p'   => in_array($_POST['prioritas'] ?? 'Sedang', ['Tinggi', 'Sedang', 'Rendah'], true) ? $_POST['prioritas'] : 'Sedang',
-                    's'   => in_array($_POST['status'] ?? 'Belum Mulai', ['Belum Mulai', 'Berjalan', 'Selesai'], true) ? $_POST['status'] : 'Belum Mulai',
+                    'p'   => in_array($prioVal, ['Tinggi', 'Sedang', 'Rendah'], true) ? $prioVal : 'Sedang',
+                    's'   => in_array($statVal, ['Belum Mulai', 'Berjalan', 'Selesai'], true) ? $statVal : 'Belum Mulai',
                     't'   => !empty($_POST['target_tanggal']) ? $_POST['target_tanggal'] : null,
                 ]);
             flash_set('success', 'Tugas pribadi berhasil ditambahkan.');
