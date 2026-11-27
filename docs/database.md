@@ -1,7 +1,7 @@
 # Dokumentasi Basis Data Lengkap (Database Schema & Indexing)
 ## Sistem Laporan Serah Terima Shift Operasional (OMIT)
 
-### 1. Daftar Tabel (7 Tabel Inti + 6 Tabel Auto-Migrating)
+### 1. Daftar Tabel (7 Tabel Inti + 7 Tabel Auto-Migrating)
 
 ```mermaid
 erDiagram
@@ -10,6 +10,7 @@ erDiagram
     master_shift ||--o{ laporan_serah_terima : "memiliki"
     master_lokasi ||--o{ laporan_serah_terima : "berlokasi"
     laporan_serah_terima ||--|{ laporan_pekerjaan : "memuat detail"
+    laporan_serah_terima ||--o{ laporan_comments : "catatan lanjut"
     master_kondisi ||--o{ laporan_serah_terima : "kondisi operasional"
     users ||--o{ activity_logs : "aktivitas"
     users ||--o{ user_notifications : "notifikasi"
@@ -274,5 +275,20 @@ CREATE TABLE `notulen_action_items` (
   `urutan` INT(11) NOT NULL DEFAULT 1,
   INDEX `idx_action_notulen` (`notulen_id`),
   FOREIGN KEY (`notulen_id`) REFERENCES `notulen_meeting`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+#### 14. Tabel `laporan_comments` *(Auto-Migrating)*
+Menyimpan catatan tindak lanjut dan diskusi di bawah detail laporan serah terima (`laporan/detail.php`).
+```sql
+CREATE TABLE `laporan_comments` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `laporan_id` INT(11) NOT NULL,
+  `user_id` INT(11) NOT NULL,
+  `nama_user` VARCHAR(100) NOT NULL,
+  `role_user` VARCHAR(30) NOT NULL DEFAULT 'user',
+  `komentar` TEXT NOT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX `idx_comment_laporan` (`laporan_id`, `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```

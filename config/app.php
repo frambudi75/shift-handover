@@ -110,5 +110,5 @@ if (!defined('APP_FULL_NAME')) {
     define('APP_FULL_NAME', get_app_full_name());
 }
 if (!defined('APP_VERSION')) {
-    define('APP_VERSION', 'v2.10.0 LTS');
+    define('APP_VERSION', 'v2.11.0 LTS');
 }

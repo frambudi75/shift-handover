@@ -44,11 +44,24 @@ $extensions = [
 // Release History / Changelog Data
 $releases = [
     [
+        'version' => 'v2.11.0 LTS',
+        'date'    => '27 Nov 2026',
+        'title'   => 'Notulen Share Publik, Komentar Laporan, Mode Monitor TV & Ekspor Audit CSV',
+        'badge'   => 'TERBARU',
+        'color'   => 'bg-[#6558f5] text-white',
+        'items'   => [
+            ['type' => 'Baru',      'text' => 'Tautan Publik Baca-Saja (/notulen/share) bertoken HMAC untuk Notulen Meeting & Briefing agar dapat dibagikan via WhatsApp tanpa login.'],
+            ['type' => 'Baru',      'text' => 'Catatan & Diskusi Tindak Lanjut pada detail laporan serah terima (/laporan/detail) tanpa mengubah isi berita acara resmi yang sudah bertanda tangan.'],
+            ['type' => 'Baru',      'text' => 'Mode Monitor TV / Kiosk di Dashboard dengan tampilan layar penuh & auto-refresh 60 detik, serta chip filter cepat "Perlu Validasi Saya" & "Laporan Saya".'],
+            ['type' => 'Keamanan',  'text' => 'Pembatasan menu Pusat Backup & Pemulihan (/master/backup) khusus Superadmin, tombol Ekspor CSV pada Audit Trail (/audit), dan perapihan lekukan kurva sidebar.'],
+        ]
+    ],
+    [
         'version' => 'v2.10.0 LTS',
         'date'    => '27 Nov 2026',
         'title'   => 'Analitik Rekap, Notif Keamanan Discord, Sakuga Micro-VFX & Mobile Card View',
-        'badge'   => 'TERBARU',
-        'color'   => 'bg-[#6558f5] text-white',
+        'badge'   => 'LTS',
+        'color'   => 'bg-indigo-100 text-[#6558f5] dark:bg-indigo-950/60 dark:text-indigo-300',
         'items'   => [
             ['type' => 'Baru',      'text' => 'Analitik & Grafik Tren Bulanan pada Rekap Logbook (/rekap) lengkap dengan KPI validasi, penyelesaian tiket, grafik harian lokal, serta ekspor Excel (.xls).'],
             ['type' => 'Keamanan',  'text' => 'Notifikasi Keamanan & Audit Log ke Discord Webhook (khusus Superadmin) dengan filter event Login Gagal/Sukses, Laporan/Notulen, dan Aksi Kritis Sistem.'],

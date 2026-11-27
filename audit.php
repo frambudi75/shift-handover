@@ -33,6 +33,28 @@ if ($search !== '') {
 
 $whereSql = implode(' AND ', $where);
 
+// Export filtered audit logs to CSV (Excel-friendly UTF-8 BOM)
+if (isset($_GET['export']) && $_GET['export'] === 'csv') {
+    $expStmt = $pdo->prepare("SELECT created_at, username, action, description, ip_address FROM activity_logs WHERE {$whereSql} ORDER BY id DESC LIMIT 5000");
+    $expStmt->execute($params);
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="audit_trail_' . date('Ymd_His') . '.csv"');
+    $out = fopen('php://output', 'w');
+    fwrite($out, "\xEF\xBB\xBF");
+    fputcsv($out, ['Waktu (WIB)', 'Username', 'Aksi', 'Deskripsi Aktivitas', 'Alamat IP']);
+    while ($r = $expStmt->fetch(PDO::FETCH_ASSOC)) {
+        fputcsv($out, [
+            date('d/m/Y H:i:s', strtotime($r['created_at'])),
+            $r['username'],
+            $r['action'],
+            $r['description'],
+            $r['ip_address'] ?: '-',
+        ]);
+    }
+    fclose($out);
+    exit;
+}
+
 $cntStmt = $pdo->prepare("SELECT COUNT(*) FROM activity_logs WHERE {$whereSql}");
 $cntStmt->execute($params);
 $totalRows  = (int)$cntStmt->fetchColumn();
@@ -95,7 +117,12 @@ require_once __DIR__ . '/includes/header.php';
         <button type="submit" class="flex-1 py-2.5 px-4 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] text-white font-extrabold text-xs shadow-sm transition cursor-pointer">
           Filter
         </button>
-        <a href="<?= BASE_URL ?>audit" class="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs transition flex items-center">
+        <a href="?search=<?= urlencode($search) ?>&action=<?= urlencode($filterAction) ?>&export=csv"
+           class="py-2.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition flex items-center gap-1 shadow-sm" title="Unduh CSV Audit Trail">
+          <i class="ph-bold ph-download-simple"></i>
+          <span>CSV</span>
+        </a>
+        <a href="<?= BASE_URL ?>audit" class="py-2.5 px-3.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs transition flex items-center">
           Reset
         </a>
       </div>
