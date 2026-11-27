@@ -84,7 +84,7 @@ if ($isValidToken && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     ->execute(['aid' => $selectedId, 'na' => $chosen['nama_aset'], 'unama' => $displayBorrower, 'cat' => $noteText]);
                 notify_aset_activity(
                     $pdo,
-                    'Peminjaman Kunci via QR Tamu',
+                    'Peminjaman ' . $chosen['kategori'] . ' via QR Tamu',
                     "**{$chosen['nama_aset']}** ({$chosen['kode_aset']}) dipinjam oleh **{$displayBorrower}**." . ($catatan !== '' ? "\nCatatan: {$catatan}" : ''),
                     0xf5a623
                 );
@@ -96,7 +96,7 @@ if ($isValidToken && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     ->execute(['aid' => $selectedId, 'na' => $chosen['nama_aset'], 'unama' => $displayBorrower, 'cat' => $noteText]);
                 notify_aset_activity(
                     $pdo,
-                    'Pengembalian Kunci via QR',
+                    'Pengembalian ' . $chosen['kategori'] . ' via QR',
                     "**{$chosen['nama_aset']}** ({$chosen['kode_aset']}) telah dikembalikan oleh **{$displayBorrower}**." . ($catatan !== '' ? "\nCatatan: {$catatan}" : ''),
                     0x10b981
                 );
@@ -151,13 +151,13 @@ $appFullName = get_app_full_name();
     <div class="text-center space-y-1.5">
       <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#efeffb] text-[#6558f5] text-xs font-extrabold">
         <i class="ph-fill ph-qr-code text-base"></i>
-        <span>Portal Scan QR<?= $targetFolder ? ' · Folder ' . sanitize($targetFolder['nama_folder']) : '' ?> · <?= sanitize($appName) ?></span>
+        <span>Portal Scan QR<?= $targetFolder ? ' · ' . sanitize($targetFolder['nama_folder']) : ($targetAsset ? ' · ' . sanitize($targetAsset['kategori']) : '') ?> · <?= sanitize($appName) ?></span>
       </div>
       <h1 class="text-2xl font-extrabold text-[#181b2c] tracking-tight">
-        <?= $targetAsset ? sanitize($targetAsset['nama_aset']) : ($targetFolder ? 'Folder: ' . sanitize($targetFolder['nama_folder']) : 'Catat Peminjaman Kunci') ?>
+        <?= $targetAsset ? sanitize($targetAsset['nama_aset']) : ($targetFolder ? 'Catat ' . sanitize($targetFolder['nama_folder']) : 'Catat Peminjaman Item') ?>
       </h1>
       <p class="text-xs text-slate-500">
-        <?= $targetAsset ? 'Kode: ' . sanitize($targetAsset['kode_aset']) . ' · ' . sanitize($targetAsset['kategori']) : ($targetFolder ? 'Pilih item dari folder ' . sanitize($targetFolder['nama_folder']) . ' lalu isi identitas Anda.' : 'Pilih kunci atau aset yang dipinjam/dikembalikan lalu isi identitas Anda.') ?>
+        <?= $targetAsset ? 'Kode: ' . sanitize($targetAsset['kode_aset']) . ' · ' . sanitize($targetAsset['kategori']) : ($targetFolder ? 'Pilih item dari folder ' . sanitize($targetFolder['nama_folder']) . ' lalu isi identitas Anda.' : 'Pilih kunci, alat, atau aset yang dipinjam/dikembalikan lalu isi identitas Anda.') ?>
       </p>
     </div>
 
@@ -222,7 +222,7 @@ $appFullName = get_app_full_name();
                 <input type="radio" name="aksi" id="radioPinjam" value="PINJAM" class="aksi-radio sr-only" <?= $defaultAksi === 'PINJAM' ? 'checked' : '' ?> <?= $isTargetBorrowed ? 'disabled' : '' ?> />
                 <div class="aksi-box-pinjam p-3 rounded-2xl border border-slate-200 text-center transition">
                   <i class="ph-bold ph-hand-grabbing text-base text-[#6558f5] block mb-0.5"></i>
-                  <span class="font-extrabold text-slate-800">Pinjam Kunci</span>
+                  <span class="font-extrabold text-slate-800">Pinjam</span>
                 </div>
               </label>
               <label class="cursor-pointer">
@@ -234,15 +234,15 @@ $appFullName = get_app_full_name();
               </label>
             </div>
             <p id="borrowLockHint" class="text-[11px] text-amber-700 font-bold mt-1.5 <?= $isTargetBorrowed ? '' : 'hidden' ?>">
-              <i class="ph-bold ph-lock"></i> Kunci ini sedang dipinjam — hanya bisa dicatat pengembaliannya terlebih dahulu.
+              <i class="ph-bold ph-lock"></i> Item ini sedang dipinjam — hanya bisa dicatat pengembaliannya terlebih dahulu.
             </p>
           </div>
 
           <?php if (!$targetAsset): ?>
             <div>
-              <label class="block font-extrabold text-slate-700 mb-1.5">Pilih Kunci / Aset</label>
+              <label class="block font-extrabold text-slate-700 mb-1.5">Pilih <?= $targetFolder ? sanitize($targetFolder['nama_folder']) : 'Kunci / Alat / Aset' ?></label>
               <select name="asset_id" id="scanAssetSelect" onchange="syncScanAssetStatus()" required class="w-full px-3.5 py-3 rounded-xl bg-slate-50 border border-slate-200 font-bold text-slate-800">
-                <option value="">-- Pilih Kunci atau Aset --</option>
+                <option value="">-- Pilih <?= $targetFolder ? sanitize($targetFolder['nama_folder']) : 'Item' ?> --</option>
                 <?php foreach ($allAssets as $al): ?>
                   <option value="<?= $al['id'] ?>" data-status="<?= sanitize($al['status']) ?>">
                     [<?= sanitize($al['kategori']) ?>] <?= sanitize($al['kode_aset']) ?> - <?= sanitize($al['nama_aset']) ?> (<?= $al['status'] ?>)
