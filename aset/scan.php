@@ -7,12 +7,23 @@ require_once __DIR__ . '/../includes/aset_helper.php';
 
 ensure_aset_tables($pdo);
 
-$assetId = max(0, (int)($_GET['id'] ?? $_POST['qr_id'] ?? 0));
-$token   = trim($_GET['t'] ?? $_POST['qr_t'] ?? '');
+$assetId  = max(0, (int)($_GET['id'] ?? $_POST['qr_id'] ?? 0));
+$folderId = $assetId > 0 ? 0 : max(0, (int)($_GET['folder'] ?? $_POST['qr_folder'] ?? 0));
+$token    = trim($_GET['t'] ?? $_POST['qr_t'] ?? '');
 
-$isValidToken = verify_aset_qr_token($assetId, $token);
+$isValidToken = verify_aset_qr_token($assetId, $token, $folderId);
 $targetAsset  = null;
+$targetFolder = null;
 $allAssets    = [];
+
+$fetchScanAssets = function (PDO $pdo, int $fid): array {
+    if ($fid > 0) {
+        $s = $pdo->prepare("SELECT * FROM shift_assets WHERE folder_id = :fid ORDER BY status ASC, nama_aset ASC");
+        $s->execute(['fid' => $fid]);
+        return $s->fetchAll();
+    }
+    return $pdo->query("SELECT * FROM shift_assets ORDER BY kategori ASC, status ASC, nama_aset ASC")->fetchAll();
+};
 
 if ($isValidToken) {
     if ($assetId > 0) {
@@ -22,8 +33,17 @@ if ($isValidToken) {
         if (!$targetAsset) {
             $isValidToken = false;
         }
+    } elseif ($folderId > 0) {
+        $stmtF = $pdo->prepare("SELECT * FROM shift_asset_folders WHERE id = :fid LIMIT 1");
+        $stmtF->execute(['fid' => $folderId]);
+        $targetFolder = $stmtF->fetch() ?: null;
+        if (!$targetFolder) {
+            $isValidToken = false;
+        }
     }
-    $allAssets = $pdo->query("SELECT * FROM shift_assets ORDER BY FIELD(kategori,'Kunci','Kartu Akses','Alat / Tools','Perangkat IT','Lainnya'), status ASC, nama_aset ASC")->fetchAll();
+    if ($isValidToken) {
+        $allAssets = $fetchScanAssets($pdo, $folderId);
+    }
 }
 
 $successMsg = '';
@@ -45,8 +65,8 @@ if ($isValidToken && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtA->execute(['id' => $selectedId]);
         $chosen = $stmtA->fetch();
 
-        if (!$chosen) {
-            $errorMsg = 'Data kunci / aset tidak ditemukan.';
+        if (!$chosen || ($folderId > 0 && (int)$chosen['folder_id'] !== $folderId)) {
+            $errorMsg = 'Data kunci / aset tidak ditemukan pada folder ini.';
         } else {
             $displayBorrower = $kontak !== ''
                 ? mb_substr($namaTamu . ' (' . $kontak . ')', 0, 100)
@@ -84,7 +104,7 @@ if ($isValidToken && $_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // Refresh state after update
-            $allAssets = $pdo->query("SELECT * FROM shift_assets ORDER BY FIELD(kategori,'Kunci','Kartu Akses','Alat / Tools','Perangkat IT','Lainnya'), status ASC, nama_aset ASC")->fetchAll();
+            $allAssets = $fetchScanAssets($pdo, $folderId);
             if ($assetId > 0) {
                 $stmtA->execute(['id' => $assetId]);
                 $targetAsset = $stmtA->fetch() ?: null;
@@ -129,13 +149,13 @@ $appFullName = get_app_full_name();
     <div class="text-center space-y-1.5">
       <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#efeffb] text-[#6558f5] text-xs font-extrabold">
         <i class="ph-fill ph-qr-code text-base"></i>
-        <span>Portal Scan QR Kunci &amp; Aset · <?= sanitize($appName) ?></span>
+        <span>Portal Scan QR<?= $targetFolder ? ' · Folder ' . sanitize($targetFolder['nama_folder']) : '' ?> · <?= sanitize($appName) ?></span>
       </div>
       <h1 class="text-2xl font-extrabold text-[#181b2c] tracking-tight">
-        <?= $targetAsset ? sanitize($targetAsset['nama_aset']) : 'Catat Peminjaman Kunci' ?>
+        <?= $targetAsset ? sanitize($targetAsset['nama_aset']) : ($targetFolder ? 'Folder: ' . sanitize($targetFolder['nama_folder']) : 'Catat Peminjaman Kunci') ?>
       </h1>
       <p class="text-xs text-slate-500">
-        <?= $targetAsset ? 'Kode: ' . sanitize($targetAsset['kode_aset']) . ' · ' . sanitize($targetAsset['kategori']) : 'Pilih kunci atau aset yang dipinjam/dikembalikan lalu isi identitas Anda.' ?>
+        <?= $targetAsset ? 'Kode: ' . sanitize($targetAsset['kode_aset']) . ' · ' . sanitize($targetAsset['kategori']) : ($targetFolder ? 'Pilih item dari folder ' . sanitize($targetFolder['nama_folder']) . ' lalu isi identitas Anda.' : 'Pilih kunci atau aset yang dipinjam/dikembalikan lalu isi identitas Anda.') ?>
       </p>
     </div>
 
@@ -185,6 +205,7 @@ $appFullName = get_app_full_name();
       <div class="bg-white rounded-[28px] border border-slate-100 shadow-xl p-5 sm:p-7">
         <form method="POST" action="" class="space-y-4 text-xs">
           <input type="hidden" name="qr_id" value="<?= $assetId ?>" />
+          <input type="hidden" name="qr_folder" value="<?= $folderId ?>" />
           <input type="hidden" name="qr_t" value="<?= sanitize($token) ?>" />
 
           <!-- Action Toggle -->

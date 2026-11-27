@@ -1,5 +1,5 @@
 <?php
-// aset/print_qr.php - Cetak Massal Label Stiker QR Kunci & Aset (Grid A4)
+// aset/print_qr.php - Cetak Massal Label Stiker QR Kunci & Aset Per Folder atau Semua (Grid A4)
 require_once __DIR__ . '/../config/app.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/auth.php';
@@ -9,16 +9,41 @@ require_once __DIR__ . '/../includes/aset_helper.php';
 require_login();
 ensure_aset_tables($pdo);
 
-$assets = $pdo->query("SELECT * FROM shift_assets ORDER BY kategori ASC, kode_aset ASC, nama_aset ASC")->fetchAll();
+$folders  = $pdo->query("SELECT * FROM shift_asset_folders ORDER BY urutan ASC, id ASC")->fetchAll();
+$folderId = max(0, (int)($_GET['folder'] ?? 0));
+$activeFolder = null;
+foreach ($folders as $f) {
+    if ((int)$f['id'] === $folderId) {
+        $activeFolder = $f;
+        break;
+    }
+}
+if ($folderId > 0 && !$activeFolder) $folderId = 0;
+
+if ($folderId > 0) {
+    $stmtA = $pdo->prepare("SELECT * FROM shift_assets WHERE folder_id = :fid ORDER BY kode_aset ASC, nama_aset ASC");
+    $stmtA->execute(['fid' => $folderId]);
+    $assets = $stmtA->fetchAll();
+    $portalToken = get_aset_qr_token(0, $folderId);
+    $portalUrl   = BASE_URL . 'aset/scan?folder=' . $folderId . '&t=' . $portalToken;
+    $portalTitle = 'Portal Folder: ' . $activeFolder['nama_folder'];
+    $portalCode  = 'FOLDER-' . strtoupper($activeFolder['slug']);
+} else {
+    $assets = $pdo->query("SELECT * FROM shift_assets ORDER BY kategori ASC, kode_aset ASC, nama_aset ASC")->fetchAll();
+    $portalToken = get_aset_qr_token(0, 0);
+    $portalUrl   = BASE_URL . 'aset/scan?t=' . $portalToken;
+    $portalTitle = 'Scan Semua Kunci & Aset';
+    $portalCode  = 'MEJA-RAK';
+}
+
 $appName = get_app_name();
-$masterToken = get_aset_qr_token(0);
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cetak Label QR Kunci &amp; Aset — <?= sanitize($appName) ?></title>
+  <title>Cetak Label QR — <?= sanitize($appName) ?></title>
   <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/tailwind.min.css?v=<?= @filemtime(__DIR__ . '/../assets/css/tailwind.min.css') ?: '280' ?>" />
   <script src="<?= BASE_URL ?>assets/js/qrcode.min.js"></script>
   <style>
@@ -68,29 +93,40 @@ $masterToken = get_aset_qr_token(0);
     <!-- Toolbar -->
     <div class="no-print bg-white rounded-2xl border border-slate-200 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
       <div>
-        <h1 class="text-base font-extrabold text-slate-900">Cetak Massal Stiker QR Kunci &amp; Aset</h1>
-        <p class="text-xs text-slate-500">Total <?= count($assets) + 1 ?> label (1 QR Meja Tamu + <?= count($assets) ?> QR item kunci/aset). Siap cetak kertas A4.</p>
+        <h1 class="text-base font-extrabold text-slate-900">
+          Cetak Stiker QR <?= $activeFolder ? '— Folder ' . sanitize($activeFolder['nama_folder']) : '(Semua Folder)' ?>
+        </h1>
+        <p class="text-xs text-slate-500">Total <?= count($assets) + 1 ?> label (1 QR Portal + <?= count($assets) ?> QR item). Siap cetak kertas A4.</p>
       </div>
-      <div class="flex items-center gap-2">
-        <a href="<?= BASE_URL ?>aset/index" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold">Kembali</a>
+      <div class="flex flex-wrap items-center gap-2">
+        <select onchange="window.location.href='<?= BASE_URL ?>aset/print_qr' + (this.value > 0 ? '?folder=' + this.value : '')"
+                class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold cursor-pointer">
+          <option value="0" <?= $folderId === 0 ? 'selected' : '' ?>>Semua Folder</option>
+          <?php foreach ($folders as $f): ?>
+            <option value="<?= (int)$f['id'] ?>" <?= $folderId === (int)$f['id'] ? 'selected' : '' ?>>
+              Folder: <?= sanitize($f['nama_folder']) ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+        <a href="<?= BASE_URL ?>aset/index<?= $folderId > 0 ? '?folder=' . $folderId : '' ?>" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold">Kembali</a>
         <button type="button" onclick="window.print()" class="px-5 py-2 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] text-white text-xs font-extrabold cursor-pointer">
-          Cetak Semua (A4)
+          Cetak (A4)
         </button>
       </div>
     </div>
 
     <!-- Sticker Grid -->
     <div class="qr-grid">
-      <!-- Master Desk QR -->
+      <!-- Portal Folder / Master QR -->
       <div class="qr-sticker" style="border-color: #6558f5;">
-        <div class="text-[9.5px] font-extrabold uppercase tracking-wider text-[#6558f5]">PORTAL TAMU / RAK KUNCI</div>
-        <div class="text-xs font-extrabold text-slate-900 mt-0.5 leading-snug">Scan Semua Kunci &amp; Aset</div>
-        <div class="text-[10px] font-mono text-slate-500 mt-0.5">MEJA-RAK</div>
-        <div class="qr-box" data-qr-url="<?= sanitize(BASE_URL . 'aset/scan?t=' . $masterToken) ?>"></div>
+        <div class="text-[9.5px] font-extrabold uppercase tracking-wider text-[#6558f5]">PORTAL SCAN QR</div>
+        <div class="text-xs font-extrabold text-slate-900 mt-0.5 leading-snug"><?= sanitize($portalTitle) ?></div>
+        <div class="text-[10px] font-mono text-slate-500 mt-0.5"><?= sanitize($portalCode) ?></div>
+        <div class="qr-box" data-qr-url="<?= sanitize($portalUrl) ?>"></div>
         <div class="text-[9.5px] text-slate-400">Scan kamera HP untuk catat pinjam/kembali</div>
       </div>
 
-      <!-- Per-Key QR Stickers -->
+      <!-- Per-Item QR Stickers -->
       <?php foreach ($assets as $a): ?>
         <?php $tok = get_aset_qr_token((int)$a['id']); ?>
         <div class="qr-sticker">
