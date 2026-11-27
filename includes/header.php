@@ -85,13 +85,13 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
     <!-- Curved purple sidebar (Desktop Only) -->
     <aside class="curved-sidebar-wrapper hidden md:flex md:flex-col shrink-0">
       <!-- Top concave curve -->
-      <svg class="sidebar-curve-top" viewBox="0 0 38 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0 0 C0 26, 20 38, 38 48 L0 48 Z" fill="#6558f5"/>
+      <svg class="sidebar-curve-top" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0 0 C0 22, 12 40, 32 40 L0 40 Z" fill="#6558f5"/>
       </svg>
 
       <!-- Purple vertical bar -->
       <div class="sidebar-body">
-        <div class="flex flex-col items-center gap-2 w-full overflow-y-auto no-scrollbar py-1">
+        <div class="flex flex-col items-center gap-1.5 w-full overflow-y-auto no-scrollbar py-0.5">
           <!-- 1. Dashboard -->
           <a href="<?= BASE_URL ?>dashboard" 
              class="sidebar-btn group relative w-10 h-10 rounded-[14px] flex items-center justify-center transition-all duration-200 shrink-0 <?= $current_page === 'dashboard' ? 'bg-white text-[#6558f5] shadow-md scale-105' : 'text-white/80 hover:text-white hover:bg-white/15 hover:scale-105' ?>">
@@ -202,8 +202,8 @@ if (in_array($user['role'] ?? '', ['admin', 'superadmin'])) {
       </div>
 
       <!-- Bottom concave curve -->
-      <svg class="sidebar-curve-bottom" viewBox="0 0 38 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0 48 C0 22, 20 10, 38 0 L0 0 Z" fill="#6558f5"/>
+      <svg class="sidebar-curve-bottom" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0 40 C0 18, 12 0, 32 0 L0 0 Z" fill="#6558f5"/>
       </svg>
     </aside>
 
