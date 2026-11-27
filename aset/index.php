@@ -68,7 +68,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $assets = $pdo->query("SELECT * FROM shift_assets ORDER BY status DESC, kategori ASC, nama_aset ASC")->fetchAll();
-$logs   = $pdo->query("SELECT * FROM shift_asset_logs ORDER BY id DESC LIMIT 20")->fetchAll();
+
+// Filter & Pagination for Riwayat Serah Terima Kunci & Aset
+$logQ      = trim($_GET['log_q'] ?? '');
+$logAksi   = in_array($_GET['log_aksi'] ?? 'all', ['all', 'PINJAM', 'KEMBALI'], true) ? ($_GET['log_aksi'] ?? 'all') : 'all';
+$logSumber = in_array($_GET['log_sumber'] ?? 'all', ['all', 'tamu', 'petugas'], true) ? ($_GET['log_sumber'] ?? 'all') : 'all';
+$logDate   = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['log_date'] ?? '') ? $_GET['log_date'] : '';
+$logPage   = max(1, (int)($_GET['log_page'] ?? 1));
+$logPerPage = 10;
+
+$logWhere  = [];
+$logParams = [];
+if ($logQ !== '') {
+    $logWhere[] = "(nama_aset LIKE :lq1 OR nama_user LIKE :lq2 OR catatan LIKE :lq3)";
+    $logParams['lq1'] = '%' . $logQ . '%';
+    $logParams['lq2'] = '%' . $logQ . '%';
+    $logParams['lq3'] = '%' . $logQ . '%';
+}
+if ($logAksi !== 'all') {
+    $logWhere[] = "aksi = :laksi";
+    $logParams['laksi'] = $logAksi;
+}
+if ($logSumber === 'tamu') {
+    $logWhere[] = "user_id = 0";
+} elseif ($logSumber === 'petugas') {
+    $logWhere[] = "user_id > 0";
+}
+if ($logDate !== '') {
+    $logWhere[] = "DATE(created_at) = :ldate";
+    $logParams['ldate'] = $logDate;
+}
+
+$logWhereSql = !empty($logWhere) ? ('WHERE ' . implode(' AND ', $logWhere)) : '';
+$stmtLogCnt = $pdo->prepare("SELECT COUNT(*) FROM shift_asset_logs {$logWhereSql}");
+$stmtLogCnt->execute($logParams);
+$totalLogs     = (int)$stmtLogCnt->fetchColumn();
+$totalLogPages = max(1, (int)ceil($totalLogs / $logPerPage));
+if ($logPage > $totalLogPages) $logPage = $totalLogPages;
+$logOffset = ($logPage - 1) * $logPerPage;
+
+$stmtLogs = $pdo->prepare("SELECT * FROM shift_asset_logs {$logWhereSql} ORDER BY id DESC LIMIT {$logPerPage} OFFSET {$logOffset}");
+$stmtLogs->execute($logParams);
+$logs = $stmtLogs->fetchAll();
+
+$hasLogFilter = ($logQ !== '' || $logAksi !== 'all' || $logSumber !== 'all' || $logDate !== '');
+$logBaseParams = array_filter([
+    'log_q'      => $logQ !== '' ? $logQ : null,
+    'log_aksi'   => $logAksi !== 'all' ? $logAksi : null,
+    'log_sumber' => $logSumber !== 'all' ? $logSumber : null,
+    'log_date'   => $logDate !== '' ? $logDate : null,
+], fn($v) => $v !== null);
 
 $cntTersedia = 0;
 $cntDipinjam = 0;
@@ -319,14 +368,59 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
   <?php endif; ?>
 
-  <!-- Recent Asset Logs -->
-  <div class="bg-white dark:bg-[#1b1e30] rounded-[26px] border border-slate-100 dark:border-slate-800/80 shadow-feature p-5 sm:p-6">
-    <h3 class="text-sm font-extrabold text-[#181b2c] dark:text-white mb-4 flex items-center gap-2">
-      <i class="ph-bold ph-clock-counter-clockwise text-[#6558f5]"></i>
-      <span>Riwayat Serah Terima Kunci &amp; Aset Terbaru</span>
-    </h3>
+  <!-- Recent Asset Logs (Filterable + Paginated) -->
+  <div id="riwayat-aset" class="bg-white dark:bg-[#1b1e30] rounded-[26px] border border-slate-100 dark:border-slate-800/80 shadow-feature p-5 sm:p-6 space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <h3 class="text-sm font-extrabold text-[#181b2c] dark:text-white flex items-center gap-2">
+        <i class="ph-bold ph-clock-counter-clockwise text-[#6558f5]"></i>
+        <span>Riwayat Serah Terima Kunci &amp; Aset</span>
+      </h3>
+      <span class="text-[11px] font-bold text-slate-400">
+        <?= $totalLogs > 0 ? ('Menampilkan ' . ($logOffset + 1) . '–' . min($logOffset + count($logs), $totalLogs) . ' dari ' . $totalLogs . ' riwayat') : '0 riwayat' ?>
+      </span>
+    </div>
+
+    <!-- Filter Form -->
+    <form method="GET" action="<?= BASE_URL ?>aset/index#riwayat-aset" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2 text-xs">
+      <div class="lg:col-span-4 relative">
+        <i class="ph-bold ph-magnifying-glass text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+        <input type="text" name="log_q" value="<?= sanitize($logQ) ?>" placeholder="Cari kunci, nama peminjam, catatan..."
+               class="w-full pl-8 pr-3 py-2 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700" />
+      </div>
+      <div class="lg:col-span-2">
+        <select name="log_aksi" class="w-full px-3 py-2 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700 font-bold cursor-pointer">
+          <option value="all" <?= $logAksi === 'all' ? 'selected' : '' ?>>Semua Aksi</option>
+          <option value="PINJAM" <?= $logAksi === 'PINJAM' ? 'selected' : '' ?>>PINJAM</option>
+          <option value="KEMBALI" <?= $logAksi === 'KEMBALI' ? 'selected' : '' ?>>KEMBALI</option>
+        </select>
+      </div>
+      <div class="lg:col-span-2">
+        <select name="log_sumber" class="w-full px-3 py-2 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700 font-bold cursor-pointer">
+          <option value="all" <?= $logSumber === 'all' ? 'selected' : '' ?>>Semua Sumber</option>
+          <option value="tamu" <?= $logSumber === 'tamu' ? 'selected' : '' ?>>QR Tamu</option>
+          <option value="petugas" <?= $logSumber === 'petugas' ? 'selected' : '' ?>>Petugas</option>
+        </select>
+      </div>
+      <div class="lg:col-span-2">
+        <input type="date" name="log_date" value="<?= sanitize($logDate) ?>"
+               class="w-full px-3 py-2 rounded-xl bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200/80 dark:border-slate-700" />
+      </div>
+      <div class="lg:col-span-2 flex items-center gap-1.5">
+        <button type="submit" class="flex-1 px-3 py-2 rounded-xl bg-[#6558f5] hover:bg-[#5244e8] text-white font-extrabold cursor-pointer transition">
+          Filter
+        </button>
+        <?php if ($hasLogFilter): ?>
+          <a href="<?= BASE_URL ?>aset/index#riwayat-aset" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-200 transition">
+            Reset
+          </a>
+        <?php endif; ?>
+      </div>
+    </form>
+
     <?php if (empty($logs)): ?>
-      <p class="text-xs text-slate-400">Belum ada riwayat peminjaman atau pengembalian.</p>
+      <p class="text-xs text-slate-400 py-4 text-center">
+        <?= $hasLogFilter ? 'Tidak ada riwayat yang cocok dengan filter.' : 'Belum ada riwayat peminjaman atau pengembalian.' ?>
+      </p>
     <?php else: ?>
       <div class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
         <?php foreach ($logs as $lg): ?>
@@ -344,10 +438,42 @@ require_once __DIR__ . '/../includes/header.php';
                 <span class="text-slate-400 italic">— <?= sanitize($lg['catatan']) ?></span>
               <?php endif; ?>
             </div>
-            <span class="text-[11px] font-mono text-slate-400"><?= date('d/m/Y H:i', strtotime($lg['created_at'])) ?> WIB</span>
+            <span class="text-[11px] font-mono text-slate-400 shrink-0"><?= date('d/m/Y H:i', strtotime($lg['created_at'])) ?> WIB</span>
           </div>
         <?php endforeach; ?>
       </div>
+
+      <?php if ($totalLogPages > 1): ?>
+        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <span class="text-[11px] text-slate-400 font-bold">Halaman <?= $logPage ?> dari <?= $totalLogPages ?></span>
+          <div class="flex items-center gap-1">
+            <?php
+              $buildPageUrl = function (int $p) use ($logBaseParams): string {
+                  $q = array_merge($logBaseParams, ['log_page' => $p]);
+                  return BASE_URL . 'aset/index?' . http_build_query($q) . '#riwayat-aset';
+              };
+            ?>
+            <?php if ($logPage > 1): ?>
+              <a href="<?= $buildPageUrl($logPage - 1) ?>" class="px-2.5 py-1.5 rounded-lg bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200 dark:border-slate-700 font-bold hover:border-[#6558f5] transition">&laquo; Prev</a>
+            <?php endif; ?>
+
+            <?php
+              $startP = max(1, $logPage - 2);
+              $endP   = min($totalLogPages, $logPage + 2);
+              for ($p = $startP; $p <= $endP; $p++):
+            ?>
+              <a href="<?= $buildPageUrl($p) ?>"
+                 class="w-8 h-8 rounded-lg flex items-center justify-center font-extrabold transition <?= $p === $logPage ? 'bg-[#6558f5] text-white shadow-sm' : 'bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-[#6558f5]' ?>">
+                <?= $p ?>
+              </a>
+            <?php endfor; ?>
+
+            <?php if ($logPage < $totalLogPages): ?>
+              <a href="<?= $buildPageUrl($logPage + 1) ?>" class="px-2.5 py-1.5 rounded-lg bg-[#f7f7fb] dark:bg-[#151828] border border-slate-200 dark:border-slate-700 font-bold hover:border-[#6558f5] transition">Next &raquo;</a>
+            <?php endif; ?>
+          </div>
+        </div>
+      <?php endif; ?>
     <?php endif; ?>
   </div>
 </div>
