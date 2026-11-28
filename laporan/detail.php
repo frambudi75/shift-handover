@@ -141,8 +141,10 @@ require_once __DIR__ . '/../includes/header.php';
       }
       $targetWaName  = ($report['status_validasi'] === 'MENUNGGU VALIDASI') ? ($report['nama_menerima'] ?: 'Rekan Shift Baru') : ($report['nama_menyerahkan'] ?: 'Petugas Shift');
       
-      // Full rich message containing shift parameters, tasks breakdown, and outstanding items
-      $waFullMsg = build_handover_whatsapp_message($report, $tasks);
+      // Default: tanpa tautan publik di pesan WhatsApp sesuai permintaan, namun tautan publik tetap ada di sistem dan opsional jika ingin disertakan
+      $waMsgWithoutLink = build_handover_whatsapp_message($report, $tasks, false);
+      $waMsgWithLink    = build_handover_whatsapp_message($report, $tasks, true);
+      $waFullMsg        = $waMsgWithoutLink;
       ?>
 
       <!-- WhatsApp Share Button with Rich Modal -->
@@ -810,13 +812,20 @@ require_once __DIR__ . '/../includes/header.php';
 
       <!-- Message Textarea (Full breakdown of shift, tasks & outstanding) -->
       <div>
-        <div class="flex items-center justify-between mb-1.5">
+        <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
           <label for="wa_message_content" class="font-bold text-slate-700 dark:text-slate-300">
             Pratinjau Isi Pesan (Rincian &amp; Outstanding):
           </label>
-          <span id="copy-status-badge" class="hidden text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full">
-            Tersalin!
-          </span>
+          <div class="flex items-center gap-3">
+            <label class="inline-flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition">
+              <input type="checkbox" id="toggle_include_link" onchange="toggleWaPublicLink(this.checked)" 
+                     class="w-3.5 h-3.5 rounded accent-[#25D366] text-[#25D366] focus:ring-0 cursor-pointer" />
+              <span>Sertakan Link Dokumen</span>
+            </label>
+            <span id="copy-status-badge" class="hidden text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full">
+              Tersalin!
+            </span>
+          </div>
         </div>
         <textarea id="wa_message_content" rows="10" 
                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 font-mono text-[11px] leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#25D366]/50 transition"><?= sanitize($waFullMsg) ?></textarea>
@@ -850,6 +859,16 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 
 <script>
+const waTextWithoutLink = <?= json_encode($waMsgWithoutLink) ?>;
+const waTextWithLink    = <?= json_encode($waMsgWithLink) ?>;
+
+function toggleWaPublicLink(checked) {
+  const textarea = document.getElementById('wa_message_content');
+  if (textarea) {
+    textarea.value = checked ? waTextWithLink : waTextWithoutLink;
+  }
+}
+
 function openWhatsAppModal() {
   document.getElementById('modalWhatsAppShare').classList.remove('hidden');
 }

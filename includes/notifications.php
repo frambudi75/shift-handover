@@ -56,8 +56,12 @@ function get_whatsapp_url(?string $phone, string $message): string {
 /**
  * Bangun pesan WhatsApp laporan serah terima yang rapi, profesional, dan elegan
  * tanpa tumpukan emoji warna-warni yang mengganggu tampilan resmi.
+ * 
+ * @param array $report Data laporan serah terima
+ * @param array $tasks Daftar rincian pekerjaan
+ * @param bool $includeLink Apakah menyertakan tautan dokumen publik (default: false sesuai kebutuhan)
  */
-function build_handover_whatsapp_message(array $report, array $tasks): string {
+function build_handover_whatsapp_message(array $report, array $tasks, bool $includeLink = false): string {
     $appName = get_app_name();
     $repId   = (int)($report['id'] ?? 0);
     $nomorLaporan = $report['nomor_laporan'] ?? '-';
@@ -130,9 +134,8 @@ function build_handover_whatsapp_message(array $report, array $tasks): string {
             $msg .= "{$i}. {$ticketStr}{$t['pekerjaan_masalah']}\n"
                   . "   • Status : {$t['status']}\n"
                   . "   • PIC : {$t['pic']}" . (!empty($t['target_selesai']) ? " (Target: {$t['target_selesai']})" : "") . "\n";
-            if (!empty($t['kondisi_tindak_lanjut'])) {
-                $msg .= "   • Tindak Lanjut: {$t['kondisi_tindak_lanjut']}\n";
-            }
+            $tindakLanjut = trim((string)($t['kondisi_tindak_lanjut'] ?? ''));
+            $msg .= "   • Tindak Lanjut: " . ($tindakLanjut !== '' ? $tindakLanjut : "-") . "\n";
             $i++;
 
             if ($t['status'] !== 'Selesai') {
@@ -157,12 +160,15 @@ function build_handover_whatsapp_message(array $report, array $tasks): string {
             $j++;
         }
     }
+    $msg .= "{$divider}\n";
 
-    // Footer & Tautan Akses Dokumen
-    $msg .= "{$divider}\n"
-          . "*Tautan Dokumen & Pengesahan:*\n"
-          . "{$docUrl}\n\n"
-          . "_{$appName} — Sistem Berita Acara Operasional_";
+    // Sertakan tautan dokumen publik jika diaktifkan (opsional, default: tidak disertakan)
+    if ($includeLink) {
+        $msg .= "*Tautan Dokumen & Pengesahan:*\n"
+              . "{$docUrl}\n\n"
+              . "_{$appName} — Sistem Berita Acara Operasional_\n"
+              . "{$divider}\n";
+    }
 
     return $msg;
 }

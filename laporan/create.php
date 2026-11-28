@@ -657,28 +657,30 @@ require_once __DIR__ . '/../includes/header.php';
                          class="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-mono" />
                 </td>
                 <td class="py-3 px-3">
-                  <input type="text" name="pekerjaan_masalah[]" placeholder="Uraian pekerjaan/masalah..." required
+                  <input type="text" name="pekerjaan_masalah[]" 
+                         value="Pengecekkan dan Monitoring Peralatan IT (FIDS, Display Check-In, Display Bagasi, Smart Survey, Ikios)"
+                         placeholder="Uraian pekerjaan/masalah..." required
                          class="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs" />
                 </td>
                 <td class="py-3 px-3">
                   <select name="prioritas[]" onchange="recalculateCounters()"
                           class="task-prioritas w-full px-2 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold">
                     <option value="Tinggi / Kritis">Tinggi / Kritis</option>
-                    <option value="Sedang" selected>Sedang</option>
-                    <option value="Rendah">Rendah</option>
+                    <option value="Sedang">Sedang</option>
+                    <option value="Rendah" selected>Rendah</option>
                   </select>
                 </td>
                 <td class="py-3 px-3">
                   <select name="status_tugas[]" onchange="recalculateCounters()"
                           class="task-status w-full px-2 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold">
-                    <option value="Berjalan" selected>Berjalan</option>
+                    <option value="Berjalan">Berjalan</option>
                     <option value="Belum Mulai">Belum Mulai</option>
                     <option value="Tertunda">Tertunda</option>
-                    <option value="Selesai">Selesai</option>
+                    <option value="Selesai" selected>Selesai</option>
                   </select>
                 </td>
                 <td class="py-3 px-3">
-                  <input type="text" name="kondisi_tindak_lanjut[]" placeholder="Instruksi untuk shift baru..."
+                  <input type="text" name="kondisi_tindak_lanjut[]" value="-" placeholder="Instruksi untuk shift baru..."
                          class="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs" />
                 </td>
                 <td class="py-3 px-3">
@@ -1043,36 +1045,38 @@ require_once __DIR__ . '/../includes/header.php';
         <tr class="task-row">
           <td class="py-3 px-3 text-center font-bold text-slate-400 row-number">1</td>
           <td class="py-3 px-3">
-            <input type="text" name="no_tiket[]" placeholder="TK-01" 
+            <input type="text" name="no_tiket[]" placeholder="Otomatis" 
                    class="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-mono" />
           </td>
           <td class="py-3 px-3">
-            <input type="text" name="pekerjaan_masalah[]" placeholder="Uraian pekerjaan/masalah..." required
+            <input type="text" name="pekerjaan_masalah[]" 
+                   value="Pengecekkan dan Monitoring Peralatan IT (FIDS, Display Check-In, Display Bagasi, Smart Survey, Ikios)"
+                   placeholder="Uraian pekerjaan/masalah..." required
                    class="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs" />
           </td>
           <td class="py-3 px-3">
             <select name="prioritas[]" onchange="recalculateCounters()"
                     class="task-prioritas w-full px-2 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold">
               <option value="Tinggi / Kritis">Tinggi / Kritis</option>
-              <option value="Sedang" selected>Sedang</option>
-              <option value="Rendah">Rendah</option>
+              <option value="Sedang">Sedang</option>
+              <option value="Rendah" selected>Rendah</option>
             </select>
           </td>
           <td class="py-3 px-3">
             <select name="status_tugas[]" onchange="recalculateCounters()"
                     class="task-status w-full px-2 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold">
-              <option value="Berjalan" selected>Berjalan</option>
+              <option value="Berjalan">Berjalan</option>
               <option value="Belum Mulai">Belum Mulai</option>
               <option value="Tertunda">Tertunda</option>
-              <option value="Selesai">Selesai</option>
+              <option value="Selesai" selected>Selesai</option>
             </select>
           </td>
           <td class="py-3 px-3">
-            <input type="text" name="kondisi_tindak_lanjut[]" placeholder="Instruksi untuk shift baru..."
+            <input type="text" name="kondisi_tindak_lanjut[]" value="-" placeholder="Instruksi untuk shift baru..."
                    class="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs" />
           </td>
           <td class="py-3 px-3">
-            <input type="text" name="pic[]" placeholder="Nama PIC"
+            <input type="text" name="pic[]" placeholder="Nama PIC" value="<?= sanitize($user['nama_lengkap']) ?>"
                    class="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs" />
           </td>
           <td class="py-3 px-3">
